@@ -36,6 +36,7 @@ module.exports = {
     async execute(interaction) {
 		await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
+
 		if (!interaction.member.roles.cache.some(role => role.id === '1212084406282358846') && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
@@ -55,7 +56,7 @@ module.exports = {
 		}
 		let  is_officer;
 		if (interaction.options.getBoolean('officer')) {
-			is_officer = interaction.options.getBoolean('offiver')
+			is_officer = interaction.options.getBoolean('officer')
 		} else {
 			is_officer = false
 		}

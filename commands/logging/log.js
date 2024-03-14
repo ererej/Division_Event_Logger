@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const db = require("../../dbObjects")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -29,8 +30,20 @@ module.exports = {
         if (interaction.options.getUser('cohost')) {
             cohost = await interaction.guild.members.fetch(interaction.options.getUser('cohost').id)
         }
+
+        const officer_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id, is_officer: true}})
+        let is_officer = false
+		for (let i=0; i<officer_ranks.length;i++) {
+			if (interaction.member.roles.cache.some(role => role.id === officer_ranks[i].discord_rank_id)) {
+                is_officer = true
+                break
+            } else {
+                is_officer = false
+            }
+		}
+
         const voice_channel = await interaction.guild.channels.fetch(host.voice.channelId)
-        if (!interaction.member.roles.cache.some(role => role.id === '1212084406282358846') && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
+        if (!is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
         } else if (voice_channel.id === undefined) {
@@ -69,7 +82,7 @@ module.exports = {
                 break;
             case "1203731373563838496" :
                 event_log_embed.setTitle("**Patrol**")
-                log_channel_link = "<#1085337383618236457>"
+                log_channel_link = "<#1213503624404140103>"
                 break;
             default:
                 event_log_embed.setTitle("**Event**")
@@ -84,7 +97,10 @@ module.exports = {
         event_log_embed.addFields({name: 'Attendeees', value: "\u200b"})
         voice_channel.members.forEach((member) => {
             if (!member.user.bot && host != member.user.id && /*cohost.id is triggering an typeError couse cohost can be Null*/(cohost === null || cohost.id != member.user.id)) {
-                attendees.push(interaction.guild.members.cache.get(member.user.id))
+
+                let attende = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: attende.id}})
+
+                //attendees.push(interaction.guild.members.cache.get(member.user.id))
                 string +=`\n${member.displayName}`
                 event_log_embed.addFields({name: '\u200b', value: `<@${member.id}>`})
             }
@@ -95,10 +111,10 @@ module.exports = {
         //place rank up function here!
         //SEA Format
         const sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
-        sea_format_channel.send(`Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n ${wedge_picture}`);
         if (log_channel_link) {
             sea_format_channel.send(`VVV${log_channel_link}VVV`)
         }
+        sea_format_channel.send(`Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n ${wedge_picture}`);
         //event logs
         await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659').send({content: `<@&${promoter_role_id}>`,embeds: [event_log_embed]})
         

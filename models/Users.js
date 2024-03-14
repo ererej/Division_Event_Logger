@@ -2,14 +2,22 @@ module.exports = (sequelize, DataTypes) => {
 	return sequelize.define('users', {
 		user_id: {
 			type: DataTypes.STRING,
-			primaryKey: true,
 		},
-		balance: {
+		guild_id: {
 			type: DataTypes.INTEGER,
-			defaultValue: 0,
 			allowNull: false,
 		},
-	}, {
-		timestamps: false,
+		promo_points: {
+			type: DataTypes.INTEGER,
+		},
+		rank_id: {
+			type: DataTypes.STRING
+		},
+		total_events_attended: {
+			type: DataTypes.INTEGER
+		},
+		recruted_by: {
+			type: DataTypes.STRING
+		}
 	});
 };
