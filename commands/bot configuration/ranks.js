@@ -22,7 +22,7 @@ module.exports = {
         })
         division_ranks.forEach(division_rank => {
             const rank_name = interaction.guild.roles.cache.get(division_rank.discord_rank_id).name
-            rankList.addFields({name: `${rank_name}` ,value: `promo points required:  ${division_rank.promo_points}`})
+            rankList.addFields({name: `${rank_name}` ,value: `promo points required:  ${division_rank.promo_points} \nindex:  ${division_rank.rank_index}`})
         });
         interaction.editReply({embeds: [rankList]})
 }}};

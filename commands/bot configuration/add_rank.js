@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
-const db = require("../../dbObjects.js")
+const db = require("../../dbObjects.js");
+const sequelize = require('sequelize');
 
 
 module.exports = {
@@ -41,7 +42,11 @@ module.exports = {
 		} else {
         const discordRole = interaction.options.getRole('linked_role');
 		const promo_points = interaction.options.getInteger('promo_points');
-		let rank_index = 1 //add logix
+		let rank_index = 0
+		const highest_rank_index = await db.Ranks.max("rank_index", { where: {guild_id: interaction.guild.id}})
+		if (highest_rank_index || highest_rank_index === 0) {
+			rank_index = highest_rank_index + 1
+		}
 		let roblox_id;
 		if (interaction.options.getInteger('roblox_rank_id')) {
 			roblox_id = interaction.options.getInteger('roblox_rank_id')
@@ -64,7 +69,7 @@ module.exports = {
 
 		try {
 			rank = await db.Ranks.create({ discord_rank_id: discordRole.id, guild_id: discordRole.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer })
-			const embeded_reply = new EmbedBuilder().setDescription(`Rank **${discordRole.name}** succsesfuly linked.`).setColor(discordRole.color)
+			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked.`).setColor(discordRole.color)
 			interaction.editReply({embeds: [embeded_reply]});
 		}
 		catch (error) {

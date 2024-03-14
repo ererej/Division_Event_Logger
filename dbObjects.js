@@ -16,14 +16,6 @@ const Ranks = require('./models/Ranks.js')(sequelize, Sequelize.DataTypes);
 UserItems.belongsTo(CurrencyShop, { foreignKey: 'item_id', as: 'item' });
 //Ranks.belongsTo(Servers, {foreignKey: 'guild_id', as: 'ranks'});
 
-Ranks.belongsTo(() => server, {
-	foreignKey: "guild_id",
-	inverse: {
-		as: rank,
-		type: "hasOne"
-	},
-})
-
 Reflect.defineProperty(Users.prototype, 'addItem', {
 	value: async item => {
 		const userItem = await UserItems.findOne({
@@ -50,6 +42,16 @@ Reflect.defineProperty(Ranks.prototype, 'addRank', {
 		}
 	}
 });
+
+Reflect.defineProperty(Servers.prototype, "getRanks", {
+	value: () => {
+		return Ranks.findAll({
+			where: {guild_id: this.guild_id},
+			include: ["rank"]
+		}) 
+		
+	}
+})
 
 Reflect.defineProperty(Users.prototype, 'getItems', {
 	value: () => {
