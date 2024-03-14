@@ -69,7 +69,7 @@ module.exports = {
 
 		try {
 			rank = await db.Ranks.create({ discord_rank_id: discordRole.id, guild_id: discordRole.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer })
-			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked.`).setColor(discordRole.color)
+			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
 			interaction.editReply({embeds: [embeded_reply]});
 		}
 		catch (error) {
