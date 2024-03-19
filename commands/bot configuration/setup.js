@@ -5,10 +5,15 @@ const db = require("../../dbObjects.js");
 module.exports = {
 	data: new SlashCommandBuilder()
                 .setName('setup')
-                .setDescription('links the server to the roblox group!')
+                .setDescription('links the server to the roblox group and configures the divisions exp!')
                 .addIntegerOption(option =>
                         option.setName('roblox_group_id')
                                 .setDescription('Please input the roblox group id of your roblox group')
+                                .setRequired(true)
+                )
+                .addIntegerOption(option => 
+                        option.setName('current_exp')
+                                .setDescription('please input the current total exp of your division!')
                                 .setRequired(true)
                 ),
 
@@ -23,11 +28,12 @@ module.exports = {
                         
                         if (guild) {
                                 guild.group_id = interaction.options.getInteger("roblox_group_id")
+                                guild.exp = interaction.options.getInteger("current_exp")
                                 await guild.save();
-                                const embeded_reply = new EmbedBuilder().setDescription("successfuly update the linked group").setColor([0,255,0])
+                                const embeded_reply = new EmbedBuilder().setDescription("successfuly update the linked group and the total exp").setColor([0,255,0])
                                 await interaction.editReply({ embeds: [embeded_reply]});
                         } else {
-                                await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id") })
+                                await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), exp: interaction.options.getInteger("current_exp")})
                                 const embeded_reply = new EmbedBuilder().setDescription("server successfuly saved to the database and linked to the roblox group.").setColor([0,255,0])
                                 await interaction.editReply({ embeds: [embeded_reply]});
                         }

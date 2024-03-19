@@ -95,16 +95,23 @@ module.exports = {
         }
         string+=`Attendees: `
         event_log_embed.addFields({name: 'Attendeees', value: "\u200b"})
-        voice_channel.members.forEach((member) => {
+        
+        const guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
+
+        for (const member of voice_channel.members) {
             if (!member.user.bot && host != member.user.id && /*cohost.id is triggering an typeError couse cohost can be Null*/(cohost === null || cohost.id != member.user.id)) {
+                let attende = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}})
 
-                let attende = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: attende.id}})
+                if (!attende) {
+                    db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null})
+                }
 
-                //attendees.push(interaction.guild.members.cache.get(member.user.id))
+                const member_ranks = member.roles
+
                 string +=`\n${member.displayName}`
                 event_log_embed.addFields({name: '\u200b', value: `<@${member.id}>`})
             }
-            });
+            };
         const promoter_role_id = "1109546594535211168" 
         string += `\nPing: <@&${promoter_role_id}>`
         //event_log_embed.setFooter({ text: `Ping: <@&${promoter_role_id}>`})
