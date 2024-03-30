@@ -8,13 +8,19 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 
 const Users = require('./models/Users.js')(sequelize, Sequelize.DataTypes);
-const CurrencyShop = require('./models/CurrencyShop.js')(sequelize, Sequelize.DataTypes); /*pending deliteion*/ 
 const UserItems = require('./models/UserItems.js')(sequelize, Sequelize.DataTypes); /*pending deliteion*/ 
 const Servers = require('./models/Servers.js')(sequelize, Sequelize.DataTypes);
 const Ranks = require('./models/Ranks.js')(sequelize, Sequelize.DataTypes);
 
-UserItems.belongsTo(CurrencyShop, { foreignKey: 'item_id', as: 'item' });
+Users.hasOne(Ranks, {
+	foreignKey: 'id'
+});
+Ranks.belongsTo(Users, { foreignKey: "id", as: "rank" })
+
+
 //Ranks.belongsTo(Servers, {foreignKey: 'guild_id', as: 'ranks'});
+//Users.belongsTo(Ranks, {as: 'rank', foreignkey: 'id'})
+//Ranks.belongsTo(Users , {foreignKey: 'rank', as: 'rank'})
 
 Reflect.defineProperty(Users.prototype, 'addItem', {
 	value: async item => {
@@ -62,4 +68,4 @@ Reflect.defineProperty(Users.prototype, 'getItems', {
 	},
 });
 
-module.exports = { Users, CurrencyShop, UserItems, Servers, Ranks};
+module.exports = { Users, UserItems, Servers, Ranks};

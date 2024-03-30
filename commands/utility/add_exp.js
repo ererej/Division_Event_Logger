@@ -20,33 +20,37 @@ module.exports = {
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
             const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
-            server.exp += interaction.options.getInteger('exp')
-            server.save()
-            const channel = await interaction.guild.channels.fetch('1092920883363991612')
-            const message = await channel.messages.fetch('1219244532735152178')
-            let level = 0
-            let sum = 0
-            let past_level_total_exp = 0
-            while (sum<server.exp) {
-                level++
-                past_level_total_exp = sum
-                sum += (level**2)*500
-            }
-            const exp_needed = sum
-            const time = new Date
+            if (!server) {
+                await interaction.editReply({ embeds: [embeded_error.setDescription("please run the /setup command so that the server gets added to the data base")]})
+            } else {
+                server.exp += interaction.options.getInteger('exp_to_add')
+                server.save()
+                const channel = await interaction.guild.channels.fetch('1092920883363991612')
+                const message = await channel.messages.fetch('1219244532735152178')
+                let level = 0
+                let sum = 0
+                let past_level_total_exp = 0
+                while (sum<server.exp) {
+                    level++
+                    past_level_total_exp = sum
+                    sum += (level**2)*500
+                }
+                const exp_needed = sum
+                const time = new Date
 
-            const procentage = Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)
+                const procentage = Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)
 
-            let new_message = `# Level ${level}\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.round((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\nLevel **4** [` 
-            for (let i=0;i<procentage/5;i++) {
-                new_message += "▮"
+                let new_message = `# Level ${level}\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.round((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\nLevel **4** [` 
+                for (let i=0;i<procentage/5;i++) {
+                    new_message += "▮"
+                }
+                for (let i=0;i<20-(procentage/5);i++) {
+                    new_message += "▯"
+                }
+                new_message += `] level **5** (${Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)}%)\n*Updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}*`
+                message.edit(new_message)
+                interaction.editReply("Exp updated!")
             }
-            for (let i=0;i<20-(procentage/5);i++) {
-                new_message += "▯"
-            }
-            new_message += `] level **5** (${Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)}%)\n### Updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
-            message.edit(new_message)
-            interaction.editReply("Exp updated!")
         }
     }
 }

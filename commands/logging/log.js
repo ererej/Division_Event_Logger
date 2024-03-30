@@ -34,7 +34,7 @@ module.exports = {
         const officer_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id, is_officer: true}})
         let is_officer = false
 		for (let i=0; i<officer_ranks.length;i++) {
-			if (interaction.member.roles.cache.some(role => role.id === officer_ranks[i].discord_rank_id)) {
+			if (interaction.member.roles.cache.some(role => role.id === officer_ranks[i].id)) {
                 is_officer = true
                 break
             } else {
@@ -67,8 +67,6 @@ module.exports = {
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
-
-        let attendees = []
         let event_type = ""
         let log_channel_link = ""
         const event_log_embed = new EmbedBuilder().setColor([255,128,0])
@@ -82,39 +80,90 @@ module.exports = {
                 break;
             case "1203731373563838496" :
                 event_log_embed.setTitle("**Patrol**")
-                log_channel_link = "<#1213503624404140103>"
+                log_channel_link = "<#1219980705967374359>"
                 break;
             default:
                 event_log_embed.setTitle("**Event**")
         }
         let string = `**${event_type}** \nHost: <@${host.id}>\n`
-        event_log_embed.addFields({ name: "Host", value: `<@${host.id}>` }).setThumbnail(interaction.member.user.avatarURL())
+        event_log_embed.addFields({ name: "Host", value: `<@${host.id}>` }).setThumbnail(wedge_picture)
         if (cohost) {
             string+=`Cohost: ${cohost.displayName}\n`
             event_log_embed.addFields({ name: "Cohost", value: `<@${cohost.id}>`})
         }
         string+=`Attendees: `
-        event_log_embed.addFields({name: 'Attendeees', value: "\u200b"})
-        
-        const guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
-
-        for (const member of voice_channel.members) {
-            if (!member.user.bot && host != member.user.id && /*cohost.id is triggering an typeError couse cohost can be Null*/(cohost === null || cohost.id != member.user.id)) {
-                let attende = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}})
-
+        let attendees_fields = event_log_embed.addFields({name: 'Attendeees', value: "\u200b"})
+        let total_event_attendes = 0
+        let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
+        guild_ranks = guild_ranks.sort((a, b) => {a.rank_index - b.rank_index})
+        const attendees_collection = await voice_channel.members
+        let attendees = []
+        attendees_collection.forEach((attende) => {
+            attendees.push(attende)
+        })
+        for (let i in attendees) {
+            member = attendees[i]
+            if (/*!member.user.bot &&*/ host != member.user.id && (cohost === null || cohost.id != member.user.id)) {
+                total_event_attendes++
+                let promotion_string = ""
+                let attende = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}, include: db.Users.rank})
+                
                 if (!attende) {
-                    db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null})
+                    for (const rank of guild_ranks) {
+                        if (member.roles.cache.some(role => role.id === rank.id)) {
+                            attende = await db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 1, rank_id: rank.id, total_events_attended: 0, recruted_by: null})
+                            if (attende.promo_points >= guild_ranks[rank.rank_index + 1].promo_points) {
+                                const old_role_id = attende.rank_id;
+                                attende.rank_id = guild_ranks[rank.rank_index + 1].id;
+                                attende.promo_points = 0;
+                                attende.save();
+                                member.roles.add(attende.rank_id);
+                                member.roles.remove(old_role_id);
+                                promotion_string = `has been added to the data base and been prmoted to <@&${attende.rank_id}>`;
+                                
+                            } else {
+                                promotion_string = `has been added to the data base with the rank <@&${rank.id}> with (1/${rank.promo_points})`;
+                            }
+                            break
+                        } else {
+                            promotion_string = "needs to verify using rover!";
+                        }
+                    }
+                } else {
+                    if (!member.roles.cache.some(role => role.id === attende.rank_id)) {
+                        const member_roles = member.roles // ???
+                        for (const rank in guild_ranks) {
+                            if (interaction.guild.roles.cache.find(role => role.id === rank.id)) {
+                                attende.rank_id = rank.id
+                                attende.promo_points = 0
+                                member.roles.add(attende.rank_id)
+                                break
+                            }
+                        }
+                    }
+                    let attendeesRank = guild_ranks.find(role => role.id === attende.rank_id);
+                    if (attende.promo_points + 1 >= guild_ranks[attendeesRank.rankIndex + 1].promo_points) {
+                        const old_rank_id = attende.rank_id
+                        attende.rank_id = guild_ranks[attendeesRank.rankIndex + 2].id
+                        attende.promo_points = 0
+                        attende.save()
+                        member.roles.remove(old_rank_id)
+                        member.roles.add(attende.rank_id)
+                        promotion_string += ` <@&${old_rank_id}> -> <@&${attende.rank_id}> (0/${guild_ranks[attendeesRank.rankIndex + 1].promo_points})`
+                        
+                    } else {
+                        attende.promo_points += 1
+                        attende.save()
+                        promotion_string += `${attende.promo_points}/${guild_ranks[rankIndex + 1].promo_points} promo points`
+                    }
                 }
-
-                const member_ranks = member.roles
-
                 string +=`\n${member.displayName}`
-                event_log_embed.addFields({name: '\u200b', value: `<@${member.id}>`})
+                event_log_embed.addFields({name: '\u200b', value: `<@${member.id}>: `+ promotion_string})
             }
             };
+        attendees_fields.value = "Total attendees: " + total_event_attendes
         const promoter_role_id = "1109546594535211168" 
         string += `\nPing: <@&${promoter_role_id}>`
-        //event_log_embed.setFooter({ text: `Ping: <@&${promoter_role_id}>`})
         //place rank up function here!
         //SEA Format
         const sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')

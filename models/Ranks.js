@@ -1,15 +1,15 @@
 module.exports = (sequelize, DataTypes) => {
     return sequelize.define('ranks', {
-        discord_rank_id: {
+        id: { //the discord rank id
             type: DataTypes.STRING,
-            PrimaryKey: true,
+            primaryKey: true,
         },
         guild_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: false,
         },
         roblox_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: true /*change to false when implomenting roblox group link*/
         },
         promo_points: {

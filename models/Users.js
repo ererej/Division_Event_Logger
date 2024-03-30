@@ -1,10 +1,10 @@
 module.exports = (sequelize, DataTypes) => {
-	return sequelize.define('users', {
+	const User = sequelize.define('users', {
 		user_id: {
 			type: DataTypes.STRING,
 		},
 		guild_id: {
-			type: DataTypes.INTEGER,
+			type: DataTypes.STRING,
 			allowNull: false,
 		},
 		promo_points: {
@@ -19,5 +19,10 @@ module.exports = (sequelize, DataTypes) => {
 		recruted_by: {
 			type: DataTypes.STRING
 		}
-	});
+	}, {});
+	/*User.associate = function(models) {
+
+	}*/
+
+	return User
 };
