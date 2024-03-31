@@ -5,12 +5,12 @@ module.exports = {
 		.setName('raidlog')
 		.setDescription('create the format for logging raids!')
         .addStringOption(option => 
-            option.setName('enemy division(s)')
+            option.setName('enemy_division')
                 .setDescription('Give the name of the enemy division(s) here!')
                 .setRequired(true)
         )
         .addStringOption(option =>
-            option.setName('map?')
+            option.setName('map')
                 .setDescription('Give the name of the map the raid was played on!')
                 .setRequired(true)
         )
@@ -20,17 +20,17 @@ module.exports = {
                 .setRequired(true)
         )
         .addBooleanOption(option =>
-            option.setName('win?')
+            option.setName('win')
                 .setDescription('Did you win?')
                 .setRequired(true)
         )
         .addStringOption(option =>
-            option.setName('allys name')
+            option.setName('allys_name')
                 .setDescription('Give the name of the ally divisions here!')
                 .setRequired(false)
         )
         .addAttachmentOption(option => 
-            option.setName('raidDiscutions')
+            option.setName('raid_discutions')
                 .setDescription('The raid will be logged as an outside raid if you fill out this feild!')
                 .setRequired(false)
         ),
