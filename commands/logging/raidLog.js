@@ -63,10 +63,10 @@ module.exports = {
         const sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (!raid_discutions) {
-            await sea_format_channel.send(`Division(s): ${interaction.guild.name} ${allys_name} VS ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: ${resoult.url}`);
+            await sea_format_channel.send({ content: `Division(s): ${interaction.guild.name} ${allys_name} VS ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult}]});
         
         } else {
-            await sea_format_channel.send(`Division(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner}\nMap: ${map}\nDate: ${date}\nProof: ${resoult.url} \n${raid_discutions.url}\n <@186267447001612289>`);
+            await sea_format_channel.send({ content: ` <@186267447001612289> \nDivision(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner}\nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult}, {attachment: raid_discutions}]});
         }
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])

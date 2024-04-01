@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Attachment } = require('discord.js');
 const db = require("../../dbObjects")
 
 module.exports = {
@@ -59,7 +59,7 @@ module.exports = {
 
         
 
-        const wedge_picture = interaction.options.getAttachment('wedge_picture').url
+        const wedge_picture = interaction.options.getAttachment('wedge_picture')
         const division_name = interaction.guild.name
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
         const announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
@@ -170,7 +170,7 @@ module.exports = {
         if (log_channel_link) {
             sea_format_channel.send(`VVV${log_channel_link}VVV`)
         }
-        sea_format_channel.send(`Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n ${wedge_picture}`);
+        sea_format_channel.send({content: `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n`, files: [{attachment: wedge_picture}] });
         //event logs
         await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659').send({content: `<@&${promoter_role_id}>`,embeds: [event_log_embed]})
         

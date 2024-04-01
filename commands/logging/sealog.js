@@ -31,7 +31,7 @@ module.exports = {
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
         const wedge_picture = interaction.options.getAttachment('wedge_picture').url
-        await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659').send(`Division: ${interaction.guild.name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: ${wedge_picture}`);
+        await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659').send({content: `Division: ${interaction.guild.name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: `, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
         .setDescription("format succesfully logged!")
