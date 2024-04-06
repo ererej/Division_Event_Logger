@@ -4,14 +4,14 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('sealog')
 		.setDescription('create the sea logging format only!')
-        .addAttachmentOption(option => 
-            option.setName('wedge_picture')
-                .setDescription('Paste in the wedge picture!')
-                .setRequired(true)
-        )
         .addStringOption(option => 
             option.setName('announcemnt_link')
                 .setDescription('Add the link to the event announcemnt message here!')
+                .setRequired(true)
+        )
+        .addAttachmentOption(option => 
+            option.setName('wedge_picture')
+                .setDescription('Paste in the wedge picture!')
                 .setRequired(true)
         ),
 
