@@ -50,8 +50,9 @@ module.exports = {
                     new_message += "▯"
                 }
                 new_message += "[0m[2;30m[0m"
-                new_message += `] level **5** (${Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)}%)\n*Updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}*`
+                new_message += `] level **5** (${Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)}%)`
                 new_message += "\n```"
+                new_message += `Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours()}:${time.getMinutes()}`
                 message.edit(new_message)
                 interaction.editReply("Exp updated!")
             }
