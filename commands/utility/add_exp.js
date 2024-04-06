@@ -40,8 +40,8 @@ module.exports = {
 
                 const procentage = Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)
 
-                let new_message = `# Level ${level}\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.round((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\nLevel **4** [`
-                new_message += "```ansi\n[2;32m"
+                let new_message = `# Level ${level}\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.round((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
+                new_message += "```ansi\nLevel **4** [[2;32m"
                 for (let i=0;i<procentage/5;i++) {
                     new_message += "▮"
                 }
@@ -49,8 +49,9 @@ module.exports = {
                 for (let i=0;i<20-(procentage/5);i++) {
                     new_message += "▯"
                 }
-                new_message += "[0m[2;30m[0m\n```"
+                new_message += "[0m[2;30m[0m"
                 new_message += `] level **5** (${Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)}%)\n*Updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}*`
+                new_message += "\n```"
                 message.edit(new_message)
                 interaction.editReply("Exp updated!")
             }
