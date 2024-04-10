@@ -47,7 +47,10 @@ module.exports = {
         const map = interaction.options.getString('map')
         const resoult = interaction.options.getAttachment('resoult')
         const win = interaction.options.getBoolean('win')
-        let allys_name = ", " + interaction.options.getString('allys_name')
+        let allys_name = ""
+        if (interaction.options.getString('allys_name')) {
+            allys_name = ", " + interaction.options.getString('allys_name')
+        }
         const raid_discutions = interaction.options.getAttachment('raidDiscutions')
         const time = new Date()
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
