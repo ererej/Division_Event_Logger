@@ -40,7 +40,7 @@ module.exports = {
 
                 const procentage = Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)
 
-                let new_message = `# Level ${level}\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.round((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
+                let new_message = `# __Level ${level}__\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.round((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
                 new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
                 for (let i=0;i<procentage/5;i++) {
                     new_message += "▮"

@@ -86,7 +86,7 @@ module.exports = {
                 event_log_embed.setTitle("**Event**")
         }
         let string = `**${event_type}** \nHost: <@${host.id}>\n`
-        event_log_embed.addFields({ name: "Host", value: `<@${host.id}>` }).setThumbnail(wedge_picture)
+        event_log_embed.addFields({ name: "Host", value: `<@${host.id}>` }).setThumbnail(wedge_picture.url)
         if (cohost) {
             string+=`Cohost: ${cohost.displayName}\n`
             event_log_embed.addFields({ name: "Cohost", value: `<@${cohost.id}>`})
@@ -119,7 +119,7 @@ module.exports = {
                                 attende.save();
                                 member.roles.add(attende.rank_id);
                                 member.roles.remove(old_role_id);
-                                promotion_string = `has been added to the data base and been prmoted to <@&${attende.rank_id}>`;
+                                promotion_string = `has been added to the data base and been promoted to <@&${attende.rank_id}> (0/${guild_ranks[rank.rank_index + 1].promo_points})`;
                                 
                             } else {
                                 promotion_string = `has been added to the data base with the rank <@&${rank.id}> with (1/${rank.promo_points})`;
@@ -131,31 +131,47 @@ module.exports = {
                     }
                 } else {
                     if (!member.roles.cache.some(role => role.id === attende.rank_id)) {
-                        const member_roles = member.roles // ???
+                        let rankFound = false
                         for (const rank in guild_ranks) {
-                            if (interaction.guild.roles.cache.find(role => role.id === rank.id)) {
-                                attende.rank_id = rank.id
-                                attende.promo_points = 0
-                                member.roles.add(attende.rank_id)
-                                break
+                            if (interaction.guild.roles.cache.find(role => role.id === rank.id + "")) {
+                                for (const role of member.roles) {
+                                    if (role.id === rank.id) {
+                                        attende.rank_id = rank.id
+                                        attende.promo_points = 0
+                                        attende.save()
+                                        rankFound = true
+                                        break
+                                    }
+                                }
+                            }
+                            if (!rankFound) {
+                                console.log(rank.rank_index)
+                                attende.rank_id = guild_ranks[rank.rank_index].id
                             }
                         }
-                    }
-                    let attendeesRank = guild_ranks.find(role => role.id === attende.rank_id);
-                    if (attende.promo_points + 1 >= guild_ranks[attendeesRank.rankIndex + 1].promo_points) {
-                        const old_rank_id = attende.rank_id
-                        attende.rank_id = guild_ranks[attendeesRank.rankIndex + 2].id
-                        attende.promo_points = 0
                         attende.save()
-                        member.roles.remove(old_rank_id)
                         member.roles.add(attende.rank_id)
-                        promotion_string += ` <@&${old_rank_id}> -> <@&${attende.rank_id}> (0/${guild_ranks[attendeesRank.rankIndex + 1].promo_points})`
-                        
-                    } else {
-                        attende.promo_points += 1
-                        attende.save()
-                        promotion_string += `${attende.promo_points}/${guild_ranks[rankIndex + 1].promo_points} promo points`
                     }
+                    let attendeesRank = guild_ranks.find(role => role.id === attende.rank_id + "");
+                    if (attendeesRank.is_officer == false && attendeesRank.rank_index + 1 < guild_ranks.length && guild_ranks[attendeesRank.rank_index + 1].is_officer == false) {
+                        if (attende.promo_points + 1 >= guild_ranks[attendeesRank.rank_index + 1].promo_points) {
+                            const old_rank_id = attende.rank_id
+                            attende.rank_id = guild_ranks[attendeesRank.rank_index + 1].id
+                            attende.promo_points = 0
+                            attende.save()
+                            member.roles.remove(old_rank_id)
+                            member.roles.add(attende.rank_id)
+                            promotion_string += ` <@&${old_rank_id}> -> <@&${attende.rank_id}> (0/${guild_ranks[attendeesRank.rank_index + 1].promo_points})`
+                            
+                        } else {
+                            attende.promo_points += 1
+                            attende.save()
+                            promotion_string += `${attende.promo_points}/${guild_ranks[attendeesRank.rank_index + 1].promo_points} promo points`
+                        }
+                    } else {
+                        promotion_string += "Thanks for attending (can not get promoted by attending events!)"
+                    }
+
                 }
                 string +=`\n${member.displayName}`
                 event_log_embed.addFields({name: '\u200b', value: `<@${member.id}>: `+ promotion_string})
@@ -170,7 +186,7 @@ module.exports = {
         if (log_channel_link) {
             sea_format_channel.send(`VVV${log_channel_link}VVV`)
         }
-        sea_format_channel.send({content: `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n`, files: [{attachment: wedge_picture}] });
+        sea_format_channel.send({content: `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n`, files: [{attachment: wedge_picture.url}] });
         //event logs
         await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659').send({content: `<@&${promoter_role_id}>`,embeds: [event_log_embed]})
         
