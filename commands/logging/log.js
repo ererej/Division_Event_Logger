@@ -173,6 +173,10 @@ module.exports = {
                     }
 
                 }
+                if (promotion_string != "needs to verify using rover!") {
+                    attende.total_events_attended += 1
+                    attende.save()
+                }
                 string +=`\n${member.displayName}`
                 event_log_embed.addFields({name: '\u200b', value: `<@${member.id}>: `+ promotion_string})
             }
