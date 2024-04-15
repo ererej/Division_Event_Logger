@@ -173,7 +173,7 @@ module.exports = {
                     }
 
                 }
-                if (promotion_string != "needs to verify using rover!") {
+                if (!promotion_string === "needs to verify using rover!") {
                     attende.total_events_attended += 1
                     attende.save()
                 }

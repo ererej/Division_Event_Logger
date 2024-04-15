@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
-const db = require("../../dbObjects.js")
+const db = require("../../dbObjects.js");
+const { where } = require('sequelize');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -13,15 +14,16 @@ module.exports = {
 
     async execute(interaction) {
         try {
-            interaction.deferReply()
+            await interaction.deferReply()
             const user = interaction.options.getUser('user')
             const user_info = await db.Users.findOne({
                 where: { user_id: user.id, guild_id: interaction.guild.id }
             })
+            const rank = await db.Ranks.findOne({where: { rank_id: user_info.rank_id}})
             const embeded = new EmbedBuilder().setColor([0,255,0])
             embeded.setTitle(`${user.username}'s information`)
             embeded.addFields({name: "User id", value: `${user.id}`})
-            embeded.addFields({name: "User rank", value: `<@&${user_info.rank}>`})
+            embeded.addFields({name: "User rank", value: `<@&${user_info.rank_id}>`})
             embeded.addFields({name: "Promotion points", value: `${user_info.promo_points}`})
             embeded.addFields({name: "Total events attended", value: `${user_info.total_events_attended}`})
             if (user_info.recruted_by) {

@@ -1,11 +1,12 @@
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize('database', 'username', 'password', {
-	host: 'localhost',
-	dialect: 'sqlite',
+const sequelize = new Sequelize('s53_production_db', 'u53_DQi6jdTuOv', '9b3LG@mss3@8AzdmkG9AwJ.E', {
+	host: '127.0.0.1',
+	port: '3306',
+	dialect: 'mysql',
 	logging: false,
-	storage: 'database.sqlite',
 });
+
 
 /*const CurrencyShop = require('./models/CurrencyShop.js')(sequelize, Sequelize.DataTypes);  */
 require('./models/Users.js')(sequelize, Sequelize.DataTypes);
@@ -23,6 +24,10 @@ sequelize.sync({ force }).then(async () => {
 	];
 
 	await Promise.all(shop); */
+	sequelize.getQueryInterface().showAllSchemas().then((tableObj) => {
+		console.log('// Tables in database','==========================');
+		console.log(tableObj);
+	})
 	console.log('Database synced');
 
 	sequelize.close();
