@@ -14,8 +14,12 @@ module.exports = {
         try {
             await interaction.deferReply()
 
-            parser.parse().then(console.log)
+            const sheetData = await parser.parse()
+            const exp = sheetData.find(row => row.Divisions === interaction.guild.name).EXP.slice(10).trim()
+            await interaction.editReply(`This command is work in progress but might be removed. your division has ${exp} EXP in the officer tracker if you where wondering `)
 
+            /*
+            //const server = await Server.findOne({ where: { server_id: interaction.guild.id } })
             //server.exp =   the exp from officer tracker  
             server.save()
             const channel = await interaction.guild.channels.fetch('1092920883363991612')
@@ -47,9 +51,8 @@ module.exports = {
             new_message += "\n```"
             new_message += `*Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours()}:${time.getMinutes()}*`
             message.edit(new_message)
-            interaction.editReply("Exp updated!")
-        }
-        catch(error) {
+            interaction.editReply("Exp updated!") */
+        }catch(error) {
             console.error(error)
             await interaction.editReply({ content: 'There was an error while executing this command!', ephemeral: true });
         }

@@ -1,10 +1,10 @@
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize('database', 'username', 'password', {
-	host: 'localhost',
-	dialect: 'sqlite',
+const sequelize = new Sequelize('s53_production_db', 'u53_DQi6jdTuOv', '9b3LG@mss3@8AzdmkG9AwJ.E', {
+	host: '127.0.0.1',
+	port: '3306',
+	dialect: 'mysql',
 	logging: false,
-	storage: 'database.sqlite',
 });
 
 const Users = require('./models/Users.js')(sequelize, Sequelize.DataTypes);
