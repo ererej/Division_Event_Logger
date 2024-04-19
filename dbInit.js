@@ -2,7 +2,6 @@ const Sequelize = require('sequelize');
 
 const sequelize = new Sequelize('s53_production_db', 'u53_DQi6jdTuOv', '9b3LG@mss3@8AzdmkG9AwJ.E', {
 	host: 'localhost',
-	port: '3306',
 	dialect: 'mysql',
 	logging: false,
 });
