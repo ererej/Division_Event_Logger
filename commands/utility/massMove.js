@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageEmbed, Permissions, ChannelType } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Permissions, ChannelType } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -13,7 +13,7 @@ module.exports = {
 
     async execute(interaction) {
         await interaction.deferReply()
-		const embeded_error = new MessageEmbed().setColor([255,0,50])
+		const embeded_error = new EmbedBuilder().setColor([255,0,50])
 		if (!interaction.member.permissions.has(Permissions.FLAGS.MANAGE_ROLES || Permissions.FLAGS.ADMINISTRATOR)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
@@ -27,7 +27,7 @@ module.exports = {
             members.forEach(member => {
                 member.voice.setChannel(targetVoiceChannel)
             })
-            const embeded = new MessageEmbed().setColor([0,255,0])
+            const embeded = new EmbedBuilder().setColor([0,255,0])
             embeded.setDescription(`Moved ${members.size} in the ${currentVoiceChannel} voice chat to the ${targetVoiceChannel} voice chat!`)
             await interaction.editReply({ embeds: [embeded]});
         }
