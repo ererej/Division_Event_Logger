@@ -38,7 +38,7 @@ module.exports = {
 	async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
-		if (!interaction.member.roles.cache.some(role => role.id === '1212084406282358846') && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+		if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
@@ -63,7 +63,15 @@ module.exports = {
         } else {    
             winner = enemy_division
         }
-        const sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
+        let sea_format_channel;
+        switch (interaction.guild.id) {
+            case '1073682080380243998':
+                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
+                break;
+            case '1104945580142231673':
+                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1119307508457144464')
+                break;
+        }
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (!raid_discutions) {
             await sea_format_channel.send({ content: `Division(s): ${interaction.guild.name} ${allys_name} VS ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});

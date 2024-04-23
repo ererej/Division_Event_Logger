@@ -15,7 +15,7 @@ module.exports = {
 	async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
-		if (!interaction.member.roles.cache.some(role => role.id === '1212084406282358846') && !interaction.member.permissions.has(PermissionFlagsBits.ManageServer || PermissionFlagsBits.Administrator)) {
+		if (!interaction.member.permissions.has(PermissionFlagsBits.ManageServer || PermissionFlagsBits.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
@@ -25,8 +25,21 @@ module.exports = {
             } else {
                 server.exp += interaction.options.getInteger('exp_to_add')
                 server.save()
-                const channel = await interaction.guild.channels.fetch('1092920883363991612')
-                const message = await channel.messages.fetch('1219244532735152178')
+                let channel;
+                let message;
+                switch (interaction.guild.id) {
+                    case "1073682080380243998":
+                        channel = await interaction.guild.channels.fetch('1092920883363991612')
+                        message = await channel.messages.fetch('1219244532735152178')
+                        break;
+                    case "1104945580142231673":
+                        channel = await interaction.guild.channels.fetch('1119307508457144464')
+                        message = await channel.messages.fetch('1219244532735152178')
+                        break;
+                }
+                if (!message) {
+                    await channel.send("hi")
+                }
                 let level = 0
                 let sum = 0
                 let past_level_total_exp = 0

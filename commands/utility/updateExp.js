@@ -18,12 +18,29 @@ module.exports = {
             const exp = sheetData.find(row => row.Divisions === interaction.guild.name).EXP.slice(10).trim()
             await interaction.editReply(`This command is work in progress but might be removed. your division has ${exp} EXP in the officer tracker if you where wondering `)
 
-            /*
+            
             //const server = await Server.findOne({ where: { server_id: interaction.guild.id } })
             //server.exp =   the exp from officer tracker  
-            server.save()
-            const channel = await interaction.guild.channels.fetch('1092920883363991612')
-            const message = await channel.messages.fetch('1219244532735152178')
+            //server.save()
+            const server = {
+                exp: exp
+            }
+
+            let channel;
+            let message;
+            switch (interaction.guild.id) {
+                case "1073682080380243998":
+                    channel = await interaction.guild.channels.fetch('1092920883363991612')
+                    message = await channel.messages.fetch('1219244532735152178')
+                    break;
+                case "1104945580142231673":
+                    channel = await interaction.guild.channels.fetch('1231983666998018048')
+                    message = await channel.messages.fetch('1231986359598845983')
+                    break;
+            }
+            if (!message) {
+                await channel.send("hi")
+            }
             let level = 0
             let sum = 0
             let past_level_total_exp = 0
@@ -51,7 +68,7 @@ module.exports = {
             new_message += "\n```"
             new_message += `*Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours()}:${time.getMinutes()}*`
             message.edit(new_message)
-            interaction.editReply("Exp updated!") */
+            interaction.editReply("Exp updated!") 
         }catch(error) {
             console.error(error)
             await interaction.editReply({ content: 'There was an error while executing this command!', ephemeral: true });

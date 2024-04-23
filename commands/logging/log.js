@@ -71,7 +71,7 @@ module.exports = {
         let log_channel_link = ""
         const event_log_embed = new EmbedBuilder().setColor([255,128,0])
         switch (voice_channel.id) {
-            case "1074270354245173318" :
+            case "1074270354245173318" || "1118980816886845560":
                 event_log_embed.setTitle("**Training**")
                 log_channel_link = "<#1085337363359731782>"
                 break;
@@ -186,13 +186,21 @@ module.exports = {
         string += `\nPing: <@&${promoter_role_id}>`
         //place rank up function here!
         //SEA Format
-        const sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
+        let sea_format_channel;
+        switch (interaction.guild.id) {
+            case '1073682080380243998':
+                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
+                break;
+            case '1104945580142231673':
+                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1119307508457144464')
+                break;
+        }
         if (log_channel_link) {
             sea_format_channel.send(`VVV${log_channel_link}VVV`)
         }
         sea_format_channel.send({content: `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n`, files: [{attachment: wedge_picture.url}] });
         //event logs
-        await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659').send({content: `<@&${promoter_role_id}>`,embeds: [event_log_embed]})
+        await sea_format_channel.send({content: `<@&${promoter_role_id}>`,embeds: [event_log_embed]})
         
         const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged")
         await interaction.editReply({embeds: [success_embed]});
