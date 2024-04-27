@@ -13,7 +13,7 @@ module.exports = {
 
     async execute(interaction) {
         await interaction.deferReply()
-        const UserIDs = interaction.options.getString('Users').split(',')
+        const UserIDs = interaction.options.getString('users').split(',')
         let bancount = 0
         let replyString = ""
         UserIDs.forEach(userId => {
