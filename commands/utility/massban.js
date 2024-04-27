@@ -2,11 +2,11 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, User } = require
 
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName('masban')
+        .setName('massban')
         .setDescription('ban multiple users at once!')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator)
         .addStringOption(option =>
-            option.setName('Users')
+            option.setName('users')
                 .setDescription('seperate the users with ","!')
                 .setRequired(true)
             ),
