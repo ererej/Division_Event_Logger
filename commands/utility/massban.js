@@ -15,23 +15,22 @@ module.exports = {
         await interaction.deferReply()
         const UserIDs = interaction.options.getString('users').split(',')
         let bancount = 0
+        let failedBans = 0
         let replyString = ""
         UserIDs.forEach(userId => {
-            interaction.guild.members.fetch(userId).then(user => {
-                if (!user) {
-                    replyString += `could not find user with id: ${userId}\n`
-                } else if (user.bannable) {
-                    user.ban({reason: "mass ban!"})
-                    bancount++
-                    replyString += `${user.user.tag} has been banned!\n`
-                } else {
-                    replyString += `${user.user.tag} could not be banned!\n`
-                }
-
-            }).catch(error => {
-                replyString += `could not find user with id: ${userId}\n`
-        });
+            try {
+            interaction.guild.members.ban(userId, {reason: `massban by ${interaction.user.tag} (${interaction.user.id})!`})
+            replyString += `**banned <@${userId}>!**\n`
+            bancount++
+            } catch(err)  {
+                replyString += `**failed to ban <@${userId}>!**\n`
+                failedBans++
+            }
         })
-        interaction.editReply({ content: replyString + `**banned ${UserIDs.length} users!**`})
+        replyString += `**banned ${bancount} users!**\n`
+        if (failedBans > 0) {
+            replyString += `***failed to ban ${failedBans} users!***\n`
+        } 
+        interaction.editReply(replyString)
     }
 }

@@ -16,7 +16,6 @@ module.exports = {
 
             const sheetData = await parser.parse()
             const exp = sheetData.find(row => row.Divisions === interaction.guild.name).EXP.slice(10).trim()
-            await interaction.editReply(`This command is work in progress but might be removed. your division has ${exp} EXP in the officer tracker if you where wondering `)
 
             
             //const server = await Server.findOne({ where: { server_id: interaction.guild.id } })
