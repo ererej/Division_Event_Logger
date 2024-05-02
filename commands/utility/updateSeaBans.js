@@ -11,14 +11,13 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator),
 
     async execute(interaction) {
-        const sheetData = await parser.parse()//.then(data => console.log(data))
+        const sheetData = await parser.parse()
         let replyString = ""
         let discordIDColum = Object.keys(sheetData["0"])[0] + ""
         discordIDColum = [...discordIDColum.split(" ")] //returns an object for no fucking reason
         let userIDs = []
 
         for (const key in discordIDColum) if (parseInt(discordIDColum[key])) userIDs.push(discordIDColum[key].split("ㅤ")[0])
-        console.log(userIDs)
         interaction.reply(`**banning ${userIDs.length} Perm SEA banned users!**`)
         userIDs.forEach(userID => {
             interaction.guild.members.ban(userID, {reason: `Perm banned from SEA`}) 
@@ -29,6 +28,5 @@ module.exports = {
             replyString += `**banned <@${userID}>!**\n`
         })
         await interaction.channel.send(replyString)
-        // interaction.reply(`**banned ${i} Perm SEA banned users!**`)
     }
 }
