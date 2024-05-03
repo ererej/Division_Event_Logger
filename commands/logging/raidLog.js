@@ -45,6 +45,17 @@ module.exports = {
         try {
         const enemy_division = interaction.options.getString('enemy_division')
         const map = interaction.options.getString('map')
+        switch (map.tolowerCase()) {
+            case "tb3":
+                map = "Trident Battlegrounds III"
+                break;
+            case "tb2":
+                map = "Trident Battlegrounds 2"
+                break;
+            case "bermuda":
+                map = "Bermuda Air Base"
+                break;
+        }
         const resoult = interaction.options.getAttachment('resoult')
         const win = interaction.options.getBoolean('win')
         let allys_name = ""
@@ -59,7 +70,7 @@ module.exports = {
         }
         let winner = ""
         if (win) {
-            winner = interaction.guild.name + " " + allys_name
+            winner = interaction.guild.name + " " + allys_name + " "
         } else {    
             winner = enemy_division
         }
@@ -74,7 +85,7 @@ module.exports = {
         }
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (!raid_discutions) {
-            await sea_format_channel.send({ content: `Division(s): ${interaction.guild.name} ${allys_name} VS ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
+            await sea_format_channel.send({ content: `Division(s): ${interaction.guild.name} ${allys_name}VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
         
         } else {
             await sea_format_channel.send({ content: ` <@186267447001612289> \nDivision(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner}\nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
