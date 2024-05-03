@@ -1,8 +1,7 @@
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize('s53_production_db', 'u53_jcAhI5EQK8', 'XHvZ8@uZ^WxqJ0jSKI4Kybxb', {
-	host: '172.8.0.1',
-	port: "3306",
+const sequelize = new Sequelize('database', 'username', 'password', {
+	host: 'localhost',
 	dialect: 'mysql',
 	logging: false,
 });
