@@ -17,8 +17,11 @@ module.exports = {
 		if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
-		} else if (interaction.member.voice.channel === undefined) {
+		} else if (!interaction.member.voice.channel) {
             embeded_error.setDescription("You must be in a voice channel to use this command!")
+            await interaction.editReply({ embeds: [embeded_error]});
+        } else if (interaction.options.getChannel('channel') === interaction.member.voice.channel) {
+            embeded_error.setDescription("em sir you are already in that voice chat!")
             await interaction.editReply({ embeds: [embeded_error]});
         } else {
             const currentVoiceChannel = interaction.member.voice.channel
