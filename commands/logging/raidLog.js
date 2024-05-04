@@ -44,7 +44,7 @@ module.exports = {
 		} else {
         try {
         const enemy_division = interaction.options.getString('enemy_division')
-        const map = interaction.options.getString('map')
+        let map = interaction.options.getString('map')
         switch (map.toLowerCase()) {
             case "tb3":
                 map = "Trident Battlegrounds III"
