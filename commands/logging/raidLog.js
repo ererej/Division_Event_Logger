@@ -62,7 +62,7 @@ module.exports = {
         if (interaction.options.getString('allys_name')) {
             allys_name = ", " + interaction.options.getString('allys_name')
         }
-        const raid_discutions = interaction.options.getAttachment('raidDiscutions')
+        const raid_discutions = interaction.options.getAttachment('raid_discutions')
         const time = new Date()
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
         if (!allys_name) {
@@ -82,20 +82,22 @@ module.exports = {
             case '1104945580142231673':
                 sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1119307508457144464')
                 break;
+            case '831851819457052692':
+                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1202699567313985547')
+                break;
         }
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
-        if (!raid_discutions) {
+        if (raid_discutions === null) {
             await sea_format_channel.send({ content: `Division(s): ${interaction.guild.name} ${allys_name}VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
         
         } else {
-            await sea_format_channel.send({ content: ` <@186267447001612289> \nDivision(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner}\nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
+            await sea_format_channel.send({ content: ` <@186267447001612289> \nDivision(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
         }
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
         .setDescription("format succesfully logged!")
         interaction.editReply({ embeds: [embedReply]})
         } catch (error) {
-            console.log(error)
             const embededError = new EmbedBuilder()
             .setColor([255,0,0])
             .setDescription("logging failed!")
