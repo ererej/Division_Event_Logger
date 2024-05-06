@@ -1,7 +1,8 @@
 const Sequelize = require('sequelize');
+const dbcredentoiols = require('./config.json').db;
 
-const sequelize = new Sequelize('database', 'username', 'password', {
-	host: 'localhost',
+const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
+	host: dbcredentoiols.host,
 	dialect: 'mysql',
 	logging: false,
 });
@@ -15,15 +16,15 @@ require('./models/Ranks.js')(sequelize, Sequelize.DataTypes);
 
 const force = process.argv.includes('--force') || process.argv.includes('-f');
 //sequelize.sync()
-/*
-sequelize.sync({ force }).then(async () => {
-	/*const shop = [
-		CurrencyShop.upsert({ name: 'Tea', cost: 1 }),
-		CurrencyShop.upsert({ name: 'Coffee', cost: 2 }),
-		CurrencyShop.upsert({ name: 'Cake', cost: 5 }),
-	];
 
-	await Promise.all(shop); 
+sequelize.sync({ force }).then(async () => {
+	// const shop = [
+	// 	CurrencyShop.upsert({ name: 'Tea', cost: 1 }),
+	// 	CurrencyShop.upsert({ name: 'Coffee', cost: 2 }),
+	// 	CurrencyShop.upsert({ name: 'Cake', cost: 5 }),
+	// ];
+
+	// await Promise.all(shop); 
 	sequelize.getQueryInterface().showAllSchemas().then((tableObj) => {
 		console.log('// Tables in database','==========================');
 		console.log(tableObj);
@@ -31,4 +32,4 @@ sequelize.sync({ force }).then(async () => {
 	console.log('Database synced');
 
 	sequelize.close();
-}).catch(console.error);*/
+}).catch(console.error);

@@ -1,7 +1,9 @@
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize('database', 'username', 'password', {
-	host: 'localhost',
+const dbcredentoiols = require('./config.json').db;
+
+const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
+	host: dbcredentoiols.host,
 	dialect: 'mysql',
 	logging: false,
 });
