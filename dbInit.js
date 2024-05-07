@@ -33,4 +33,3 @@ sequelize.sync({ force }).then(async () => {
 
 	
 }).catch(console.error);
-sequelize.close();
