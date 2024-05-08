@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     return sequelize.define('servers', {
         guild_id: {
-            type: DataTypes.UNSIGNED,
+            type: DataTypes.STRING,
             PrimaryKey: true,
         },
         group_id: {
