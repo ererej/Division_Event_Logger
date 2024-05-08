@@ -7,6 +7,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
         .setName('add_rank')
         .setDescription('add a rank!')
+		.setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addRoleOption(option => 
             option.setName('linked_role')
                 .setDescription('Please input the role that will be linked to the rank')
@@ -35,12 +36,6 @@ module.exports = {
 
     async execute(interaction) {
 		await interaction.deferReply()
-		const embeded_error = new EmbedBuilder().setColor([255,0,0])
-
-		if (!interaction.member.roles.cache.some(role => role.id === '1212084406282358846') && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
-            embeded_error.setDescription("Insuficent permissions!")
-            await interaction.editReply({ embeds: [embeded_error]});
-		} else {
         const discordRole = interaction.options.getRole('linked_role');
 		const promo_points = interaction.options.getInteger('promo_points');
 		let rank_index = 0
@@ -79,7 +74,6 @@ module.exports = {
 			}
             console.log(error)
 			interaction.editReply('Something went wrong with adding the rank.');
-		}
 		}
 		}
 	}
