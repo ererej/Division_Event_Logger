@@ -63,13 +63,22 @@ module.exports = {
         const division_name = interaction.guild.name
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
         const announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
-        const announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
+        if (!announcmentChannel) {
+            embeded_error.setDescription("Invalid announcment message link!")
+            interaction.editReply({embeds: [embeded_error]})
+            return
+        }
+        const announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6]).catch((err) => {
+            embeded_error.setDescription("Invalid announcment message link!")
+            interaction.editReply({embeds: [embeded_error]})
+            return
+        })
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
         let event_type = ""
         let log_channel_link = ""
-        const event_log_embed = new EmbedBuilder().setColor([255,128,0])
+        const event_log_embed = new EmbedBuilder().setColor([228,35,157])
         switch (voice_channel.id) {
             case "1074270354245173318" || "1118980816886845560":
                 event_log_embed.setTitle("**Training**")
@@ -102,16 +111,21 @@ module.exports = {
             attendees.push(attende)
         })
         for (let i in attendees) {
-            member = attendees[i]
+            const member = attendees[i]
             if (/*!member.user.bot &&*/ host != member.user.id && (cohost === null || cohost.id != member.user.id)) {
                 total_event_attendes++
                 let promotion_string = ""
                 let attende = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}, include: db.Users.rank})
-                
                 if (!attende) {
                     for (const rank of guild_ranks) {
-                        if (member.roles.cache.some(role => role.id === rank.id)) {
-                            attende = await db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 1, rank_id: rank.id, total_events_attended: 0, recruted_by: null})
+                        if (member.roles.cache.some(role => role.id === rank.id)) { 
+                            const robloxUser = await fetch(`https://registry.rover.link/api/guilds/${interaction.guild.id}/discord-to-roblox/${member.id}`)
+                            if (robloxUser.status != 200) {
+                                promotion_string = "needs to verify using rover!";
+                                console.log(robloxUser.status)
+                                break
+                            }
+                            attende = await db.Users.create({user_id: member.id, roblox_id: robloxUser.robloxId, guild_id: interaction.guild.id, promo_points: 1, rank_id: rank.id, total_events_attended: 0, recruted_by: null})
                             if (attende.promo_points >= guild_ranks[rank.rank_index + 1].promo_points) {
                                 const old_role_id = attende.rank_id;
                                 attende.rank_id = guild_ranks[rank.rank_index + 1].id;
@@ -119,61 +133,60 @@ module.exports = {
                                 attende.save();
                                 member.roles.add(attende.rank_id);
                                 member.roles.remove(old_role_id);
-                                promotion_string = `has been added to the data base and been promoted to <@&${attende.rank_id}> (0/${guild_ranks[rank.rank_index + 1].promo_points})`;
-                                
+                                promotion_string = `has been added to the data base and been promoted to <@&${attende.rank_id}> (${attende.promo_points}/${guild_ranks[rank.rank_index + 1].promo_points})`;
                             } else {
-                                promotion_string = `has been added to the data base with the rank <@&${rank.id}> with (1/${rank.promo_points})`;
+                                promotion_string = `has been added to the data base with the rank <@&${rank.id}> with (${attende.promo_points}/${rank.promo_points})`;
                             }
                             break
                         } else {
-                            promotion_string = "needs to verify using rover!";
+                            promotion_string = "needs to verify using rover!!!";
                         }
                     }
-                } else {
-                    if (!member.roles.cache.some(role => role.id === attende.rank_id)) {
-                        let rankFound = false
-                        for (const rank in guild_ranks) {
-                            if (interaction.guild.roles.cache.find(role => role.id === rank.id + "")) {
-                                for (const role of member.roles) {
-                                    if (role.id === rank.id) {
-                                        attende.rank_id = rank.id
-                                        attende.promo_points = 0
-                                        attende.save()
-                                        rankFound = true
-                                        break
+                    } else {
+                        if (!member.roles.cache.some(role => role.id === attende.rank_id)) {
+                            let rankFound = false
+                            for (const rank in guild_ranks) {
+                                if (interaction.guild.roles.cache.find(role => role.id === rank.id + "")) {
+                                    for (const role of member.roles) {
+                                        if (role.id === rank.id) {
+                                            attende.rank_id = rank.id
+                                            attende.promo_points = 0
+                                            attende.save()
+                                            rankFound = true
+                                            break
+                                        }
                                     }
                                 }
+                                if (!rankFound) {
+                                    console.log(rank.rank_index)
+                                    attende.rank_id = guild_ranks[rank.rank_index].id
+                                }
                             }
-                            if (!rankFound) {
-                                console.log(rank.rank_index)
-                                attende.rank_id = guild_ranks[rank.rank_index].id
-                            }
-                        }
-                        attende.save()
-                        member.roles.add(attende.rank_id)
-                    }
-                    let attendeesRank = guild_ranks.find(role => role.id === attende.rank_id + "");
-                    if (attendeesRank.is_officer == false && attendeesRank.rank_index + 1 < guild_ranks.length && guild_ranks[attendeesRank.rank_index + 1].is_officer == false) {
-                        if (attende.promo_points + 1 >= guild_ranks[attendeesRank.rank_index + 1].promo_points) {
-                            const old_rank_id = attende.rank_id
-                            attende.rank_id = guild_ranks[attendeesRank.rank_index + 1].id
-                            attende.promo_points = 0
                             attende.save()
-                            member.roles.remove(old_rank_id)
                             member.roles.add(attende.rank_id)
-                            promotion_string += ` <@&${old_rank_id}> -> <@&${attende.rank_id}> (0/${guild_ranks[attendeesRank.rank_index + 1].promo_points})`
-                            
-                        } else {
-                            attende.promo_points += 1
-                            attende.save()
-                            promotion_string += `${attende.promo_points}/${guild_ranks[attendeesRank.rank_index + 1].promo_points} promo points`
                         }
-                    } else {
-                        promotion_string += "Thanks for attending (can not get promoted by attending events!)"
-                    }
+                        let attendeesRank = guild_ranks.find(role => role.id === attende.rank_id + "");
+                        if (attendeesRank.is_officer == false && attendeesRank.rank_index + 1 < guild_ranks.length && guild_ranks[attendeesRank.rank_index + 1].is_officer == false) {
+                            if (attende.promo_points + 1 >= guild_ranks[attendeesRank.rank_index + 1].promo_points) {
+                                const old_rank_id = attende.rank_id
+                                attende.rank_id = guild_ranks[attendeesRank.rank_index + 1].id
+                                attende.promo_points = 0
+                                attende.save()
+                                member.roles.remove(old_rank_id)
+                                member.roles.add(attende.rank_id)
+                                promotion_string += ` <@&${old_rank_id}> -> <@&${attende.rank_id}> (0/${guild_ranks[attendeesRank.rank_index + 1].promo_points})`
+                                
+                            } else {
+                                attende.promo_points += 1
+                                attende.save()
+                                promotion_string += `${attende.promo_points}/${guild_ranks[attendeesRank.rank_index + 1].promo_points} promo points`
+                            }
+                        } else {
+                            promotion_string += "Thanks for attending (can not get promoted by attending events!)"
+                        }
 
-                }
-                if (!promotion_string === "needs to verify using rover!") {
+                    }
+                if (!promotion_string.includes("needs to verify using rover")) {
                     attende.total_events_attended += 1
                     attende.save()
                 }

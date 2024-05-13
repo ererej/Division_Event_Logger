@@ -23,11 +23,6 @@ module.exports = {
                 .setDescription('Input how many points are required to rank up to this rank!')
                 .setRequired(true)
         )
-		.addIntegerOption(option =>
-			option.setName('rank_index')
-				.setDescription('The index of the rank')
-				.setRequired(false)
-		)
 		.addBooleanOption(option =>
 			option.setName('officer')
 				.setDescription('Input **True** if the members with this rank are able to host events')
@@ -59,7 +54,7 @@ module.exports = {
 		let rank = await db.Ranks.findOne({ where: { id: discordRole.id, guild_id: interaction.guild.id}})
 		
 		if (rank) {
-			embeded_error.setDescription("a rank is already linked to that role!")
+			embeded_error.setDescription("A rank is already linked to that role!")
 			interaction.editReply({embeds: [embeded_error]})
 		} else {
 

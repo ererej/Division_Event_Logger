@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         roblox_id: {
             type: DataTypes.STRING,
-            allowNull: true /*change to false when implomenting roblox group link*/
+            allowNull: false /*change to false when implomenting roblox group link*/
         },
         promo_points: {
             type: DataTypes.INTEGER,
