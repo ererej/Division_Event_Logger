@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const db = require("../../dbObjects")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -17,8 +18,18 @@ module.exports = {
 
 	async execute(interaction) {
         await interaction.deferReply()
+        const officer_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id, is_officer: true}})
+        let is_officer = false
+		for (let i=0; i<officer_ranks.length;i++) {
+			if (interaction.member.roles.cache.some(role => role.id === officer_ranks[i].id)) {
+                is_officer = true
+                break
+            } else {
+                is_officer = false
+            }
+		}
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
-		if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+		if (!is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles && !PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
