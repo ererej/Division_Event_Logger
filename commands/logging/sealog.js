@@ -33,10 +33,10 @@ module.exports = {
         const wedge_picture = interaction.options.getAttachment('wedge_picture').url
         let sea_format_channel;
         switch (interaction.guild.id) {
-            case '1073682080380243998'://FAF
-                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1241499412853817446')
+            case '1073682080380243998':
+                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
                 break;
-            case '1104945580142231673'://the osperius 
+            case '1104945580142231673':
                 sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1119307508457144464')
                 break;
         }
