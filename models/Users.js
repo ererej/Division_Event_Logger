@@ -3,10 +3,6 @@ module.exports = (sequelize, DataTypes) => {
 		user_id: {
 			type: DataTypes.STRING,
 		},
-		roblox_id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
 		guild_id: {
 			type: DataTypes.STRING,
 			allowNull: false,

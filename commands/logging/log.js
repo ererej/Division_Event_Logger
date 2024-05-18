@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Attachment } = require('discord.js');
 const db = require("../../dbObjects")
+const { roverkey } = require('../../config.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -119,14 +120,21 @@ module.exports = {
                 if (!attende) {
                     for (const rank of guild_ranks) {
                         if (member.roles.cache.some(role => role.id === rank.id)) { 
-                            const robloxUser = await fetch(`https://registry.rover.link/api/guilds/${interaction.guild.id}/discord-to-roblox/${member.id}`)
-                            if (robloxUser.status != 200) {
+                            const robloxUser = await fetch(`https://registry.rover.link/api/guilds/${interaction.guild.id}/discord-to-roblox/${member.id}`, {
+                                headers: {
+                                'Authorization': `Bearer ${roverkey}`
+                                }
+                            })
+                            
+                            if (!(robloxUser.status + "").startsWith("2")) {
                                 promotion_string = "needs to verify using rover!";
-                                console.log(robloxUser.status)
+                                if (robloxUser.status != 401) {
+                                    console.log(robloxUser.status)
+                                }   
                                 break
                             }
                             attende = await db.Users.create({user_id: member.id, roblox_id: robloxUser.robloxId, guild_id: interaction.guild.id, promo_points: 1, rank_id: rank.id, total_events_attended: 0, recruted_by: null})
-                            if (attende.promo_points >= guild_ranks[rank.rank_index + 1].promo_points) {
+                            if (attende.promo_points >= guild_ranks[rank.rank_index + 1].promo_points) { //broken!!?!??!
                                 const old_role_id = attende.rank_id;
                                 attende.rank_id = guild_ranks[rank.rank_index + 1].id;
                                 attende.promo_points = 0;
@@ -142,8 +150,8 @@ module.exports = {
                             promotion_string = "needs to verify using rover!!!";
                         }
                     }
-                    } else {
-                        if (!member.roles.cache.some(role => role.id === attende.rank_id)) {
+                    } else { //user found in the database
+                        if (!member.roles.cache.some(role => role.id === attende.rank_id)) { //user does not have the correct role
                             let rankFound = false
                             for (const rank in guild_ranks) {
                                 if (interaction.guild.roles.cache.find(role => role.id === rank.id + "")) {
@@ -151,21 +159,16 @@ module.exports = {
                                         if (role.id === rank.id) {
                                             attende.rank_id = rank.id
                                             attende.promo_points = 0
-                                            attende.save()
                                             rankFound = true
                                             break
                                         }
                                     }
                                 }
-                                if (!rankFound) {
-                                    console.log(rank.rank_index)
-                                    attende.rank_id = guild_ranks[rank.rank_index].id
-                                }
                             }
                             attende.save()
-                            member.roles.add(attende.rank_id)
+                            member.roles.add(attende.rank_id) //if the user does not have the correct role add it
                         }
-                        let attendeesRank = guild_ranks.find(role => role.id === attende.rank_id + "");
+                        let attendeesRank = guild_ranks.find(role => role.id == attende.rank_id);
                         if (attendeesRank.is_officer == false && attendeesRank.rank_index + 1 < guild_ranks.length && guild_ranks[attendeesRank.rank_index + 1].is_officer == false) {
                             if (attende.promo_points + 1 >= guild_ranks[attendeesRank.rank_index + 1].promo_points) {
                                 const old_rank_id = attende.rank_id
