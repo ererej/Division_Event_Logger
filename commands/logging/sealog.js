@@ -56,6 +56,7 @@ module.exports = {
         .setColor([0,255,0])
         .setDescription("format succesfully logged!")
         interaction.editReply({ embeds: [embedReply]})
+            .then(() => { setTimeout(() => { interaction.deleteReply() }, 5000)})
         } catch (error) {
             const embededError = new EmbedBuilder()
             .setColor([255,0,0])
