@@ -3,6 +3,7 @@ const PublicGoogleSheetsParser = require('public-google-sheets-parser')
 const spreadsheetId = '1sQIT3aOs1dWB9-f8cbsYe7MnSRfCfLRgMDSuE5b3w1I'
 const options = { useFormat: true }
 const parser = new PublicGoogleSheetsParser(spreadsheetId, options)
+const db = require("../../dbObjects.js")
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -16,29 +17,21 @@ module.exports = {
 
             const sheetData = await parser.parse()
             const exp = sheetData.find(row => row.Divisions === interaction.guild.name).EXP.slice(10).trim()
+            if (!exp) return await interaction.editReply({ content: 'There was an error while fetching the exp! This is mostlikely due to your divisions name not being the same as your discord servers name. But it can also be due to your division needing to be in the officer tracker for this to work.', ephemeral: true })
 
             
-            //const server = await Server.findOne({ where: { server_id: interaction.guild.id } })
-            //server.exp =   the exp from officer tracker  
-            //server.save()
-            const server = {
-                exp: exp
+            const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+            server.exp = exp
+            server.save()
+            const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplay" } })
+            if (!dbChannel.id) {
+                return await interaction.editReply({ content: 'There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
             }
-
-            let channel;
-            let message;
-            switch (interaction.guild.id) {
-                case "1073682080380243998":
-                    channel = await interaction.guild.channels.fetch('1092920883363991612')
-                    message = await channel.messages.fetch('1219244532735152178')
-                    break;
-                case "1104945580142231673":
-                    channel = await interaction.guild.channels.fetch('1231983666998018048')
-                    message = await channel.messages.fetch('1231986359598845983')
-                    break;
-            }
+            const channel = await interaction.guild.channels.fetch(dbChannel.id)
+            const messages = await channel.messages.fetch({ limit: 10, })
+            let message = messages.find(m => m.author.id === interaction.client.user.id && m.embeds.length === 0)
             if (!message) {
-                await channel.send("hi")
+                message = await channel.send("setting up exp display...")
             }
             let level = 0
             let sum = 0

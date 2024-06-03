@@ -3,7 +3,7 @@ const db = require('../../dbObjects')
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('add_exp')
+		.setName('addexp')
 		.setDescription('create the sea logging format only!')
         //.setDefaultMemberPermissions(PermissionFlagsBits.ManageServer || PermissionFlagsBits.Administrator)
         .addIntegerOption(option => 
@@ -25,20 +25,15 @@ module.exports = {
             } else {
                 server.exp += interaction.options.getInteger('exp_to_add')
                 server.save()
-                let channel;
-                let message;
-                switch (interaction.guild.id) {
-                    case "1073682080380243998":
-                        channel = await interaction.guild.channels.fetch('1092920883363991612')
-                        message = await channel.messages.fetch('1219244532735152178')
-                        break;
-                    case "1104945580142231673":
-                        channel = await interaction.guild.channels.fetch('1119307508457144464')
-                        message = await channel.messages.fetch('1219244532735152178')
-                        break;
+                const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplay" } })
+                if (!dbChannel.id) {
+                    return await interaction.editReply({ content: 'There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
                 }
+                const channel = await interaction.guild.channels.fetch(dbChannel.id)
+                const messages = await channel.messages.fetch({ limit: 10, })
+                let message = messages.find(m => m.author.id === interaction.client.user.id && m.embeds.length === 0)
                 if (!message) {
-                    await channel.send("hi")
+                    message = await channel.send("setting up exp display...")
                 }
                 let level = 0
                 let sum = 0

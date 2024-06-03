@@ -14,7 +14,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])
-		if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels || PermissionsBitField.Flags.Administrator)) {
+		if (!interaction.member.permissions.has(PermissionsBitField.Flags.MoveMembers || PermissionsBitField.Flags.Administrator )) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else if (!interaction.member.voice.channel) {

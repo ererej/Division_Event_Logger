@@ -74,18 +74,11 @@ module.exports = {
         } else {    
             winner = enemy_division
         }
-        let sea_format_channel;
-        switch (interaction.guild.id) {
-            case '1073682080380243998':
-                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
-                break;
-            case '1104945580142231673':
-                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1119307508457144464')
-                break;
-            case '831851819457052692':
-                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1202699567313985547')
-                break;
+        const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
+        if (!dbChannel.id) {
+            return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
+        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.id)
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (raid_discutions === null) {
             await sea_format_channel.send({ content: `Division(s): ${interaction.guild.name} ${allys_name}VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});

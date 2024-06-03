@@ -11,6 +11,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator),
 
     async execute(interaction) {
+        interaction.reply(`**Fetching SEA banned users...**`)
         const sheetData = await parser.parse()
         let replyString = ""
         let discordIDColum = Object.keys(sheetData["0"])[0] + ""
@@ -18,7 +19,7 @@ module.exports = {
         let userIDs = []
 
         for (const key in discordIDColum) if (parseInt(discordIDColum[key])) userIDs.push(discordIDColum[key].split("ㅤ")[0])
-        interaction.reply(`**banning ${userIDs.length} Perm SEA banned users!**`)
+        interaction.channel.send(`**banning ${userIDs.length} Perm SEA banned users!**`)
         userIDs.forEach(userID => {
             interaction.guild.members.ban(userID, {reason: `Perm banned from SEA`}) 
             if (replyString.length + `**banned <@${userID}>!**\n`.length >= 2000) {

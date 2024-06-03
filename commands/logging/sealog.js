@@ -42,15 +42,11 @@ module.exports = {
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
         const wedge_picture = interaction.options.getAttachment('wedge_picture').url
-        let sea_format_channel;
-        switch (interaction.guild.id) {
-            case '1073682080380243998': //FAF
-                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1241499412853817446')
-                break;
-            case '1104945580142231673':
-                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1119307508457144464')
-                break;
+        const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
+        if (!dbChannel.id) {
+            return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
+        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.id)
         await sea_format_channel.send({content: `Division: ${interaction.guild.name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: `, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
