@@ -10,7 +10,7 @@ module.exports = {
         await interaction.deferReply() 
         const vcList = new EmbedBuilder()
         .setTitle('People in your Voice Channel:')
-        .setColor('pink')
+        .setColor([255, 192, 203])
         const voiceChannel = interaction.member.voice.channel;
         if (!voiceChannel) {
             return interaction.editReply({content: "You need to be in a voice channel to use this command!"})
