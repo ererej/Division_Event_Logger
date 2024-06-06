@@ -21,6 +21,7 @@ module.exports = {
 
             
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+            if (!server) return await interaction.editReply({ content: 'This server is not registered in the database! Please ask an admin to register it using </setup:1217778156300275772>', ephemeral: true });
             server.exp = exp
             server.save()
             const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplay" } })
