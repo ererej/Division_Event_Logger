@@ -29,7 +29,7 @@ module.exports = {
             }
 		}
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
-		if (!is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles && !PermissionsBitField.Flags.Administrator)) {
+		if (!is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
@@ -47,7 +47,9 @@ module.exports = {
             return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
         const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.id)
-        await sea_format_channel.send({content: `Division: ${interaction.guild.name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: `, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
+        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+        const division_name = server.name || interaction.guild.name
+        await sea_format_channel.send({content: `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: `, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
         .setDescription("format succesfully logged!")

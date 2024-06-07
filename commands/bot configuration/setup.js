@@ -11,10 +11,15 @@ module.exports = {
                                 .setDescription('Please input the roblox group id of your roblox group')
                                 .setRequired(true)
                 )
+                .addStringOption(option =>
+                        option.setName('division_name')
+                                .setDescription('Please input the name of your division!(this is only needed if its the servers name)')
+                                .setRequired(false)
+                )
                 .addIntegerOption(option => 
                         option.setName('current_exp')
                                 .setDescription('please input the current total exp of your division!')
-                                .setRequired(true)
+                                .setRequired(false)
                 ),
 
         async execute(interaction) {

@@ -58,6 +58,8 @@ module.exports = {
         }
         const resoult = interaction.options.getAttachment('resoult')
         const win = interaction.options.getBoolean('win')
+        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+        const division_name = server.name || interaction.guild.name   
         let allys_name = ""
         if (interaction.options.getString('allys_name')) {
             allys_name = ", " + interaction.options.getString('allys_name')
@@ -70,7 +72,7 @@ module.exports = {
         }
         let winner = ""
         if (win) {
-            winner = interaction.guild.name + " " + allys_name + " "
+            winner = division_name + " " + allys_name + " "
         } else {    
             winner = enemy_division
         }
@@ -79,9 +81,10 @@ module.exports = {
             return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
         const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.id)
+        
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (raid_discutions === null) {
-            await sea_format_channel.send({ content: `Division(s): ${interaction.guild.name} ${allys_name}VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
+            await sea_format_channel.send({ content: `Division(s): ${division_name} ${allys_name}VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
         
         } else {
             await sea_format_channel.send({ content: ` <@186267447001612289> \nDivision(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
