@@ -8,14 +8,14 @@ module.exports = {
 
     async execute(interaction) {
         await interaction.deferReply() 
-        const voiceChannel = interaction.member.voice.channel;
-        const members = voiceChannel.members;
-        const vcList = new EmbedBuilder()
-        .setTitle(`${this.members.members.length} People in your Voice Channel:`)
-        .setColor([255, 0, 255])
+        const voiceChannel = await interaction.member.voice.channel;
         if (!voiceChannel) {
             return interaction.editReply({content: "You need to be in a voice channel to use this command!"})
         }
+        const members = voiceChannel.members;
+        const vcList = new EmbedBuilder()
+        .setTitle(`${members?.size} People in your Voice Channel:`)
+        .setColor([255, 0, 255])
         let string = "";
         let oneEmbedSent = false;
         members.forEach(async member => {
