@@ -30,7 +30,7 @@ module.exports = {
                 if (!dbChannel.id) {
                     return await interaction.editReply({ content: 'There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
                 }
-                const channel = await interaction.guild.channels.fetch(dbChannel.id)
+                const channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
                 const messages = await channel.messages.fetch({ limit: 10, })
                 let message = messages.find(m => m.author.id === interaction.client.user.id && m.embeds.length === 0)
                 if (!message) {

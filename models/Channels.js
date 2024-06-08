@@ -1,8 +1,11 @@
 module.exports = (sequelize, DataTypes) => {
     const Channel = sequelize.define('Channels', {
-        id: { //the discord channel id
-            type: DataTypes.STRING,
+        id: {
+            type: DataTypes.INTEGER,
             primaryKey: true,
+        },
+        channel_id: {
+            type: DataTypes.STRING,
         },
         guild_id: {
             type: DataTypes.STRING,

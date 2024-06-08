@@ -59,7 +59,7 @@ module.exports = {
         const resoult = interaction.options.getAttachment('resoult')
         const win = interaction.options.getBoolean('win')
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-        const division_name = server.name || interaction.guild.name   
+        const division_name = server ? server.name : interaction.guild.name
         let allys_name = ""
         if (interaction.options.getString('allys_name')) {
             allys_name = ", " + interaction.options.getString('allys_name')
@@ -77,10 +77,10 @@ module.exports = {
             winner = enemy_division
         }
         const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
-        if (!dbChannel.id) {
+        if (!dbChannel.channel_id) {
             return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
-        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.id)
+        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
         
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (raid_discutions === null) {

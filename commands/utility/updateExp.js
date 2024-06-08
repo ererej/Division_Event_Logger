@@ -15,7 +15,7 @@ module.exports = {
         try {
             await interaction.deferReply()
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-            const division_name = server.name || interaction.guild.name  
+            const division_name = server ? server.name : interaction.guild.name
             const sheetData = await parser.parse()
             const exp = sheetData.find(row => row.Divisions === division_name).EXP.slice(10).trim()
             if (!exp) return await interaction.editReply({ content: 'There was an error while fetching the exp! This is mostlikely due to your divisions name not being the same as your discord servers name. But it can also be due to your division needing to be in the officer tracker for this to work.', ephemeral: true })
@@ -25,10 +25,10 @@ module.exports = {
             server.exp = exp
             server.save()
             const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplay" } })
-            if (!dbChannel.id) {
+            if (!dbChannel.channel_id) {
                 return await interaction.editReply({ content: 'There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
             }
-            const channel = await interaction.guild.channels.fetch(dbChannel.id)
+            const channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
             const messages = await channel.messages.fetch({ limit: 10, })
             let message = messages.find(m => m.author.id === interaction.client.user.id && m.embeds.length === 0)
             if (!message) {

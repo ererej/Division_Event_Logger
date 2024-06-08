@@ -60,7 +60,7 @@ module.exports = {
         
 
         const wedge_picture = interaction.options.getAttachment('wedge_picture')
-        const division_name = interaction.guild.name
+        const division_name = server ? server.name : interaction.guild.name
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
         const announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
         const announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
@@ -184,10 +184,10 @@ module.exports = {
         //place rank up function here!
         //SEA Format
         dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
-        if (!dbChannel.id) {
+        if (!dbChannel.channel_id) {
             return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
-        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.id)
+        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
         if (logChannelLink) {
             sea_format_channel.send(`VVV${logChannelLink}VVV`)
         }
