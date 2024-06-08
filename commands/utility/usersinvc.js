@@ -9,7 +9,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply() 
         const vcList = new EmbedBuilder()
-        .setTitle('People in your Voice Channel:')
+        .setTitle(`${vcList.members.length} People in your Voice Channel:`)
         .setColor([255, 192, 203])
         const voiceChannel = interaction.member.voice.channel;
         if (!voiceChannel) {
