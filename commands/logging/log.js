@@ -184,7 +184,7 @@ module.exports = {
         //place rank up function here!
         //SEA Format
         dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
-        if (!dbChannel.channel_id) {
+        if (!dbChannel) {
             return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
         const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)

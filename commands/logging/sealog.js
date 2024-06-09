@@ -43,7 +43,7 @@ module.exports = {
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
         const wedge_picture = interaction.options.getAttachment('wedge_picture').url
         const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
-        if (!dbChannel.channel_id) {
+        if (!dbChannel) {
             return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
         const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)

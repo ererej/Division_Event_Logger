@@ -25,7 +25,7 @@ module.exports = {
             server.exp = exp
             server.save()
             const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplay" } })
-            if (!dbChannel.channel_id) {
+            if (!dbChannel) {
                 return await interaction.editReply({ content: 'There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
             }
             const channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
