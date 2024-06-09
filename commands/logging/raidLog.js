@@ -96,7 +96,6 @@ module.exports = {
         interaction.editReply({ embeds: [embedReply]})
         } catch (error) {
             const embededError = new EmbedBuilder()
-            console.log(error)
             .setColor([255,0,0])
             .setDescription("logging failed!")
             await interaction.editReply({ embeds: [embededError]})
