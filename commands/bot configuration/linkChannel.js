@@ -31,15 +31,15 @@ module.exports = {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])
         if (interaction.options.getString('linktype') === "none") {
-            const channel = await db.Channels.findAll({ where: { guild_id: interaction.guild.id, id: interaction.options.getChannel('channel').id } })
+            const channel = await db.Channels.findAll({ where: { guild_id: interaction.guild.id, channel_id: interaction.options.getChannel('channel').id } })
             channel.forEach(channel => {
                 channel.destroy()
             })
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(`Successfully removed all links <#${interaction.options.getChannel('channel').id}> had!`)] })
         }
-        if (!interaction.options.getChannel('channel').type === ChannelType.GuildVoice && (interaction.options.getString('linktype') === "training" || interaction.options.getString('linktype') === "patrol" || interaction.options.getString('linktype') === "raid") ) {
+        if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !(interaction.options.getString('linktype') === "training" || interaction.options.getString('linktype') === "patrol" || interaction.options.getString('linktype') === "raid") ) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a voice to link to this type of event!')] })
-        } else if (!interaction.options.getChannel('channel').type === ChannelType.GuildText && (interaction.options.getString('linktype') === "expdisplay" || interaction.options.getString('linktype') === "sealogs" || interaction.options.getString('linktype') === "promologs")) {
+        } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !(interaction.options.getString('linktype') === "expdisplay" || interaction.options.getString('linktype') === "sealogs" || interaction.options.getString('linktype') === "promologs")) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a text channel to link to this type of event!')] })
         }
         let replyString = ""
