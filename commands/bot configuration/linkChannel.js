@@ -58,7 +58,7 @@ module.exports = {
             promologs.destroy()
             replyString = `Successfully unlinked <#${promologs}> from the **promologs** channel! \nAnd `
         }
-        db.Channels.create({ id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
+        db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
         await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
     }
 }
