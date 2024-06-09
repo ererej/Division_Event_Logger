@@ -37,7 +37,7 @@ module.exports = {
             })
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(`Successfully removed all links <#${interaction.options.getChannel('channel').id}> had!`)] })
         }
-        if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !(interaction.options.getString('linktype') === "training" || interaction.options.getString('linktype') === "patrol" || interaction.options.getString('linktype') === "raid") ) {
+        if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !(interaction.options.getString('linktype') === "training" || interaction.options.getString('linktype') === "patrol" || interaction.options.getString('linktype') === "raid" || interaction.options.getString('linktype') === "gamenight") ) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a voice to link to this type of event!')] })
         } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !(interaction.options.getString('linktype') === "expdisplay" || interaction.options.getString('linktype') === "sealogs" || interaction.options.getString('linktype') === "promologs")) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a text channel to link to this type of event!')] })
