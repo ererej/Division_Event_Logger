@@ -20,7 +20,6 @@ module.exports = {
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
             const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
-            const division_name = server.name || interaction.guild.name
             if (!server) {
                 await interaction.editReply({ embeds: [embeded_error.setDescription("please run the /setup command so that the server gets added to the data base")]})
             } else {
