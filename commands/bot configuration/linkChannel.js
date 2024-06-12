@@ -45,11 +45,11 @@ module.exports = {
         const logChannels = ["sealogs", "promologs", "raidlogs"]
         if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !vcChannels.includes(interaction.options.getString('linktype')) ){
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a voice to link to this type of event!')] })
-        } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') !== "logs") {
+        } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') != "logs") {
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a text channel to link to this type of event!')] })
         }
         let replyString = ""
-        if (interaction.options.getString('linktype') === "logs") {
+        if (interaction.options.getString('linktype') == "logs") {
             logChannels.forEach(async (channelType) => {
                 const channel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: channelType } })
                 if (channel) {
@@ -59,7 +59,7 @@ module.exports = {
                 db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: channelType })
                 replyString += `Successfully made <#${interaction.options.getChannel('channel').id}> the **${channelType}** channel!`
             })
-            return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString)] })
         }
         db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
         return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
