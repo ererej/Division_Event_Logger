@@ -41,11 +41,11 @@ module.exports = {
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(`Successfully removed all links <#${interaction.options.getChannel('channel').id}> had!`)] })
         } 
         const vcChannels = ["training", "patrol", "raid", "gamenight"]
-        const textChannels = [, "expdisplay", "sealogs", "promologs", "raidlogs", "logs"]
+        const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs"]
         if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !vcChannels.includes(interaction.options.getString('linktype')) ){
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a voice to link to this type of event!')] })
-        } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype'))) {
+        } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') !== "logs") {
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a text channel to link to this type of event!')] })
         }
         let replyString = ""
