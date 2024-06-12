@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js');
-const db = require("../../dbObjects.js")
+const db = require("../../dbObjects.js");
+const log = require('../logging/log.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -21,7 +22,9 @@ module.exports = {
                     { name: "gamenight", value: "gamenight" },
                     { name: 'raid', value: "raid" },
                     { name: 'expdisplay', value: "expdisplay" },
+                    { name: 'logs', value: "logs"},
                     { name: 'sealogs', value: "sealogs" },
+                    { name: 'raidlogs', value: "raidlogs"},
                     { name: 'promologs', value: "promologs" },
                     { name: 'none', value: "none"}
                 )
@@ -36,29 +39,29 @@ module.exports = {
                 channel.destroy()
             })
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(`Successfully removed all links <#${interaction.options.getChannel('channel').id}> had!`)] })
-        }
-        if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !(interaction.options.getString('linktype') === "training" || interaction.options.getString('linktype') === "patrol" || interaction.options.getString('linktype') === "raid" || interaction.options.getString('linktype') === "gamenight") ) {
+        } 
+        const vcChannels = ["training", "patrol", "raid", "gamenight"]
+        const textChannels = [, "expdisplay", "sealogs", "promologs", "raidlogs", "logs"]
+        const logChannels = ["sealogs", "promologs", "raidlogs"]
+        if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !vcChannels.includes(interaction.options.getString('linktype')) ){
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a voice to link to this type of event!')] })
-        } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !(interaction.options.getString('linktype') === "expdisplay" || interaction.options.getString('linktype') === "sealogs" || interaction.options.getString('linktype') === "promologs")) {
+        } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype'))) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a text channel to link to this type of event!')] })
         }
         let replyString = ""
-        const expdisplay = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplay" } })
-        if (expdisplay && interaction.options.getString('linktype') === "expdisplay") {
-            expdisplay.destroy()
-            replyString = `Successfully unlinked <#${expdisplay.id}> from the **expdisplay** channel! \nAnd `
-        }
-        const sealogs = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: 'sealogs' } })
-        if (sealogs && interaction.options.getString('linktype') === "sealogs") {
-            sealogs.destroy()
-            replyString = `Successfully unlinked <#${sealogs.id}> from the **sealogs** channel! \nAnd `
-        }
-        const promologs = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: 'promologs' } })
-        if (promologs && interaction.options.getString('linktype') === "promologs") {
-            promologs.destroy()
-            replyString = `Successfully unlinked <#${promologs}> from the **promologs** channel! \nAnd `
+        if (interaction.options.getString('linktype') === "logs") {
+            logChannels.forEach(async (channelType) => {
+                const channel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: channelType } })
+                if (channel) {
+                    channel.destroy()
+                    replyString = `Successfully unlinked <#${channel.id}> from the **${interaction.options.getString('linktype')}** channel! \nAnd `
+                }
+                db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: channelType })
+                replyString += `Successfully made <#${interaction.options.getChannel('channel').id}> the **${channelType}** channel!`
+            })
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
         }
         db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
-        await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
+        return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
     }
 }

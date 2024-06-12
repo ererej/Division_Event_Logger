@@ -69,7 +69,7 @@ module.exports = {
         const time = new Date()
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
         if (!allys_name) {
-            allys_name = ""
+            allys_name = " "
         }
         let winner = ""
         if (win) {
@@ -77,7 +77,7 @@ module.exports = {
         } else {    
             winner = enemy_division
         }
-        const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
+        const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "raidlogs" } })
         if (!dbChannel) {
             return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
@@ -85,7 +85,7 @@ module.exports = {
         
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (raid_discutions === null) {
-            await sea_format_channel.send({ content: `Division(s): ${division_name} ${allys_name}VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
+            await sea_format_channel.send({ content: `Division(s): ${division_name}${allys_name}VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
         
         } else {
             await sea_format_channel.send({ content: ` <@186267447001612289> \nDivision(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
