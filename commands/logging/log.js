@@ -60,6 +60,7 @@ module.exports = {
         
 
         const wedge_picture = interaction.options.getAttachment('wedge_picture')
+        const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
         const division_name = server ? server.name : interaction.guild.name
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
         const announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
