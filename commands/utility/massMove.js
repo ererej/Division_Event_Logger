@@ -31,7 +31,7 @@ module.exports = {
                 member.voice.setChannel(targetVoiceChannel)
             })
             const embeded = new EmbedBuilder().setColor([0,255,0])
-            embeded.setDescription(`Moved ${members.size} in the ${currentVoiceChannel} voice chat to the ${targetVoiceChannel} voice chat!`)
+            embeded.setDescription(`Moved ${members.size} in the ${currentVoiceChannel} to ${targetVoiceChannel}`)
             await interaction.editReply({ embeds: [embeded]});
         }
     }

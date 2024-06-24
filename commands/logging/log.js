@@ -81,10 +81,12 @@ module.exports = {
 
         let event_type = ""
         let logChannelLink = ""
-        
+        let eventType = ""
         const event_log_embed = new EmbedBuilder().setColor([255,128,0])
         let dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, id: voice_channel.id}})
-        let eventType = dbChannel.type
+        if (dbChannel) {
+            eventType = dbChannel.type
+        }
         switch (eventType) {
             case "training":
                 logChannelLink = "<#1085337363359731782>"
