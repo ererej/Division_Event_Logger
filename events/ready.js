@@ -1,7 +1,4 @@
 const { Events, ActivityType  } = require('discord.js');
-const fs = require('fs');
-const fileName = '../eventCount.json';
-const file = require(fileName);
 
 module.exports = {
 	name: Events.ClientReady,
