@@ -1,8 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects")
-const fs = require('fs');
-const fileName = "../../eventCount.json"
-const totalEventFile = require(fileName);
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -53,17 +50,6 @@ module.exports = {
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
         const division_name = server ? server.name : interaction.guild.name
         await sea_format_channel.send({content: `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: `, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
-        totalEventFile.totalEvents = 2
-        try {
-            fs.unlinkSync(fileName)
-        } catch (error) {
-            console.error(error)
-        }
-        fs.writeFileSync(fileName, JSON.stringify(totalEventFile), function writeJSON(err) {
-            if (err) return console.log(err);
-            console.log(JSON.stringify(totalEventFile));
-            console.log('writing to ' + fileName);
-          });
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
         .setDescription("format succesfully logged!")

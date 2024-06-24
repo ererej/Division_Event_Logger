@@ -81,7 +81,9 @@ module.exports = {
             server.exp = exp
             server.save()
             const channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
-            if (!channel.messages) await channel.send("setting up exp display...")
+            if (!channel.messages) {
+                await channel.send("setting up exp display...")
+            }
             const messages = await channel.messages.fetch({ limit: 10, })
             let message = messages.find(m => m.author.id === interaction.client.user.id && m.embeds.length === 0)
             if (!message) {

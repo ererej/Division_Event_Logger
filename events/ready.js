@@ -10,7 +10,7 @@ module.exports = {
 		client.guilds.cache.forEach(guild => {
 			console.log(`[READY] ${guild.name} has ${guild.memberCount} members!`);
 		});
-		client.user.setPresence({ activities: [{ name: `helping ${file.totalEvents}`, type: ActivityType.Streaming}], status: 'online' });
+		client.user.setPresence({ activities: [{ name: `Bermuda Air Base`, type: ActivityType.Playing}], status: 'online' });
 		console.log(`Ready! Logged in as ${client.user.tag}`);
 	},
 };
