@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
-const testers = require("../../tester_servers.json");
 const sequelize = require('sequelize');
 
 
@@ -40,15 +39,6 @@ module.exports = {
 
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
 
-		let tester = false
-        testers.servers.forEach(server => {
-            if ( !tester && server.id === interaction.guild.id) {
-                tester = true
-            }
-        });
-        if (!tester) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription('This command is **only enabled** for testers!')] });
-        }  
 
         const discordRole = interaction.options.getRole('linked_role');
 		const promo_points = interaction.options.getInteger('promo_points');
