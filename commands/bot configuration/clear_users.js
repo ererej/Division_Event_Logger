@@ -4,7 +4,7 @@ const testers = require("../../tester_servers.json");
 
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName('clear_users')
+        .setName('clearusers')
         .setDescription('deletes all the users from the database!'),
 
     async execute(interaction) {

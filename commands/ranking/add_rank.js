@@ -5,7 +5,7 @@ const sequelize = require('sequelize');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName('add_rank')
+        .setName('addrank')
         .setDescription('add a rank!')
 		.setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addRoleOption(option => 

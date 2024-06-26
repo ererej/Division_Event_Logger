@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const db = require('../../dbObjects')
+const db = require('../../dbObjects.js')
 const updateExp = require('../../updateExp.js')
 
 module.exports = {
