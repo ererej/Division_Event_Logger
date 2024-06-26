@@ -36,11 +36,11 @@ module.exports = {
                                 guild.exp = interaction.options.getInteger("current_exp") ? interaction.options.getInteger("current_exp") : guild.exp
                                 guild.name = interaction.options.getString("division_name") ? interaction.options.getString("division_name") : guild.name ? guild.name : interaction.guild.name
                                 await guild.save();
-                                const embeded_reply = new EmbedBuilder().setDescription("successfuly updated the linked group and the total exp").setColor([0,255,0])
+                                const embeded_reply = new EmbedBuilder().setDescription("Successfully updated the linked group and the total exp").setColor([0,255,0])
                                 await interaction.editReply({ embeds: [embeded_reply]});
                         } else {
                                 await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), name: interaction.options.getString("division_name") ? interaction.options.getString("division_name") : interaction.guild.name, exp: interaction.options.getInteger("current_exp") ? interaction.options.getInteger("current_exp") : 0})
-                                const embeded_reply = new EmbedBuilder().setDescription("server successfuly saved to the database and linked to the roblox group.").setColor([0,255,0])
+                                const embeded_reply = new EmbedBuilder().setDescription("Server successfully saved to the database and linked to the roblox group.").setColor([0,255,0])
                                 await interaction.editReply({ embeds: [embeded_reply]});
                         }
                 }
