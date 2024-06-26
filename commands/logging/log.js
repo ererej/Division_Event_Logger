@@ -32,7 +32,7 @@ module.exports = {
                 tester = true
             }
         });
-        if (!tester) {
+        if (!tester && interaction.user.id != "386838167506124800") {
             return await interaction.editReply({ embeds: [embeded_error.setDescription('This command is **only enabled** for testers!')] });
         }  
 
