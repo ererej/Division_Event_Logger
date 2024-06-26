@@ -27,7 +27,7 @@ module.exports = {
         
         server.exp = exp
         server.save()
-        updateexp(db, server, interaction)
+        updateExp(db, server, interaction)
         interaction.editReply({ content: `**Updated the exp to: ${exp}!**` })
     }
 };
