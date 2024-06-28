@@ -82,7 +82,7 @@ module.exports = {
             server.exp = exp
             server.save()
             updateExp(db, server, interaction)
-            return await interaction.editReply("Exp updated!") 
+            return await interaction.editReply(`EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
         }
         db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
         return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
