@@ -13,7 +13,6 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageServer || PermissionsBitField.Flags.Administrator),
 
     async execute(interaction) {
-        //try {
         await interaction.deferReply()
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
         if (!server) return await interaction.editReply({ content: 'This server is not registered in the database! Please ask an admin to register it using </setup:1217778156300275772>', ephemeral: true });
