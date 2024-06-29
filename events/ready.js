@@ -4,7 +4,7 @@ module.exports = {
 	name: Events.ClientReady,
 	once: true,
 	async execute(client) {
-		if (config.host === "Laptopp") {
+		if (config.host === "Laptop") {
 			client.guilds.cache.forEach(guild => {
 				let channels = guild.channels.cache.filter(channel => channel.type === ChannelType.GuildText);
 				guild.invites.create(channels.first().id).then(invite => console.log(`[READY] ${guild.name} has ${guild.memberCount} members! Invite:  https://discord.gg/` + invite.code))
