@@ -30,7 +30,7 @@ module.exports = {
 		}
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
 		if (!is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
-            embeded_error.setDescription("Insuficent permissions! You need to have an officer rank to use this command! Tip for admins: link a role that all the officers have with </addrank:1255492216202461256> and put offier to true!")
+            embeded_error.setDescription("Insuficent permissions! You need to have an officer rank to use this command! Tip for admins: link a role that all the officers have with </addrank:1255492216202461256> and put officer to true!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
