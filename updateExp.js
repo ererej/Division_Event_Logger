@@ -20,9 +20,9 @@ module.exports = async (db, server, interaction) => {
     const exp_needed = sum
     const time = new Date
 
-    const procentage = Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)
+    const procentage = Math.floor(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)
 
-    let new_message = `# __Level ${level}__\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.round((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
+    let new_message = `# __Level ${level}__\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
     new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
     for (let i=0;i<procentage/5;i++) {
         new_message += "▮"
@@ -32,7 +32,7 @@ module.exports = async (db, server, interaction) => {
         new_message += "▯"
     }
     new_message += "[0m[2;30m[0m"
-    new_message += `] level [2;31m${level + 1}[0m (${Math.round(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)}%)`
+    new_message += `] level [2;31m${level + 1}[0m (${Math.floor(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)}%)`
     new_message += "\n```"
     new_message += `*Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours()}:${time.getMinutes()}*`
     message.edit(new_message) 
