@@ -95,10 +95,10 @@ module.exports = {
             db.Servers.findOne({where: {guild_id: guild.id}}).then(server => {
                 if (server) {
                     noblox.getGroup(server.group_id).then(group => {
-                        guild.channels.cache.get(channel.channel_id).setName(`Members in group: ${group.memberCount}`)
+                        guild.channels.cache.get(channel.id).setName(`Members in group: ${group.memberCount}`)
                     })
                 } else {
-                    guild.channels.cache.get(channel.channel_id).setName(`group not linked. please link a group with /setup`)
+                    guild.channels.cache.get(channel.id).setName(`group not linked. please link a group with /setup`)
                 }
             })
         }
