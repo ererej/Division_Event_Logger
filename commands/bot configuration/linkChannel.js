@@ -5,6 +5,7 @@ const spreadsheetId = '1sQIT3aOs1dWB9-f8cbsYe7MnSRfCfLRgMDSuE5b3w1I'
 const options = { useFormat: true }
 const parser = new PublicGoogleSheetsParser(spreadsheetId, options)
 const updateExp = require('../../updateExp.js')
+const noblox = require("noblox.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -88,6 +89,16 @@ module.exports = {
             return await interaction.editReply(`EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
         } else if (interaction.options.getString('linktype') == "guildMemberCount") {
             interaction.guild.channels.cache.get(interaction.options.getChannel('channel').id).setName(`Member Count: ${interaction.guild.memberCount}`)
+        } else if (interaction.options.getString('linktype') == "robloxGroupCount") {
+            db.Servers.findOne({where: {guild_id: guild.id}}).then(server => {
+                if (server) {
+                    noblox.getGroup(server.group_id).then(group => {
+                        guild.channels.cache.get(channel.channel_id).setName(`Members in group: ${group.memberCount}`)
+                    })
+                } else {
+                    guild.channels.cache.get(channel.channel_id).setName(`group not linked. please link a group with /setup`)
+                }
+            })
         }
         db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
         return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
