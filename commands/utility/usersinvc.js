@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Client } = require('discord.js');
 const db = require("../../dbObjects.js")
 
 module.exports = {
@@ -8,6 +8,7 @@ module.exports = {
 
     async execute(interaction) {
         await interaction.deferReply() 
+        interaction.client.emit("guildMemberAdd", interaction.member)
         const voiceChannel = await interaction.member.voice.channel;
         if (!voiceChannel) {
             return interaction.editReply({content: "You need to be in a voice channel to use this command!"})

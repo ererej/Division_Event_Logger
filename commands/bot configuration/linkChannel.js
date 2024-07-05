@@ -26,6 +26,8 @@ module.exports = {
                     { name: "gamenight", value: "gamenight" },
                     { name: 'raid', value: "raid" },
                     { name: 'expdisplay', value: "expdisplay" },
+                    { name: 'robloxGroupCountDisplay', value: "robloxGroupCount" },
+                    { name: 'guildMemberCountDisplay', value: "guildMemberCount" },
                     { name: 'logs (short hand for all the logging types)', value: "logs"},
                     { name: 'sealogs', value: "sealogs" },
                     { name: 'raidlogs', value: "raidlogs"},
@@ -47,10 +49,11 @@ module.exports = {
         const vcChannels = ["training", "patrol", "raid", "gamenight"]
         const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs"]
-        if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !vcChannels.includes(interaction.options.getString('linktype')) ){
-            return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a voice to link to this type of event!')] })
+        const VcDisplays = ["robloxGroupCount", "guildMemberCount"]
+        if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !(vcChannels.includes(interaction.options.getString('linktype')) || VcDisplays.includes(interaction.options.getString('linktype')))) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a voice to link **${interaction.options.getString('linktype')}** to!`)] })
         } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') != "logs") {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription('Please select a text channel to link to this type of event!')] })
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a text channel to *${interaction.options.getString('linktype')}** to!`)] })
         }
         let replyString = ""
         if (interaction.options.getString('linktype') == "logs") {
@@ -83,6 +86,8 @@ module.exports = {
             server.save()
             updateExp(db, server, interaction)
             return await interaction.editReply(`EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
+        } else if (interaction.options.getString('linktype') == "guildMemberCount") {
+            interaction.guild.channels.cache.get(dbChannel.channel_id).setName(`Member Count: ${interaction.guild.memberCount}`)
         }
         db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
         return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
