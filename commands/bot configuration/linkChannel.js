@@ -46,14 +46,15 @@ module.exports = {
                 channel.destroy()
             })
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(`Successfully removed all links <#${interaction.options.getChannel('channel').id}> had!`)] })
-        } 
+        }
+        const channel = interaction.options.getChannel('channel')
         const vcChannels = ["training", "patrol", "raid", "gamenight"]
         const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs"]
         const VcDisplays = ["robloxGroupCount", "guildMemberCount"]
-        if (interaction.options.getChannel('channel').type === ChannelType.GuildVoice && !(vcChannels.includes(interaction.options.getString('linktype')) || VcDisplays.includes(interaction.options.getString('linktype')))) {
+        if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(interaction.options.getString('linktype')) || VcDisplays.includes(interaction.options.getString('linktype')))) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a voice to link **${interaction.options.getString('linktype')}** to!`)] })
-        } else if (interaction.options.getChannel('channel').type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') != "logs") {
+        } else if (channel.type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') != "logs") {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a text channel to *${interaction.options.getString('linktype')}** to!`)] })
         }
         let replyString = ""
@@ -63,14 +64,14 @@ module.exports = {
                 if (channels.length > 0) {
                     for (let j = 0; j < channels.length; j++) { //fuck foreach async!!!!!
                         await channels[j].destroy()
-                        if (channels[j].channel_id != interaction.options.getChannel("channel").id) {
+                        if (channels[j].channel_id != channel.id) {
                             replyString += `Successfully unlinked <#${channels[j].channel_id}> from the **${logChannels[i]}** channel! \nAnd `
                         }
                     }
                 }
                 
-                db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: logChannels[i] })
-                replyString += `Successfully made <#${interaction.options.getChannel('channel').id}> the **${logChannels[i]}** channel! \n`
+                db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: logChannels[i] })
+                replyString += `Successfully made <#${channel.id}> the **${logChannels[i]}** channel! \n`
             }
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString)] })
         } else if (interaction.options.getString('linktype') == "expdisplay") {
@@ -88,7 +89,7 @@ module.exports = {
             updateExp(db, server, interaction)
             return await interaction.editReply(`EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
         } else if (interaction.options.getString('linktype') == "guildMemberCount") {
-            interaction.guild.channels.cache.get(interaction.options.getChannel('channel').id).setName(`Member Count: ${interaction.guild.memberCount}`)
+            interaction.guild.channels.cache.get(channel.id).setName(`Member Count: ${interaction.guild.memberCount}`)
         } else if (interaction.options.getString('linktype') == "robloxGroupCount") {
             const guild = interaction.guild
             db.Servers.findOne({where: {guild_id: guild.id}}).then(server => {
@@ -101,7 +102,7 @@ module.exports = {
                 }
             })
         }
-        db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
-        return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${interaction.options.getChannel('channel').id}> the **${interaction.options.getString('linktype')}** channel!`)] })
+        db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
+        return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${channel.id}> the **${interaction.options.getString('linktype')}** channel!`)] })
     }
 }
