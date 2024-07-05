@@ -94,6 +94,7 @@ module.exports = {
             const guild = interaction.guild
             db.Servers.findOne({where: {guild_id: guild.id}}).then(server => {
                 if (server) {
+                    replyString += "fetching the group member count might take a copule of seconds be patient! but "
                     noblox.getGroup(server.group_id).then(group => {
                         guild.channels.cache.get(channel.id).setName(`Members in group: ${group.memberCount}`)
                     })
