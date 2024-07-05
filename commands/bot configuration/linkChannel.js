@@ -90,6 +90,7 @@ module.exports = {
         } else if (interaction.options.getString('linktype') == "guildMemberCount") {
             interaction.guild.channels.cache.get(interaction.options.getChannel('channel').id).setName(`Member Count: ${interaction.guild.memberCount}`)
         } else if (interaction.options.getString('linktype') == "robloxGroupCount") {
+            const guild = interaction.guild
             db.Servers.findOne({where: {guild_id: guild.id}}).then(server => {
                 if (server) {
                     noblox.getGroup(server.group_id).then(group => {
