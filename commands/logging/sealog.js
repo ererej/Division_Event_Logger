@@ -59,7 +59,6 @@ module.exports = {
             const embededError = new EmbedBuilder()
             .setColor([255,0,0])
             .setDescription("logging failed make sure the announcment message is in the same guild as where you started this interaction!")
-            console.error(error)
             await interaction.editReply({ embeds: [embededError]})
         }
 }}}

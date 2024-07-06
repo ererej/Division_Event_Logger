@@ -4,6 +4,7 @@ module.exports = {
 	name: Events.GuildCreate,
 	async execute(client) {
         const guild = arguments[0].guild
+        console.log(guild)
         let channels = guild.channels.cache.filter(channel => channel.type === ChannelType.GuildText);
 		guild.invites.create(channels.first().id).then(invite => {
             const testServer = client.guilds.cache.find(guild => guild.id = "831851819457052692")
