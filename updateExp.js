@@ -9,18 +9,20 @@ module.exports = async (db, server, interaction) => {
     if (!message) {
         message = await channel.send("setting up exp display...")
     }
+
+    const levels = [0, 500, 2000, 5500, 10000, 20000, 37500, 55000, 75000]
+
     let level = 0
-    let sum = 0
-    let past_level_total_exp = 0
-    while (sum<server.exp) {
-        level++
-        past_level_total_exp = sum
-        sum += (level**2)*500
+    let i = 0
+    while (levels[i]<server.exp) {
+        i++
+        level = i
     }
-    const exp_needed = sum
+    const exp_needed = levels[level]
+    const past_level_exp = levels[level-1]
     const time = new Date
 
-    const procentage = Math.floor(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)
+    const procentage = Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)
 
     let new_message = `# __Level ${level}__\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*100)}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
     new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
@@ -32,7 +34,7 @@ module.exports = async (db, server, interaction) => {
         new_message += "▯"
     }
     new_message += "[0m[2;30m[0m"
-    new_message += `] level [2;31m${level + 1}[0m (${Math.floor(((server.exp-past_level_total_exp)/(exp_needed-past_level_total_exp))*100)}%)`
+    new_message += `] level [2;31m${level + 1}[0m (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)}%)`
     new_message += "\n```"
     new_message += `*Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours()}:${time.getMinutes()}*`
     message.edit(new_message) 
