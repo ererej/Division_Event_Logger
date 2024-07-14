@@ -8,7 +8,7 @@ module.exports = {
             option.setName('channel')
                 .setDescription('Please input the channel you want to move the users to!')
                 .setRequired(true)
-                .addChannelTypes(ChannelType.GuildVoice)
+                .addChannelTypes(ChannelType.GuildVoice , ChannelType.GuildStageVoice)
             ),
 
     async execute(interaction) {
