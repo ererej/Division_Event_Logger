@@ -11,7 +11,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator),
 
     async execute(interaction) {
-        interaction.reply(`**Fetching SEA banned users...**`)
+        await interaction.reply(`**Fetching SEA banned users...**`)
         const sheetData = await parser.parse()
         let replyString = ""
         let discordIDColum = Object.keys(sheetData["0"])[0] + ""
