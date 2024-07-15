@@ -34,10 +34,13 @@ module.exports = {
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
-        let announcmentChannel;
-        try {
-            announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
+        let regex = /https:\/\/discord\.com\/channels\/([0-9]+(\/[0-9]+)+)/i
+        if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!' });
+        let announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
+        if (!announcmentChannel) return await interaction.editReply({ content: 'The link you provided looks to refer to a message in anouther discord server and will there for not work.' });
+        
         const announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
+        if (!announcmentMessage) return await interaction.editReply({ content: 'could not locate the message please dubble check your message link!' });
         
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
@@ -55,10 +58,4 @@ module.exports = {
         .setDescription("format succesfully logged!")
         interaction.editReply({ embeds: [embedReply]})
             .then(() => { setTimeout(() => { interaction.deleteReply() }, 5000)})
-        } catch (error) {
-            const embededError = new EmbedBuilder()
-            .setColor([255,0,0])
-            .setDescription("logging failed make sure the announcment message is in the same guild as where you started this interaction!")
-            await interaction.editReply({ embeds: [embededError]})
-        }
 }}}
