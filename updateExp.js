@@ -36,7 +36,7 @@ module.exports = async (db, server, interaction) => {
     new_message += "[0m[2;30m[0m"
     new_message += `] level [2;31m${level + 1}[0m (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*1000)/10}%)`
     new_message += "\n```"
-    const config = require('../config.json')
+    const config = require('./config.json')
     let timezonefix = 0
     if (config.host === "server") timezonefix = 2
 
