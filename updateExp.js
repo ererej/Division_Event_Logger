@@ -36,6 +36,10 @@ module.exports = async (db, server, interaction) => {
     new_message += "[0m[2;30m[0m"
     new_message += `] level [2;31m${level + 1}[0m (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)}%)`
     new_message += "\n```"
-    new_message += `*Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours()}:${time.getMinutes()}*`
+    const config = require('../config.json')
+    let timezonefix = 0
+    if (config.host === "server") timezonefix = 2
+
+    new_message += `*Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours() + timezonefix}:${time.getMinutes() > 9 ? time.getMinutes : "0" + time.getMinutes}*`
     message.edit(new_message) 
 }

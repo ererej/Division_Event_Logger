@@ -76,11 +76,18 @@ module.exports = {
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
         let regex = /https:\/\/discord\.com\/channels\/([0-9]+(\/[0-9]+)+)/i
         if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!' });
-        let announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
-        if (!announcmentChannel) return await interaction.editReply({ content: 'The link you provided looks to refer to a message in anouther discord server and will there for not work.' });
-        
-        const announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
-        if (!announcmentMessage) return await interaction.editReply({ content: 'could not locate the message please dubble check your message link!' });
+        let announcmentChannel;
+        try {
+            announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
+        } catch (error) {
+            return await interaction.editReply({ content: 'The link you provided looks to refer to a message in anouther discord server and will there for not work.' });
+        }
+        let announcmentMessage;
+        try {
+            announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
+        } catch (error) {
+            return await interaction.editReply({ content: 'could not locate the message please dubble check your message link!' });
+        }
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
