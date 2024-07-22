@@ -5,7 +5,7 @@ const sequelize = require('sequelize');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName('add_rank')
+        .setName('addrank')
         .setDescription('add a rank!')
 		.setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addRoleOption(option => 
@@ -57,9 +57,9 @@ module.exports = {
 			embeded_error.setDescription("A rank is already linked to that role!")
 			interaction.editReply({embeds: [embeded_error]})
 		} else {
-
+		const groupID = await db.Servers.findOne({ where: { id: interaction.guild.id } }).group_id
 		try {
-			rank = await db.Ranks.create({ id: discordRole.id, guild_id: discordRole.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer })
+			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, group_id: groupID, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer })
 			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
 			interaction.editReply({embeds: [embeded_reply]});
 		}

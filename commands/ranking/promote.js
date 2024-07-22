@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
-noblox.setCookie(db.sessionCookie)
+const config = require('../../config.json')
+noblox.setCookie(config.sessionCookie)
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -32,25 +33,51 @@ module.exports = {
         await interaction.deferReply()
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
         let member = interaction.options.getUser('user')
-        let user = await db.Users.findOne({ where: { user_id: member.id, guild_id: interaction.guild.id }}).catch((err) => {
-            interaction.editReply({embeds: [embeded_error.setDescription("User not found in the database!")]}) 
-            return
-        })
+        let user = await db.Users.findOne({ where: { user_id: member.id, guild_id: interaction.guild.id }})
+        if (!user) {
+            return interaction.editReply({embeds: [embeded_error.setDescription("User not found in the database!")]})
+        }
+        let promoter = await db.Users.findOne({ where: { user_id: interaction.member.id, guild_id: interaction.guild.id }})
+        if (!promoter) {
+            return interaction.editReply({embeds: [embeded_error.setDescription("You are not in the database!")]})
+        } 
+        const promoters_rank = db.Ranks.findOne({ where: { id: promoter.rank_id, guild_id: interaction.guild.id }})
+
         const ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})
         const groupId = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }}).group_id
-        if (interaction.getStringOption('rank_or_promopoints') === 'rank') {
-            let rank = ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
-            let promotions = interaction.getIntegerOption('promotions')
+        let promotions = interaction.options.getInteger('promotions')
+        if (!promotions) {
+            promotions = 1
+        }
+        let responce;
+        if (interaction.options.getString('rank_or_promopoints') === 'rank') {
+            let rank = db.Ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
+            if (rank.rank_index + promotions > promoters_rank.rank_index) {
+                return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than yours!")]})
+            }
+            if (rank.rank_index + promotions >= ranks.length) {
+                return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than the highest rank!")]})
+            }
+            responce = await user.setRank(noblox, groupId, member, rank ).catch((err) => {
+                return interaction.editReply({embeds: [embeded_error.setDescription("An error occured while trying to promote the user!")]})
+            })
+            console.log(responce)
+            return interaction.editReply({content: responce})
+        } else {
+            let rank = db.Ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
             while (promotions > 0) {
-                if (promotions.promo_points + promotions >= ranks[rank.rank_index + 1].promo_points) {
-                    const responce = user.promote(noblox, groupId, member, ranks ).catch((err) => {
-                    interaction.editReply({embeds: [embeded_error.setDescription("An error occured while trying to promote the user in the roblox group!")]})
-                    return
-                })
-                promotions -= promotions.promo_points + promotions - ranks[rank.rank_index + 1].promo_points
+                user.promo_points += 1
+                promotions -= 1
+                if (ranks.findOne({ where: { rank_index: rank.rank_index + 1, guild_id: interaction.guild.id }}) != null) {
+                    if (user.promo_points >= ranks.findOne({ where: { rank_index: rank.rank_index + 1, guild_id: interaction.guild.id }}).promo_points) {
+                        responce += user.setRank(noblox, groupId, member, rank ).catch((err) => {
+                            return interaction.editReply({embeds: [embeded_error.setDescription(`An error occured while trying to promote the user!\nThe user ended up with ${user.promo_points} promo points and the rank <&${rank.id}>!`)]})
+                        })
+                        responce += "\n"
+                    }
                 }
             }
-            interaction.editReply({content: responce})
+            return interaction.editReply({content: responce})
         }
     }
 }

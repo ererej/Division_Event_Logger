@@ -127,7 +127,7 @@ module.exports = {
                             })
                             
                             if (!(robloxUser.status + "").startsWith("2")) {
-                                promotion_string = "needs to verify using rover!";
+                                event_log_embed.addFields({name: '\u200b', value: `<@${member.id}>: `+ "needs to verify using rover!"}) ;
                                 if (robloxUser.status != 401) {
                                     console.log(robloxUser.status)
                                 }   

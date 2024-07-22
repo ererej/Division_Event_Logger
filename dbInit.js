@@ -8,9 +8,7 @@ const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username
 });
 
 
-/*const CurrencyShop = require('./models/CurrencyShop.js')(sequelize, Sequelize.DataTypes);  */
 require('./models/Users.js')(sequelize, Sequelize.DataTypes);
-require('./models/UserItems.js')(sequelize, Sequelize.DataTypes);
 require('./models/Servers.js')(sequelize, Sequelize.DataTypes);
 require('./models/Ranks.js')(sequelize, Sequelize.DataTypes);
 
@@ -32,4 +30,14 @@ sequelize.sync({ force }).then(async () => {
 	console.log('Database synced');
 
 	
+}).catch(console.error);
+
+const alter = process.argv.includes('--alter') || process.argv.includes('-a');
+
+sequelize.sync({ alter }).then(async () => {
+	sequelize.getQueryInterface().showAllSchemas().then((tableObj) => {
+		console.log('// Tables in database','==========================');
+		console.log(tableObj);
+	})
+	console.log('Database synced');
 }).catch(console.error);

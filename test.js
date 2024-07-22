@@ -7,8 +7,8 @@ const test = async () => {
     const user = await noblox.getCurrentUser();
     console.log(`Logged in as ${user.UserName} [${user.UserID}]`)
     const Ranks = await noblox.getRoles(14354215)
-    Ranks.forEach(rank => console.log(rank.name))
-    noblox.setRank(14354215, 422341659, 107972728).then(() => {
+    Ranks.forEach(rank => console.log(rank.name +" "+ rank.id))
+    noblox.setRank(14354215, 1055732631, 81465010).then(() => {
         console.log("Ranked!")
     }).catch((err) => {
         console.log(err)
