@@ -75,7 +75,7 @@ module.exports = {
             }
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString)] })
         } else if (interaction.options.getString('linktype') == "expdisplay") {
-            const dbChannel = db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: 'expdisplay' })
+            const dbChannel = await db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: 'expdisplay' })
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
             const division_name = server ? server.name : interaction.guild.name
             const sheetData = await parser.parse()
