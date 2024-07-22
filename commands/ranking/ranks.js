@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require("../../dbObjects.js")
+const testers = require("../../tester_servers.json");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -7,7 +8,7 @@ module.exports = {
         .setDescription('lists all the linked ranks!'),
 
     async execute(interaction) {
-        await interaction.deferReply()  
+        await interaction.deferReply()
         const rankList = new EmbedBuilder()
         .setTitle('Linked ranks:')
         .setColor('Green')

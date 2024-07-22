@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Attachment } = require('discord.js');
 const db = require("../../dbObjects")
 const { roverkey } = require('../../config.json');
+const testers = require("../../tester_servers.json")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -25,6 +26,16 @@ module.exports = {
         await interaction.deferReply()
         
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
+
+        let tester = false
+        testers.servers.forEach(server => {
+            if ( !tester && server.id === interaction.guild.id) {
+                tester = true
+            }
+        });
+        if (!tester && interaction.user.id != "386838167506124800") {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription('This command is **only enabled** for testers!')] });
+        }  
 
         const host = await interaction.guild.members.fetch(interaction.member.user.id)
         let cohost = null
@@ -61,8 +72,23 @@ module.exports = {
         
 
         const wedge_picture = interaction.options.getAttachment('wedge_picture')
-        const division_name = interaction.guild.name
+        const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
+        const division_name = server ? server.name : interaction.guild.name
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
+        let regex = /https:\/\/discord\.com\/channels\/([0-9]+(\/[0-9]+)+)/i
+        if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!' });
+        let announcmentChannel;
+        try {
+            announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
+        } catch (error) {
+            return await interaction.editReply({ content: 'The link you provided looks to refer to a message in anouther discord server and will there for not work.' });
+        }
+        let announcmentMessage;
+        try {
+            announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
+        } catch (error) {
+            return await interaction.editReply({ content: 'could not locate the message please dubble check your message link!' });
+        }
         const announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
         if (!announcmentChannel) {
             embeded_error.setDescription("Invalid announcment message link!")
@@ -78,24 +104,23 @@ module.exports = {
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
         let event_type = ""
-        let log_channel_link = ""
-        const event_log_embed = new EmbedBuilder().setColor([228,35,157])
-        switch (voice_channel.id) {
-            case "1074270354245173318" || "1118980816886845560":
-                event_log_embed.setTitle("**Training**")
-                log_channel_link = "<#1085337363359731782>"
-                break;
-            case "1149806680037675053" :
-                event_log_embed.setTitle("**Gamenight**")
-                break;
-            case "1203731373563838496" :
-                event_log_embed.setTitle("**Patrol**")
-                log_channel_link = "<#1219980705967374359>"
-                break;
-            default:
-                event_log_embed.setTitle("**Event**")
+        let logChannelLink = ""
+        let eventType = ""
+        const event_log_embed = new EmbedBuilder().setColor([255,128,0])
+        let dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, id: voice_channel.id}})
+        if (dbChannel) {
+            eventType = dbChannel.type
         }
-        let string = `**${event_type}** \nHost: <@${host.id}>\n`
+        switch (eventType) {
+            case "training":
+                logChannelLink = "<#1085337363359731782>"
+                break;
+            case "patrol":
+                logChannelLink = "<#1219980705967374359>"
+                break;
+        }
+        event_log_embed.setTitle(eventType ? eventType : "Event")
+        let string = `Host: <@${host.id}>\n`
         event_log_embed.addFields({ name: "Host", value: `<@${host.id}>` }).setThumbnail(wedge_picture.url)
         if (cohost) {
             string+=`Cohost: ${cohost.displayName}\n`
@@ -202,21 +227,22 @@ module.exports = {
         string += `\nPing: <@&${promoter_role_id}>`
         //place rank up function here!
         //SEA Format
-        let sea_format_channel;
-        switch (interaction.guild.id) {
-            case '1073682080380243998':
-                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1212085346464964659')
-                break;
-            case '1104945580142231673':
-                sea_format_channel = await interaction.guild.channels.cache.find(i => i.id === '1119307508457144464')
-                break;
+        dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
+        if (!dbChannel) {
+            return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
         }
-        if (log_channel_link) {
-            sea_format_channel.send(`VVV${log_channel_link}VVV`)
+        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
+        if (logChannelLink) {
+            sea_format_channel.send(`VVV${logChannelLink}VVV`)
         }
         sea_format_channel.send({content: `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n`, files: [{attachment: wedge_picture.url}] });
         //event logs
-        await sea_format_channel.send({content: `<@&${promoter_role_id}>`,embeds: [event_log_embed]})
+        dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" } })
+        if (!dbChannel.id) {
+            return await interaction.editReply({ content: 'There is no promolog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
+        }
+        const promologsChannel = await interaction.guild.channels.fetch(dbChannel.id)
+        await promologsChannel.send({content: `<@&${promoter_role_id}>`,embeds: [event_log_embed]})
         
         const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged")
         await interaction.editReply({embeds: [success_embed]});

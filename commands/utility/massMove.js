@@ -8,13 +8,13 @@ module.exports = {
             option.setName('channel')
                 .setDescription('Please input the channel you want to move the users to!')
                 .setRequired(true)
-                .addChannelTypes(ChannelType.GuildVoice)
+                .addChannelTypes(ChannelType.GuildVoice , ChannelType.GuildStageVoice)
             ),
 
     async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])
-		if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels || PermissionsBitField.Flags.Administrator)) {
+		if (!interaction.member.permissions.has(PermissionsBitField.Flags.MoveMembers || PermissionsBitField.Flags.Administrator )) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else if (!interaction.member.voice.channel) {
@@ -31,7 +31,7 @@ module.exports = {
                 member.voice.setChannel(targetVoiceChannel)
             })
             const embeded = new EmbedBuilder().setColor([0,255,0])
-            embeded.setDescription(`Moved ${members.size} in the ${currentVoiceChannel} voice chat to the ${targetVoiceChannel} voice chat!`)
+            embeded.setDescription(`Moved ${members.size} in ${currentVoiceChannel} to ${targetVoiceChannel}`)
             await interaction.editReply({ embeds: [embeded]});
         }
     }

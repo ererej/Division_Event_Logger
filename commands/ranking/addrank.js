@@ -31,6 +31,10 @@ module.exports = {
 
     async execute(interaction) {
 		await interaction.deferReply()
+
+		const embeded_error = new EmbedBuilder().setColor([255,0,0])
+
+
         const discordRole = interaction.options.getRole('linked_role');
 		const promo_points = interaction.options.getInteger('promo_points');
 		let rank_index = 0

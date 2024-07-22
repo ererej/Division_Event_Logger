@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
-const { where } = require('sequelize');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,6 +18,11 @@ module.exports = {
             const user_info = await db.Users.findOne({
                 where: { user_id: user.id, guild_id: interaction.guild.id }
             })
+            if (!user_info) {
+                const embeded_error = new EmbedBuilder().setColor([255,0,0])
+                embeded_error.setDescription("The user is not in the database!")
+                return interaction.editReply({ embeds: [embeded_error]});
+            }
             const rank = await db.Ranks.findOne({where: { rank_id: user_info.rank_id}})
             const embeded = new EmbedBuilder().setColor([0,255,0])
             embeded.setTitle(`${user.username}'s information`)
