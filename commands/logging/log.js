@@ -89,17 +89,6 @@ module.exports = {
         } catch (error) {
             return await interaction.editReply({ content: 'could not locate the message please dubble check your message link!' });
         }
-        const announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
-        if (!announcmentChannel) {
-            embeded_error.setDescription("Invalid announcment message link!")
-            interaction.editReply({embeds: [embeded_error]})
-            return
-        }
-        const announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6]).catch((err) => {
-            embeded_error.setDescription("Invalid announcment message link!")
-            interaction.editReply({embeds: [embeded_error]})
-            return
-        })
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
