@@ -38,6 +38,7 @@ module.exports = {
 			}
 		})
 		if (!(response.status + "").startsWith("2")) {
+                        console.log(response.status)
 			return interaction.editReply( `You need to verify using rover! So that we can verify that you have the correct permissions in the provided group!`);
 		}
                 const robloxUser = await response.json()
