@@ -40,6 +40,6 @@ module.exports = async (db, server, interaction) => {
     let timezonefix = 0
     if (config.host === "server") timezonefix = 2
 
-    new_message += `*Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours() + timezonefix}:${time.getMinutes().toString().padStart(2, '0')}*`
+    new_message += `-# Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours() + timezonefix}:${time.getMinutes().toString().padStart(2, '0')}`
     message.edit(new_message) 
 }

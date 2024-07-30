@@ -20,10 +20,14 @@ module.exports = {
                 .setDescription('Paste in the picture of the resoult!')
                 .setRequired(true)
         )
-        .addBooleanOption(option =>
+        .addStringOption(option =>
             option.setName('win')
                 .setDescription('Did you win?')
                 .setRequired(true)
+                .addChoices(
+                    { name: 'win', value: 'win'},
+                    { name: 'loss', value: 'loss'}
+                )
         )
         .addStringOption(option =>
             option.setName('allys_name')
@@ -58,7 +62,7 @@ module.exports = {
                 break;
         }
         const resoult = interaction.options.getAttachment('resoult')
-        const win = interaction.options.getBoolean('win')
+        const win = interaction.options.getString('win')
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
         const division_name = server ? server.name : interaction.guild.name
         let allys_name = ""
@@ -72,7 +76,7 @@ module.exports = {
             allys_name = " "
         }
         let winner = ""
-        if (win) {
+        if (win === "win") {
             winner = division_name + " " + allys_name + " "
         } else {    
             winner = enemy_division
