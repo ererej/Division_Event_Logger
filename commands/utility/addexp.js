@@ -27,6 +27,6 @@ module.exports = {
         server.exp += interaction.options.getInteger('exp_to_add')
         server.save()
         updateExp(db, server, interaction)
-        interaction.editReply({ embeds: [ new EmbedBuilder().setColor(colors.GREEN).setDescription(`Successfully added ${interaction.options.getInteger('exp_to_add')} to the exp!`)]})
+        interaction.editReply({ embeds: [ new EmbedBuilder().setColor(Colors.GREEN).setDescription(`Successfully added ${interaction.options.getInteger('exp_to_add')} to the exp!`)]})
     }
 }
