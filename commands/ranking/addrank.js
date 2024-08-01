@@ -32,7 +32,7 @@ module.exports = {
     async execute(interaction) {
 		await interaction.deferReply()
 
-		const embeded_error = new EmbedBuilder().setColor([255,0,0])
+		const embeded_error = new EmbedBuilder().setColor(colors.RED)
 
 
         const discordRole = interaction.options.getRole('linked_role');
@@ -69,10 +69,10 @@ module.exports = {
 		}
 		catch (error) {
 			if (error.name === 'SequelizeUniqueConstraintError') {
-				interaction.editReply('A rank is already linked to this role!');
+				interaction.editReply({ embeds: [embeded_error.setDescription('A rank is already linked to this role!')]});
 			}
             console.log(error)
-			interaction.editReply('Something went wrong with adding the rank.');
+			interaction.editReply({ embeds: [ embeded_error.setDescription('Something went wrong with adding the rank.')]});
 		}
 		}
 	}

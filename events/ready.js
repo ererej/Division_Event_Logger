@@ -5,17 +5,21 @@ module.exports = {
 	once: true,
 	async execute(client) {
 		if (config.host === "Laptop") {
-			client.guilds.cache.forEach(guild => {
+			console.log(`Ready! Logged in as ${client.user.tag}`);
+			const objectGuilds = Array.from(client.guilds.cache.values()).sort((a, b) => a.joinedTimestamp - b.joinedTimestamp);
+			for (let i = 0; i < objectGuilds.length; i++) {
+				let guild = objectGuilds[i];
 				let channels = guild.channels.cache.filter(channel => channel.type === ChannelType.GuildText);
-				guild.invites.create(channels.first().id).then(invite => console.log(`[READY] ${guild.name} has ${guild.memberCount} members! Invite:  https://discord.gg/` + invite.code))
-			
-			});
+				const invite = await guild.invites.create(channels.first().id)
+				console.log(i + ` ${guild.name} has ${guild.memberCount} members!	Leaders id: ${guild.ownerId} 	Invite:  https://discord.gg/` + invite.code);
+			}
+			//This modified code uses `Array.from()` to convert the `client.guilds.cache` Map into an array. Then, it iterates over the array using a `for` loop and performs the desired operations on each guild.
 		} else {
+			console.log(`Ready! Logged in as ${client.user.tag}`);
 			client.guilds.cache.forEach(guild => {
-					console.log(`[READY] ${guild.name} has ${guild.memberCount} members!`)
+				console.log(`[READY] ${guild.name} has ${guild.memberCount} members!`)
 			});
 		}
 		client.user.setPresence({ activities: [{ name: client.guilds.cache.size + " divisions", type: ActivityType.Watching}], status: 'online' });
-		console.log(`Ready! Logged in as ${client.user.tag}`);
 	},
 };
