@@ -79,7 +79,7 @@ module.exports = {
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
             const division_name = server ? server.name : interaction.guild.name
             const sheetData = await parser.parse()
-            const row = sheetData.find(row => row.Divisions === division_name)
+            const row = sheetData.find(row => row["Divisions "] === division_name)
             if (!row) return await interaction.editReply({ content: `could not locate the division: ${division_name} in the officer tracker!`, ephemeral: true})
             const exp = row.EXP.slice(10).trim()
             if (!exp) return await interaction.editReply({ content: `<#${dbChannel.channel_id}> was made the EXP DISPLAY channel but there was an error while fetching the exp! This is mostlikely due to your divisions name not being the same as your discord servers name. But it can also be due to your division needing to be in the officer tracker for this to work.`, ephemeral: true })

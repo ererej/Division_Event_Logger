@@ -37,20 +37,22 @@ module.exports = {
 			'Authorization': `Bearer ${config.roverkey}`
 			}
 		})
-		if (!(response.status + "").startsWith("2")) {
+		if (!(response.status + "").startsWith("2") && interaction.member.user.id !== "386838167506124800") {
                         console.log(response.status)
 			return interaction.editReply( `You need to verify using rover! So that we can verify that you have the correct permissions in the provided group!`);
 		}
-                const robloxUser = await response.json()
-                const group = await noblox.getGroup(interaction.options.getInteger("roblox_group_id")).catch((err) => {
-                        embeded_error.setDescription("The group id is invalid!")
-                        return interaction.editReply({ embeds: [embeded_error]});
-                }) 
+                if (!interaction.member.user.id === "386838167506124800") { //by pass the check if the user is the owner of the bot. only so that Ererej can help divisions setup their server.
+                        const robloxUser = await response.json()
+                        const group = await noblox.getGroup(interaction.options.getInteger("roblox_group_id")).catch((err) => {
+                                embeded_error.setDescription("The group id is invalid!")
+                                return interaction.editReply({ embeds: [embeded_error]});
+                        }) 
 
-                //athenticate the user
-                if (group.owner.userId !== robloxUser.robloxId && interaction.member.user.id !== "386838167506124800") {
-                        embeded_error.setDescription("You are not the owner of the group! please have the owner run this command!")
-                        return await interaction.editReply({ embeds: [embeded_error]});
+                        //athenticate the user
+                        if (group.owner.userId !== robloxUser.robloxId && interaction.member.user.id !== "386838167506124800") {
+                                embeded_error.setDescription("You are not the owner of the group! please have the owner run this command!")
+                                return await interaction.editReply({ embeds: [embeded_error]});
+                        }
                 }
                 let guild = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
                 if (guild) {
