@@ -13,6 +13,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.reply(`**Fetching SEA banned users...**`)
         const sheetData = await parser.parse()
+        /*
         let replyString = ""
         let discordIDColum = Object.keys(sheetData["0"])[0] + ""
         discordIDColum = [...discordIDColum.split(" ")] //returns an object for no fucking reason
@@ -29,5 +30,7 @@ module.exports = {
             replyString += `**banned <@${userID}>!**\n`
         })
         await interaction.channel.send(replyString)
+        */
+        console.log (sheetData)
     }
 }
