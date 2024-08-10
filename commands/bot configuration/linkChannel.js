@@ -53,9 +53,9 @@ module.exports = {
         const logChannels = ["sealogs", "promologs", "raidlogs"]
         const VcDisplays = ["robloxGroupCount", "guildMemberCount"]
         if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(interaction.options.getString('linktype')) || VcDisplays.includes(interaction.options.getString('linktype')))) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a voice channel to link **${interaction.options.getString('linktype')}** to!`)] })
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Text Channel to link **${interaction.options.getString('linktype')}** to!`)] })
         } else if (channel.type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') != "logs") {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a text channel to *${interaction.options.getString('linktype')}** to!`)] })
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Voice Channel to *${interaction.options.getString('linktype')}** to!`)] })
         }
         let replyString = ""
         if (interaction.options.getString('linktype') == "logs") {
