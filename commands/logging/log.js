@@ -75,7 +75,7 @@ module.exports = {
         const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
         const division_name = server ? server.name : interaction.guild.name
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
-        let regex = /https:\/\/discord\.com\/channels\/([0-9]+(\/[0-9]+)+)/i
+        const regex = /^https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+$/;
         if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!' });
         let announcmentChannel;
         try {

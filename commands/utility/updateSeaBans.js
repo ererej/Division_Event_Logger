@@ -11,8 +11,10 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator),
 
     async execute(interaction) {
+        return interaction.reply("This command is  broken, and fixing it is not worth the time. If you want to ban all SEA banned users, do it manually :D")
         await interaction.reply(`**Fetching SEA banned users...**`)
         const sheetData = await parser.parse()
+        /*
         let replyString = ""
         let discordIDColum = Object.keys(sheetData["0"])[0] + ""
         discordIDColum = [...discordIDColum.split(" ")] //returns an object for no fucking reason
@@ -29,5 +31,6 @@ module.exports = {
             replyString += `**banned <@${userID}>!**\n`
         })
         await interaction.channel.send(replyString)
+        */
     }
 }

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors } = require('discord.js');
 const db = require("../../dbObjects.js");
 const sequelize = require('sequelize');
 
@@ -32,7 +32,7 @@ module.exports = {
     async execute(interaction) {
 		await interaction.deferReply()
 
-		const embeded_error = new EmbedBuilder().setColor(colors.RED)
+		const embeded_error = new EmbedBuilder().setColor(Colors.Red)
 
 
         const discordRole = interaction.options.getRole('linked_role');
