@@ -147,7 +147,7 @@ module.exports = {
                                 }   
                                 break
                             }
-                            attende = await db.Users.create({user_id: member.id, roblox_id: robloxUser.robloxId, guild_id: interaction.guild.id, promo_points: 1, rank_id: rank.id, total_events_attended: 0, recruted_by: null})
+                            attende = await db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 1, rank_id: rank.id, total_events_attended: 0, recruted_by: null})
                             if (attende.promo_points >= guild_ranks[rank.rank_index + 1].promo_points) { //broken!!?!??!
                                 const old_role_id = attende.rank_id;
                                 attende.rank_id = guild_ranks[rank.rank_index + 1].id;

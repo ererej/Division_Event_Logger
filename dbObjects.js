@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
-
-const dbcredentoiols = require('./config.json').db;
+const config = require('./config.json');
+const dbcredentoiols = config.db;
 
 const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
 	host: dbcredentoiols.host,
@@ -71,19 +71,20 @@ Reflect.defineProperty(Users.prototype, 'getItems', {
 
 Reflect.defineProperty(Users.prototype, 'getRank', {
 	value: async function() {
-		const rank = await Ranks.findOne({ where: { id: this.rank_id } })
+		const rank =  await Ranks.findOne({ where: { id: this.rank_id } })
 		return rank
 	}
 });
 
 Reflect.defineProperty(Users.prototype, 'setRank', {
 	value: async function(noblox, groupId, MEMBER, rank, ) {
-		const robloxUser = await fetch(`https://registry.rover.link/api/guilds/${interaction.guild.id}/discord-to-roblox/${member.id}`, {
+		const robloxUser = await fetch(`https://registry.rover.link/api/guilds/${interaction.guild.id}/discord-to-roblox/${MEMBER.id}`, {
 			headers: {
-			'Authorization': `Bearer ${roverkey}`
+			'Authorization': `Bearer ${config.roverkey}`
 			}
 		})
 		if (!(robloxUser.status + "").startsWith("2")) {
+			console.log(`needs to verify using rover!`)
 			return `<@${this.user_id}> needs to verify using rover!`;
 		}
 
@@ -92,6 +93,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 		this.save()
 		MEMBER.roles.remove(rank.id)
 		MEMBER.roles.add(new_rank.id)
+		console.log(`Promoted <@${this.user_id}> from <@${rank.id}> to <@${new_rank.id}>`)
 		return `Promoted <@${this.user_id}> from <@${rank.id}> to <@${new_rank.id}>`
 	}
 });

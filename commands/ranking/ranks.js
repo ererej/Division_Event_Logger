@@ -17,7 +17,7 @@ module.exports = {
         })
         division_ranks.forEach(division_rank => {
             const rank_name = interaction.guild.roles.cache.get(division_rank.id).name
-            rankList.addFields({name: `${rank_name}` ,value: `promo points required:  ${division_rank.promo_points} \nindex:  ${division_rank.rank_index}\nofficer: ${division_rank.is_officer}`})
+            rankList.addFields({name: `${rank_name}` ,value: `promo points required:  ${division_rank.promo_points} \nindex:  ${division_rank.rank_index}\nID: ${division_rank.id}\nRoblox ID: ${division_rank.roblox_id}\nofficer: ${division_rank.is_officer}`})
         });
         interaction.editReply({embeds: [rankList]})
 }};

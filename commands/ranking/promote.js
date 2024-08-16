@@ -61,9 +61,9 @@ module.exports = {
         if (!promotions) {
             promotions = 1
         }
-        let responce;
+        let responce = "";
         if (interaction.options.getString('rank_or_promopoints') === 'rank') {
-            let rank = db.Ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
+            let rank = await db.Ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
             if (rank.rank_index + promotions > promoters_rank.rank_index) {
                 return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than yours!")]})
             }
@@ -76,19 +76,32 @@ module.exports = {
             console.log(responce)
             return interaction.editReply({content: responce})
         } else {
-            let rank = db.Ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
+            console.log(user.rank_id)
+            //let rank = await db.Ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
+            let rank = await user.getRank(db.Ranks)
+            console.log(rank)
             while (promotions > 0) {
+                console.log("a")
                 user.promo_points += 1
                 promotions -= 1
-                if (ranks.findOne({ where: { rank_index: rank.rank_index + 1, guild_id: interaction.guild.id }}) != null) {
+                console.log(ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index))
+                if (ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)) {
                     if (user.promo_points >= ranks.findOne({ where: { rank_index: rank.rank_index + 1, guild_id: interaction.guild.id }}).promo_points) {
-                        responce += user.setRank(noblox, groupId, member, rank ).catch((err) => {
+                        responce += await user.setRank(noblox, groupId, member, rank ).catch((err) => {
                             return interaction.editReply({embeds: [embeded_error.setDescription(`An error occured while trying to promote the user!\nThe user ended up with ${user.promo_points} promo points and the rank <&${rank.id}>!`)]})
                         })
+                        console.log("awidjoawjsdzx")
+                        console.log(responce)
                         responce += "\n"
+                    } else {
+                        break
                     }
+                } else {
+                    responce += "UndefinedThe user has reached the highest rank!"
+                    break
                 }
             }
+            console.log("test")
             return interaction.editReply({content: responce})
         }
     }
