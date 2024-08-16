@@ -11,6 +11,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator),
 
     async execute(interaction) {
+        return interaction.reply("This command is  broken, and fixing it is not worth the time. If you want to ban all SEA banned users, do it manually :D")
         await interaction.reply(`**Fetching SEA banned users...**`)
         const sheetData = await parser.parse()
         /*
@@ -31,6 +32,5 @@ module.exports = {
         })
         await interaction.channel.send(replyString)
         */
-        console.log (sheetData)
     }
 }
