@@ -38,14 +38,14 @@ Reflect.defineProperty(Users.prototype, 'addItem', {
 	},
 });
 
-Reflect.defineProperty(Ranks.prototype, 'addRank', {
+Reflect.defineProperty(Ranks.prototype, 'addRank', {// ?!?!? aint this suposed to be on the server object??
 	value: async (discord_rank, roblox_id, promo_points, rank_index, is_officer) => {
 		const division_rank = await Ranks.findOne({
 			where: {discord_rank_id: this.discord_rank_id},
 		});
 		
 		if (!division_rank) {
-			return Ranks.create({ discord_rank_id: this.discord_rank.id, guild_id: this.discord_rank.guild, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer/*send help idk what i'm doing plz fix. this is a fucntion to add a rank. becouse it dident know what .crate() is in add_ranks.js*/ })
+			return Ranks.create({ id: this.discord_rank.id, guild_id: discord_rank.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer/*send help idk what i'm doing plz fix. this is a fucntion to add a rank. becouse it dident know what .crate() is in add_ranks.js*/ })
 		}
 	}
 });
@@ -71,30 +71,93 @@ Reflect.defineProperty(Users.prototype, 'getItems', {
 
 Reflect.defineProperty(Users.prototype, 'getRank', {
 	value: async function() {
-		const rank =  await Ranks.findOne({ where: { id: this.rank_id } })
-		return rank
+		return await Ranks.findOne({ where: { id: this.rank_id } })
+		
 	}
 });
 
 Reflect.defineProperty(Users.prototype, 'setRank', {
-	value: async function(noblox, groupId, MEMBER, rank, ) {
-		const robloxUser = await fetch(`https://registry.rover.link/api/guilds/${interaction.guild.id}/discord-to-roblox/${MEMBER.id}`, {
+	value: async function(noblox, groupId, MEMBER, rank ) {
+		let robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
 			headers: {
 			'Authorization': `Bearer ${config.roverkey}`
 			}
 		})
 		if (!(robloxUser.status + "").startsWith("2")) {
-			console.log(`needs to verify using rover!`)
-			return `<@${this.user_id}> needs to verify using rover!`;
+			if (robloxUser.status === 404) {
+				return `<@${this.user_id}> needs to verify using rover!`;
+			}
+			console.log(robloxUser)
+			return `An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`;
 		}
-
-		await noblox.setRank(groupId, robloxUser.robloxId, rank.id)
-		this.rank_id = new_rank.id
+		robloxUser = await robloxUser.json()
+		console.log(rank.roblox_id)
+		await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id))
+		const oldRank = this.rank_id
+		//add a check to see if the bot has perms to change the rank
+		MEMBER.roles.remove(oldRank)
+		MEMBER.roles.add(rank.id)
+		this.rank_id = rank.id
+		this.promo_points = 0
 		this.save()
-		MEMBER.roles.remove(rank.id)
-		MEMBER.roles.add(new_rank.id)
-		console.log(`Promoted <@${this.user_id}> from <@${rank.id}> to <@${new_rank.id}>`)
-		return `Promoted <@${this.user_id}> from <@${rank.id}> to <@${new_rank.id}>`
+		console.log(`Promoted <@${this.user_id}> from <@&${oldRank}> to <@&${rank.id}>`)
+		return `Promoted <@${this.user_id}> from <@&${oldRank}> to <@&${rank.id}>`
+	}
+});
+
+Reflect.defineProperty(Users.prototype, 'updateRank', {
+	value: async function(noblox, groupId, MEMBER /* guildmember */ ) {
+		//find the users roblox account
+		let robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
+			headers: {
+			'Authorization': `Bearer ${config.roverkey}`
+			}
+		})
+		if (!(robloxUser.status + "").startsWith("2")) {
+			if (robloxUser.status === 404) {
+				return `<@${this.user_id}> needs to verify using rover!`;
+			}
+			console.log(robloxUser)
+			return `An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`;
+		}
+		robloxUser = await robloxUser.json()
+		// find rank from database
+		const rank = await Ranks.findOne({ where: { id: this.rank_id } })
+		if (!rank) {
+			const ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
+			const roles = await MEMBER.guild.roles.fetch()
+			let highestRank;
+			ranks.forEach(async rank => {
+				if (roles.find(role => role.id === rank.id)) {
+					if (rank.rank_index > highestRank.rank_index) {
+						highestRank = rank
+					} else { //removes extra rank roles 
+						MEMBER.roles.remove(rank.id)
+					}
+				}
+			})
+			if (!highestRank) { //if no rank roles are found
+				const robloxRankId = await noblox.getRankInGroup(groupId, robloxUser.robloxId)
+				if (!robloxRankId) {
+					return `<@${this.user_id}> is not in the group!`
+				}
+				const foundRank = ranks.find(rank => rank.roblox_id == robloxRankId)
+				if (!foundRank) {
+					let robloxRank = await noblox.getRole(groupId, robloxRankId)
+					return `The roblox rank ${robloxRank.name} is not linked! please get a admin to link it using /linkrank!`
+				}
+				this.rank_id = foundRank.id
+				this.save()
+				MEMBER.roles.add(foundRank.id)
+			}
+			this.rank_id = highestRank.id
+			this.save()
+			noblox.setRank(groupId, robloxUser.robloxId, Number(highestRank.roblox_id)).catch((err) => {
+				console.log(err)
+				return `An error occured while trying to update <@${MEMBER.user.id}'s roblox rank! try again later!`
+			})
+		}
+		return 
 	}
 });
 

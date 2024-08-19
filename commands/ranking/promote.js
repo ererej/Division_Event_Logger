@@ -45,7 +45,8 @@ module.exports = {
         }  
 
         let member = interaction.options.getUser('user')
-        let user = await db.Users.findOne({ where: { user_id: member.id, guild_id: interaction.guild.id }})
+        member = await interaction.guild.members.fetch(member.id)
+        let user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
         if (!user) {
             return interaction.editReply({embeds: [embeded_error.setDescription("User not found in the database!")]})
         }
@@ -56,7 +57,8 @@ module.exports = {
         const promoters_rank = db.Ranks.findOne({ where: { id: promoter.rank_id, guild_id: interaction.guild.id }})
 
         const ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})
-        const groupId = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }}).group_id
+        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }})
+        const groupId = server.group_id
         let promotions = interaction.options.getInteger('promotions')
         if (!promotions) {
             promotions = 1
@@ -74,27 +76,25 @@ module.exports = {
                 return interaction.editReply({embeds: [embeded_error.setDescription("An error occured while trying to promote the user!")]})
             })
             console.log(responce)
+            user.save()
             return interaction.editReply({content: responce})
         } else {
-            console.log(user.rank_id)
-            //let rank = await db.Ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
-            let rank = await user.getRank(db.Ranks)
-            console.log(rank)
             while (promotions > 0) {
-                console.log("a")
+                let rank = await user.getRank()
                 user.promo_points += 1
                 promotions -= 1
-                console.log(ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index))
-                if (ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)) {
-                    if (user.promo_points >= ranks.findOne({ where: { rank_index: rank.rank_index + 1, guild_id: interaction.guild.id }}).promo_points) {
-                        responce += await user.setRank(noblox, groupId, member, rank ).catch((err) => {
-                            return interaction.editReply({embeds: [embeded_error.setDescription(`An error occured while trying to promote the user!\nThe user ended up with ${user.promo_points} promo points and the rank <&${rank.id}>!`)]})
+                //console.log(ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index))
+                const nextRank = ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)
+                if (nextRank) {
+                    if (user.promo_points >=  nextRank.promo_points) {
+                        responce += await user.setRank(noblox, groupId, member, nextRank ).catch((err) => {
+                            console.log(err)
+                            return interaction.editReply({embeds: [embeded_error.setDescription(`An error occured while trying to promote the user!\nThe user ended up with ${user.promo_points} promo points and the rank <@&${rank.id}>!`)]})
                         })
-                        console.log("awidjoawjsdzx")
                         console.log(responce)
                         responce += "\n"
                     } else {
-                        break
+                        continue
                     }
                 } else {
                     responce += "UndefinedThe user has reached the highest rank!"
@@ -102,7 +102,11 @@ module.exports = {
                 }
             }
             console.log("test")
-            return interaction.editReply({content: responce})
+            user.save()
+            if (responce === "") {
+                responce = "The user was not promoted!"
+            }
+            return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(responce)]})
         }
     }
 }
