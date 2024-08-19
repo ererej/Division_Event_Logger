@@ -32,13 +32,21 @@ const rest = new REST().setToken(token);
 	try {
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-		// The put method is used to fully refresh all commands in the guild with the current set
-		const data = await rest.put(
-			Routes.applicationCommands(clientId),
-			{ body: commands },
-		);
+		if (process.argv.includes('-t')) {
+			await rest.put(
+				Routes.applicationGuildCommands(clientId, guildId),
+				{ body: commands },
+			);
+			console.log(`Successfully reloaded ${commands.length} application (/) commands for guild ${guildId}.`);
+		} else {
+			// The put method is used to fully refresh all commands in the guild with the current set
+			const data = await rest.put(
+				Routes.applicationCommands(clientId),
+				{ body: commands },
+			);
 
-		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+			console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		}	
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
 		console.error(error);
