@@ -49,22 +49,23 @@ module.exports = {
                         }) 
 
                         //athenticate the user
-                        if (group.owner.userId !== robloxUser.robloxId && interaction.member.user.id !== "386838167506124800") {
+                        if (group.owner.userId !== robloxUser.robloxId) {
                                 embeded_error.setDescription("You are not the owner of the group! please have the owner run this command!")
                                 return await interaction.editReply({ embeds: [embeded_error]});
                         }
                 }
                 let guild = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
+                const groupName = interaction.options.getString("division_name") ? interaction.options.getString("division_name") : guild.name ? guild.name : await noblox.getGroup(interaction.options.getInteger("roblox_group_id")).name
                 if (guild) {
                         guild.group_id = interaction.options.getInteger("roblox_group_id")
                         guild.exp = interaction.options.getInteger("current_exp") ? interaction.options.getInteger("current_exp") : guild.exp
-                        guild.name = interaction.options.getString("division_name") ? interaction.options.getString("division_name") : guild.name ? guild.name : interaction.guild.name
-                        await guild.save();
-                        const embeded_reply = new EmbedBuilder().setDescription("Successfully updated the linked group and the total exp").setColor([0,255,0])
+                        guild.name = groupName
+                        guild.save();
+                        const embeded_reply = new EmbedBuilder().setDescription("Successfully updated the server in the database!").setColor([0,255,0])
                         await interaction.editReply({ embeds: [embeded_reply]});
                 } else {
-                        await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), name: interaction.options.getString("division_name") ? interaction.options.getString("division_name") : interaction.guild.name, exp: interaction.options.getInteger("current_exp") ? interaction.options.getInteger("current_exp") : 0})
-                        const embeded_reply = new EmbedBuilder().setDescription("Server successfully saved to the database and linked to the roblox group.").setColor([0,255,0])
+                        await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), name: groupName, exp: interaction.options.getInteger("current_exp") ? interaction.options.getInteger("current_exp") : 0})
+                        const embeded_reply = new EmbedBuilder().setDescription(`Server successfully saved to the database and linked to the roblox group **${groupName}**.`).setColor([0,255,0])
                         await interaction.editReply({ embeds: [embeded_reply]});
                 }
         }
