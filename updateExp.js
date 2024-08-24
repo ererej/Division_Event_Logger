@@ -9,8 +9,8 @@ module.exports = async (db, server, interaction) => {
     if (!message) {
         message = await channel.send("setting up exp display...")
     }
-
-    let divisions = await db.Servers.sort((a, b) => b.exp - a.exp)
+    
+    let divisions = await db.Servers.find().sort((a, b) => b.exp - a.exp)
     const guildsPosission = divisions.findIndex(g => g.guild_id === interaction.guild.id)
 
     const levels = [0, 500, 2000, 5500, 10000, 20000, 37500, 55000, 75000]
