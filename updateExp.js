@@ -28,7 +28,7 @@ module.exports = async (db, server, interaction) => {
 
     const procentage = Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)
 
-    let new_message = `# __Level ${level}__\n**Possition compared to other divs:** #${guildsPosission + 1}\n${divisions[guildsPosission + 1] ?  `Division at #${guildsPosission + 2}: ${divisions[guildsPosission + 2].name} with ${divisions[guildsPosission + 2].exp}EXP\n` : "" }${divisions[guildsPosission] ? `Division at #${guildsPosission}: ${divisions[guildsPosission ].name} with ${divisions[guildsPosission].exp}EXP\n` : "" }****Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
+    let new_message = `# __Level ${level}__\n**Possition compared to other divs:** #${guildsPosission + 1}\n${divisions[guildsPosission] ? `Division at #${guildsPosission}: ${divisions[guildsPosission ].name}${divisions[guildsPosission + 2] ?  `Division at #${guildsPosission + 2}: ${divisions[guildsPosission + 2].name} with ${divisions[guildsPosission + 2].exp}EXP\n` : "" } with ${divisions[guildsPosission].exp}EXP\n` : "" }****Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
     new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
     for (let i=0;i<procentage/5;i++) {
         new_message += "▮"
