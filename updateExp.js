@@ -10,6 +10,9 @@ module.exports = async (db, server, interaction) => {
         message = await channel.send("setting up exp display...")
     }
 
+    let divisions = await db.Servers.sort((a, b) => b.exp - a.exp)
+    const guildsPosission = divisions.findIndex(g => g.guild_id === interaction.guild.id)
+
     const levels = [0, 500, 2000, 5500, 10000, 20000, 37500, 55000, 75000]
 
     let level = 0
@@ -24,7 +27,7 @@ module.exports = async (db, server, interaction) => {
 
     const procentage = Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)
 
-    let new_message = `# __Level ${level}__\n**Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
+    let new_message = `# __Level ${level}__\n**Possition compared to other divs:** #${guildsPosission + 1}\n${divisions[guildsPosission + 1] ?  `Division at #${guildsPosission + 1}: ${divisions[guildsPosission + 1].name} with ${divisions[guildsPosission + 1].exp}EXP\n` : "" }${divisions[guildsPosission - 1 ? `Division at #${guildsPosission - 1}: ${divisions[guildsPosission - 1].name} with ${divisions[guildsPosission - 1].exp}EXP\n` : "" ]}****Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
     new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
     for (let i=0;i<procentage/5;i++) {
         new_message += "▮"
