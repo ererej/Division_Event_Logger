@@ -9,13 +9,16 @@
   "author": "Ererej",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.6.7",
-    "discord.js": "^14.15.2",
-    "dotenv": "^16.4.1",
-    "mysql2": "^3.9.4",
-    "noblox.js": "^4.15.1",
+    "axios": "^1.7.5",
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0",
     "public-google-sheets-parser": "^1.5.4",
-    "sequelize": "^6.37.0",
+    "sequelize": "^6.37.3",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "noblox.js": "^6.0.2",
+    "sequelize-cli": "^6.6.2"
   }
 }
