@@ -12,6 +12,7 @@ const Users = require('./models/Users.js')(sequelize, Sequelize.DataTypes);
 const Servers = require('./models/Servers.js')(sequelize, Sequelize.DataTypes);
 const Ranks = require('./models/Ranks.js')(sequelize, Sequelize.DataTypes);
 const Channels = require('./models/Channels.js')(sequelize, Sequelize.DataTypes);
+const Settings = require('./models/Settings.js')(sequelize, Sequelize.DataTypes);
 
 Users.hasOne(Ranks, {
 	foreignKey: 'id'
@@ -69,4 +70,4 @@ Reflect.defineProperty(Users.prototype, 'getItems', {
 	},
 });
 
-module.exports = { Users, Channels, Servers, Ranks};
+module.exports = { Users, Channels, Servers, Ranks, Settings};

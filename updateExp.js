@@ -24,7 +24,7 @@ module.exports = async (db, server, interaction) => {
     }
     const exp_needed = levels[level]
     const past_level_exp = levels[level-1]
-    const time = new Date
+
 
     const procentage = Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)
 
@@ -43,7 +43,10 @@ module.exports = async (db, server, interaction) => {
     const config = require('./config.json')
     let timezonefix = 0
     if (config.host === "server") timezonefix = 2
+    const date = new Date()
+    const timezoneOfset = db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } })
+    const time = new Date(date - (date.getTimezoneOffset() * 60000))
 
-    new_message += `\n-# Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours() + timezonefix}:${time.getMinutes().toString().padStart(2, '0')}`
+    new_message += `\n-# Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`
     message.edit(new_message) 
 }
