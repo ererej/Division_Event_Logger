@@ -5,7 +5,8 @@ const spreadsheetId = '1sQIT3aOs1dWB9-f8cbsYe7MnSRfCfLRgMDSuE5b3w1I'
 const options = { useFormat: true }
 const parser = new PublicGoogleSheetsParser(spreadsheetId, options)
 const updateExp = require('../../updateExp.js')
-const noblox = require("noblox.js")
+const noblox = require("noblox.js");
+const { where } = require('sequelize');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -58,6 +59,15 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Voice Channel to *${interaction.options.getString('linktype')}** to!`)] })
         }
         let replyString = ""
+        //removes all the outdated db entrys
+        if (textChannels.includes(interaction.options.getString('linktype'))) {
+            await db.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype')}}).forEach(channelLink => {
+                channelLink.destroy
+            });
+        } else {
+            await db.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype'), channel_id: channel.id}})
+        }
+
         if (interaction.options.getString('linktype') == "logs") {
             for (let i = 0; i < logChannels.length; i++) {
                 const channels = await db.Channels.findAll({ where: { guild_id: interaction.guild.id, type: logChannels[i] } }) //just in case there are some how multiple channels linked to the same type
