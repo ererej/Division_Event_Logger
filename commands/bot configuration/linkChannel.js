@@ -61,11 +61,11 @@ module.exports = {
         let replyString = ""
         //removes all the outdated db entrys
         if (textChannels.includes(interaction.options.getString('linktype'))) {
-            await db.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype')}}).forEach(channelLink => {
+            await db.Channels.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype')}}).forEach(channelLink => {
                 channelLink.destroy
             });
         } else {
-            await db.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype'), channel_id: channel.id}})
+            await db.Channels.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype'), channel_id: channel.id}})
         }
 
         if (interaction.options.getString('linktype') == "logs") {
