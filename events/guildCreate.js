@@ -3,7 +3,7 @@ const { Events, ActivityType, ChannelType } = require('discord.js');
 module.exports = {
 	name: Events.GuildCreate,
 	async execute(client) {
-        console.log(typeof client)
+        //console.log(typeof client)
         //const guild = client.guilds.cache.find(guild => guild.id === arguments[0].id)
         //console.log(arguments[0])
         //console.log(guild.channels)
