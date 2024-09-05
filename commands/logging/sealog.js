@@ -50,7 +50,7 @@ module.exports = {
         }
         
         const time = announcmentMessage.createdAt
-        const timeFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })
+        const timeFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) : "dd/mm/yyyy"
         const date = timeFormat.config.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear())
         
         

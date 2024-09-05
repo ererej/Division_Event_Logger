@@ -27,8 +27,14 @@ module.exports = async (db, server, interaction) => {
 
 
     const procentage = Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)
-
-    let new_message = `# __Level ${level}__\n**Possition compared to other divs:** #${guildsPosission + 1}\n${divisions[guildsPosission] ? `Division at #${guildsPosission}: ${divisions[guildsPosission - 1].name} with ${divisions[guildsPosission - 1].exp}EXP. ${divisions[guildsPosission -1].exp - server.exp}EXP needed to pass\n` : "" }${divisions[guildsPosission + 2] ?  `Division at #${guildsPosission + 2}: ${divisions[guildsPosission + 2].name} with ${divisions[guildsPosission + 2].exp}EXP\n` : "" }**Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
+    let new_message = `# __Level ${level}__\n`
+    new_message += `**Possition compared to other divs:** #${guildsPosission + 1}\n`
+    const showOrHideOtherDivs = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplayshowotherdivs" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplayshowotherdivs" }})).config : "show"
+    
+    if (showOrHideOtherDivs != "hide") {
+        new_message += `${divisions[guildsPosission - 1] ? `Division at #${guildsPosission}: ${divisions[guildsPosission - 1].name} with ${divisions[guildsPosission - 1].exp}EXP. ${divisions[guildsPosission -1].exp - server.exp}EXP needed to pass\n` : "" }${divisions[guildsPosission + 1] ?  `Division at #${guildsPosission + 2}: ${divisions[guildsPosission + 1].name} with ${divisions[guildsPosission + 1].exp}EXP\n` : "" }`
+    }
+    new_message += `**Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
     new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
     for (let i=0;i<procentage/5;i++) {
         new_message += "▮"
@@ -42,11 +48,13 @@ module.exports = async (db, server, interaction) => {
     new_message += "\n```"
     const config = require('./config.json')
     let timezonefix = 0
-    if (config.host === "server") timezonefix = 2
-    const date = new Date()
-    const timezoneOfset = db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } })
-    const time = new Date(date - (date.getTimezoneOffset() * 60000))
+    if (config.host === "Laptop") timezonefix = -2
+    let time = new Date()
+    const timezoneOfset = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } }) ? await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } }) : 0
+    time = new Date(time - time.getTimezoneOffset() * 60000 + (parseInt(timezoneOfset.config) + timezonefix) * 3600000)
+    const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) : "dd/mm/yyyy"
+    const date = dateFormat.config.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear()) + " " + time.getHours() + ":" + time.getMinutes()
 
-    new_message += `\n-# Last updated: ${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()} ${time.getHours()}:${time.getMinutes().toString().padStart(2, '0')}`
+    new_message += `\n-# Last updated: ${date}`
     message.edit(new_message) 
 }
