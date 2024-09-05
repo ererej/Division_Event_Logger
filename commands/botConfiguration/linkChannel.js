@@ -5,7 +5,7 @@ const spreadsheetId = '1sQIT3aOs1dWB9-f8cbsYe7MnSRfCfLRgMDSuE5b3w1I'
 const options = { useFormat: true }
 const parser = new PublicGoogleSheetsParser(spreadsheetId, options)
 const updateExp = require('../../updateExp.js')
-const noblox = require("noblox.js")
+const noblox = require("noblox.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -58,6 +58,29 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Voice Channel to *${interaction.options.getString('linktype')}** to!`)] })
         }
         let replyString = ""
+
+        // removes all the outdated db entrys
+
+        const duplicateLinks = await db.Channels.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype'), channel_id: channel.id}})
+        if (duplicateLinks.length === 1) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`This channelLink already exists!`)] })
+        } else if (duplicateLinks.length > 1) {
+            duplicateLinks.forEach(link => {
+                link.destroy()
+            })
+        }
+
+        if (textChannels.includes(interaction.options.getString('linktype'))) {
+            const oldLinks = await db.Channels.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype')}})
+            oldLinks.forEach(link => {
+                replyString += `Successfully unlinked <#${link.channel_id}> from being the **${link.type}** channel! \nAnd `
+                link.destroy()
+            })
+        } else {
+
+            
+        }
+
         if (interaction.options.getString('linktype') == "logs") {
             for (let i = 0; i < logChannels.length; i++) {
                 const channels = await db.Channels.findAll({ where: { guild_id: interaction.guild.id, type: logChannels[i] } }) //just in case there are some how multiple channels linked to the same type
@@ -83,11 +106,11 @@ module.exports = {
             if (!row) return await interaction.editReply({ content: `could not locate the division: ${division_name} in the officer tracker!`, ephemeral: true})
             const exp = row.EXP.slice(10).trim()
             if (!exp) return await interaction.editReply({ content: `<#${dbChannel.channel_id}> was made the EXP DISPLAY channel but there was an error while fetching the exp! This is mostlikely due to your divisions name not being the same as your discord servers name. But it can also be due to your division needing to be in the officer tracker for this to work.`, ephemeral: true })
-            if (!server) return await interaction.editReply({ content: 'This server is not registered in the database! Please ask an admin to register it using </setup:1217778156300275772>', ephemeral: true });
+            if (!server) return await interaction.editReply({ content: 'This server is not registered in the database! Please ask an admin to register it using </setup:1217778156300275772>'});
             server.exp = exp
             server.save()
             updateExp(db, server, interaction)
-            return await interaction.editReply(`EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
+            return await interaction.editReply(replyString + `EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
         } else if (interaction.options.getString('linktype') == "guildMemberCount") {
             const guild = interaction.guild
             const rounding = await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ? parseInt( (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })).config) : 1
