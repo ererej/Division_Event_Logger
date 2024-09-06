@@ -7,6 +7,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('settings')
         .setDescription("Used to configure the bot's settings")
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addSubcommand(subcommand =>
             subcommand
                 .setName('dateformat')
