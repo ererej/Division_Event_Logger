@@ -65,6 +65,11 @@ module.exports = {
 
         async execute(interaction) {
             await interaction.deferReply()
+            const embeded_error = new EmbedBuilder().setColor([255,0,0])
+            if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator) && !interaction.member.user.id === "386838167506124800") {
+                embeded_error.setDescription("Insuficent permissions!")
+                return await interaction.editReply({ embeds: [embeded_error]});
+            } 
             let setting
             let server
             switch (interaction.options.getSubcommand()) {
