@@ -144,8 +144,12 @@ module.exports = {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: "expdisplayshowotherdivs", config: showOrHide })
                     }
                     server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+                    console.log(server) 
                     if (server) {
+                        console.log("updating exp")
                         updateExp(db, server, interaction)
+                    } else {
+                        interaction.editReply({ content: 'The setting is saved but. There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1248017516933156870>' });
                     }
                     await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the exp display to *${showOrHide}* other divs`) ] })
                     break;
