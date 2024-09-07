@@ -39,7 +39,6 @@ module.exports = async (db, server, interaction) => {
     for (let i=0;i<procentage/5;i++) {
         new_message += "▮"
     }
-    console.log("works this far")
     new_message += "[0m[2;31m"
     for (let i=0;i<20-(procentage/5);i++) {
         new_message += "▯"
@@ -53,9 +52,8 @@ module.exports = async (db, server, interaction) => {
     let time = new Date()
     const timezoneOfset = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } }) ? await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } }) : 0
     time = new Date(time - time.getTimezoneOffset() * 60000 + (parseInt(timezoneOfset.config) + timezonefix) * 3600000)
-    const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) : "dd/mm/yyyy"
-    const date = dateFormat.config.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear()) + " " + time.getHours() + ":" + time.getMinutes()
-    console.log("time to edit message")
+    const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })).config : "dd/mm/yyyy"
+    const date = dateFormat.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear()) + " " + time.getHours() + ":" + time.getMinutes()
     new_message += `\n-# Last updated: ${date}`
     message.edit(new_message) 
 }

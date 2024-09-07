@@ -50,8 +50,8 @@ module.exports = {
         }
         
         const time = announcmentMessage.createdAt
-        const timeFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) : "dd/mm/yyyy"
-        const date = timeFormat.config.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear())
+        const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })).config : "DD/MM/YYYY"
+        const date = dateFormat.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear())
         
         
         const wedge_picture = interaction.options.getAttachment('wedge_picture').url
