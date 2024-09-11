@@ -55,8 +55,9 @@ module.exports = {
                         }
                 }
                 let guild = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
-                const groupName = interaction.options.getString("division_name") ? interaction.options.getString("division_name") : guild.name ? guild.name : await noblox.getGroup(interaction.options.getInteger("roblox_group_id")).name
+                let groupName
                 if (guild) {
+                        groupName = interaction.options.getString("division_name") ? interaction.options.getString("division_name") : guild.name ? guild.name : await noblox.getGroup(interaction.options.getInteger("roblox_group_id")).name
                         guild.group_id = interaction.options.getInteger("roblox_group_id")
                         guild.exp = interaction.options.getInteger("current_exp") ? interaction.options.getInteger("current_exp") : guild.exp
                         guild.name = groupName
@@ -64,6 +65,7 @@ module.exports = {
                         const embeded_reply = new EmbedBuilder().setDescription("Successfully updated the server in the database!").setColor([0,255,0])
                         await interaction.editReply({ embeds: [embeded_reply]});
                 } else {
+                        groupName = interaction.options.getString("division_name") ? interaction.options.getString("division_name") : await noblox.getGroup(interaction.options.getInteger("roblox_group_id")).name
                         await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), name: groupName, exp: interaction.options.getInteger("current_exp") ? interaction.options.getInteger("current_exp") : 0})
                         const embeded_reply = new EmbedBuilder().setDescription(`Server successfully saved to the database and linked to the roblox group **${groupName}**.`).setColor([0,255,0])
                         await interaction.editReply({ embeds: [embeded_reply]});

@@ -5,12 +5,12 @@ const { col } = require('sequelize');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('addexp')
-		.setDescription('adds exp to the exp in the database and updates any expdisplay!')
+		.setName('setexp')
+		.setDescription('sets the exp in the database and updates any expdisplay')
         //.setDefaultMemberPermissions(PermissionFlagsBits.ManageServer || PermissionFlagsBits.Administrator)
         .addIntegerOption(option => 
-            option.setName('exp_to_add')
-                .setDescription('the exp that the division has earned!')
+            option.setName('amount')
+                .setDescription('the exp that the division has!')
                 .setRequired(true)
         ),
 
@@ -24,9 +24,9 @@ module.exports = {
         const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
         if (!server) return await interaction.editReply({ embeds: [embeded_error.setDescription("please run the /setup command so that the server gets added to the data base")]})
         
-        server.exp += interaction.options.getInteger('exp_to_add')
+        server.exp = interaction.options.getInteger('amount')
         server.save()
         updateExp(db, server, interaction)
-        interaction.editReply({ embeds: [ new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully added ${interaction.options.getInteger('exp_to_add')} to the exp!`)]})
+        interaction.editReply({ embeds: [ new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully updated the exp in the database and expdisplay to be: ${interaction.options.getInteger('exp_to_add')}EXP!`)]})
     }
 }
