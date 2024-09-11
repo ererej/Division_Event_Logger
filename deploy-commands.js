@@ -38,6 +38,12 @@ const rest = new REST().setToken(token);
 				{ body: commands },
 			);
 			console.log(`Successfully reloaded ${commands.length} application (/) commands for guild ${guildId}.`);
+		} else if (process.argv.includes('-rt')) {
+			rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [] })
+				.then(() => {
+					console.log(`Successfully removed all application (/) commands for guild ${guildId}.`);
+				})
+				.catch(console.error);
 		} else {
 			// The put method is used to fully refresh all commands in the guild with the current set
 			const data = await rest.put(

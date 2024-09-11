@@ -1,0 +1,46 @@
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const db = require("../../dbObjects.js");
+const testers = require("../../tester_servers.json");
+const noblox = require("noblox.js")
+const config = require('../../config.json')
+noblox.setCookie(config.sessionCookie)
+
+module.exports = {
+	data: new SlashCommandBuilder()
+        .setName('updateuser')
+        .setDescription('updates a user in the database and makes sure the user is the correct rank on roblox and discord!')
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
+        .addUserOption(option => 
+            option.setName('user')
+                .setDescription('Please input the user that you want to be updated!')
+                .setRequired(true)
+        ),
+
+    async execute(interaction) {
+        await interaction.deferReply()
+        const embeded_error = new EmbedBuilder().setColor([255,0,0])
+
+        let tester = false
+        testers.servers.forEach(server => {
+            if ( !tester && server.id === interaction.guild.id) {
+                tester = true
+            }
+        });
+        if (!tester) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription('This command is **only enabled** for testers!')] });
+        }  
+
+        let  member = interaction.options.getUser('user')
+        await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Updating ${member.username} please wait!`)] })
+        member = await interaction.guild.members.fetch(member.id)
+        const user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
+        if (!user) {
+            const user = db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
+            const responce = await user.updateRank(noblox, interaction.guild.id, member)
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce)] })
+        } else {
+            const responce = await user.updateRank(noblox, interaction.guild.id, member)
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce ? responce : "the user was already up to date")] })
+        }
+    }
+};

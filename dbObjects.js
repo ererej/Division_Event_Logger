@@ -123,9 +123,21 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		robloxUser = await robloxUser.json()
 		// find rank from database
 		const rank = await Ranks.findOne({ where: { id: this.rank_id } })
+		const ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
+		const roles = await MEMBER.guild.roles.fetch()
+		const robloxRankId = await noblox.getRankInGroup(groupId, robloxUser.robloxId)
+		console.log(robloxRankId)
+		if (!robloxRankId) {
+			return `<@${this.user_id}> is not in the group!`
+		}
+		const rankFromRoblox = ranks.find(rank => rank.roblox_id == robloxRankId)
+		if (!rankFromRoblox) {
+			let robloxRank = await noblox.getRole(groupId, robloxRankId)
+			return `The roblox rank ${robloxRank.name} is not linked! please get a admin to link it using /linkrank!`
+		}
+
 		if (!rank) {
-			const ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
-			const roles = await MEMBER.guild.roles.fetch()
+			
 			let highestRank;
 			ranks.forEach(async rank => {
 				if (roles.find(role => role.id === rank.id)) {
@@ -137,18 +149,12 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				}
 			})
 			if (!highestRank) { //if no rank roles are found
-				const robloxRankId = await noblox.getRankInGroup(groupId, robloxUser.robloxId)
-				if (!robloxRankId) {
-					return `<@${this.user_id}> is not in the group!`
-				}
-				const foundRank = ranks.find(rank => rank.roblox_id == robloxRankId)
-				if (!foundRank) {
-					let robloxRank = await noblox.getRole(groupId, robloxRankId)
-					return `The roblox rank ${robloxRank.name} is not linked! please get a admin to link it using /linkrank!`
-				}
-				this.rank_id = foundRank.id
+				//take the roblox rank
+				this.rank_id = rankFromRoblox.id
+				this.promo_points = 0
 				this.save()
 				MEMBER.roles.add(foundRank.id)
+				return `Updated <@${this.user_id}> to <@&${foundRank.id} (taken from roblox group rank)>`
 			}
 			this.rank_id = highestRank.id
 			this.save()
@@ -157,6 +163,24 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				return `An error occured while trying to update <@${MEMBER.user.id}'s roblox rank! try again later!`
 			})
 		}
+		if (rank.roblox_id != rankFromRoblox.roblox_id) {
+			noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
+				console.log(err)
+				return `An error occured while trying to update <@${MEMBER.user.id}'s roblox rank! try again later!`
+			})
+			return `Updated <@${this.user_id}>'s roblox rank to <@&${rank.id}>`
+		} 
+
+		if (!roles.find(role => role.id === rank.id)) {
+			ranks.forEach(rank => {
+				if (roles.find(role => role.id === rank.id)) {
+					MEMBER.roles.remove(rank.id)
+				}
+			})
+			MEMBER.roles.add(rank.id)
+			return `Updated <@${this.user_id}>'s discord rank to <@&${rank.id}>`
+		}
+
 		return 
 	}
 });
