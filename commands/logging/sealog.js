@@ -56,13 +56,14 @@ module.exports = {
         
         const wedge_picture = interaction.options.getAttachment('wedge_picture').url
         const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
-        if (!dbChannel) {
-            return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
-        }
-        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
+
+        const sea_format_channel = dbChannel ? await interaction.guild.channels.fetch(dbChannel.channel_id) : interaction.channel
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
         const division_name = server ? server.name : interaction.guild.name
         await sea_format_channel.send({content: `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: `, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
+        if (!dbChannel) {
+            return await interaction.editReply({ content: 'you can make the format always get posted in a specific channel with </linkchannel:1246002135204626454>', ephemeral: false });
+        }
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
         .setDescription("format succesfully logged!")

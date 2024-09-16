@@ -3,7 +3,6 @@ const { Events } = require('discord.js');
 module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
-		//addBalance(message.author.id, 1) // pending deliatoin
 		if (!interaction.isChatInputCommand()) return;
 
 		const command = interaction.client.commands.get(interaction.commandName);
@@ -14,6 +13,16 @@ module.exports = {
 		}
 
 		try {
+			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
+			if (testServer) {
+                const channel = await testServer.channels.fetch("1285158576448344064");
+				let logMessage = interaction.commandName + " was ran interaction: \n"
+				interaction.options._hoistedOptions.forEach(option => {
+					logMessage += "**" + option.name + "** = " + option.value + " \n" 
+				});
+                await channel.send(logMessage);
+				console.log(interaction.options)
+            }
 			await command.execute(interaction);
 		} catch (error) {
 			console.error(error);

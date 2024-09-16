@@ -82,10 +82,8 @@ module.exports = {
             winner = enemy_division
         }
         const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "raidlogs" } })
-        if (!dbChannel) {
-            return await interaction.editReply({ content: 'There is no raidlog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
-        }
-        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
+
+        const sea_format_channel = dbChannel ? await interaction.guild.channels.fetch(dbChannel.channel_id) : interaction.channel
         
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (raid_discutions === null) {
@@ -93,6 +91,9 @@ module.exports = {
         
         } else {
             await sea_format_channel.send({ content: ` <@186267447001612289> \nDivision(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
+        }
+        if (!dbChannel) {
+            return await interaction.editReply({ content: 'If you want the raidlogs to always go to a spesific channel then use this command </linkchannel:1246002135204626454>', ephemeral: true });
         }
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])

@@ -28,19 +28,19 @@ module.exports = {
         async execute(interaction) {
                 await interaction.deferReply()
                 const embeded_error = new EmbedBuilder().setColor([255,0,0])
-		if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator) && !interaction.member.user.id === "386838167506124800") {
+                if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator) && !interaction.member.user.id === "386838167506124800") {
                         embeded_error.setDescription("Insuficent permissions!")
                         return await interaction.editReply({ embeds: [embeded_error]});
-		} 
+                } 
                 const response = await fetch(`https://registry.rover.link/api/guilds/${interaction.guild.id}/discord-to-roblox/${interaction.member.user.id}`, {
-			headers: {
-			'Authorization': `Bearer ${config.roverkey}`
-			}
-		})
-		if (!(response.status + "").startsWith("2") && interaction.member.user.id !== "386838167506124800") {
+                        headers: {
+                        'Authorization': `Bearer ${config.roverkey}`
+                        }
+                })
+                if (!(response.status + "").startsWith("2") && interaction.member.user.id !== "386838167506124800") {
                         console.log(response.status)
-			return interaction.editReply( `You need to verify using rover! So that we can verify that you have the correct permissions in the provided group!`);
-		}
+                        return interaction.editReply( `You need to verify using rover! So that we can verify that you have the correct permissions in the provided group!`);
+                }
                 if (!interaction.member.user.id === "386838167506124800") { //by pass the check if the user is the owner of the bot. only so that Ererej can help divisions setup their server.
                         const robloxUser = await response.json()
                         const group = await noblox.getGroup(interaction.options.getInteger("roblox_group_id")).catch((err) => {
@@ -54,6 +54,8 @@ module.exports = {
                                 return await interaction.editReply({ embeds: [embeded_error]});
                         }
                 }
+
+                
                 let guild = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
                 let groupName
                 if (guild) {
@@ -71,5 +73,5 @@ module.exports = {
                         await interaction.editReply({ embeds: [embeded_reply]});
                 }
         }
-        
+
 }

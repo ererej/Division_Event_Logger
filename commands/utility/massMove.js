@@ -14,18 +14,20 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])
-		if (!interaction.member.permissions.has(PermissionsBitField.Flags.MoveMembers || PermissionsBitField.Flags.Administrator )) {
+        const targetVoiceChannel = interaction.options.getChannel('channel')
+
+		if (/*!await (targetVoiceChannel.members.fetch(interaction.user.id)).permissions.has(PermissionsBitField.Flags.Connect) &&*/ !interaction.member.permissions.has(PermissionsBitField.Flags.MoveMembers || PermissionsBitField.Flags.Administrator )) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else if (!interaction.member.voice.channel) {
             embeded_error.setDescription("You must be in a voice channel to use this command!")
             await interaction.editReply({ embeds: [embeded_error]});
         } else if (interaction.options.getChannel('channel') === interaction.member.voice.channel) {
-            embeded_error.setDescription("em sir you are already in that voice chat!")
+            embeded_error.setDescription("em sir you are already in that voice chat dummy!")
             await interaction.editReply({ embeds: [embeded_error]});
         } else {
             const currentVoiceChannel = interaction.member.voice.channel
-            const targetVoiceChannel = interaction.options.getChannel('channel')
+           
             const members = currentVoiceChannel.members
             members.forEach(member => {
                 member.voice.setChannel(targetVoiceChannel)

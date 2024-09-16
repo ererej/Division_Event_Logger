@@ -9,7 +9,11 @@ module.exports = {
             option.setName('users')
                 .setDescription('seperate the users with ","!')
                 .setRequired(true)
-            ),
+        )
+        .addStringOption(option =>
+            option.setName('reason')
+                .setDescription('why are these users getting banned?')
+        ),
 
     async execute(interaction) {
         await interaction.deferReply()
@@ -19,10 +23,13 @@ module.exports = {
         let replyString = ""
         UserIDs.forEach(userId => {
             try {
-            interaction.guild.members.ban(userId, {reason: `massban by ${interaction.user.tag} (${interaction.user.id})!`})
-            replyString += `**banned <@${userId}>!**\n`
-            bancount++
+                interaction.guild.members.ban(userId, {reason: `massban by ${interaction.user.tag} (${interaction.user.id})! reason: ` + interaction.options.getString('reason')})
+                replyString += `*banned <@${userId}>!*\n`
+                bancount++
             } catch(err)  {
+                if (interaction.guild.members.fetch(userId) && interaction.guild.members.fetch(userId).bannable === false) {
+                    replyString += `**unable to ban <@${userId}> due to missing permissions.\n`
+                }
                 replyString += `**failed to ban <@${userId}>!**\n`
                 failedBans++
             }
@@ -31,6 +38,22 @@ module.exports = {
         if (failedBans > 0) {
             replyString += `***failed to ban ${failedBans} users!***\n`
         } 
-        interaction.editReply(replyString)
+        if (replyString.length() <= 2000) {
+            interaction.editReply(replyString)
+        } else {
+            interaction.editReply('# ***banning users:***')
+            let subStrings = replyString.split("\n")
+            let tempstring = ""
+            for (i=0; i < replyString.length(); i++){
+                if ((tempstring + subStrings[i]).length() >= 2000) {
+                    interaction.channel.send(tempstring)
+                    tempstring = subStrings[i]
+                } else {
+                    tempstring += subStrings[i]
+                }
+            }
+            interaction.channel.send(tempstring)
+        }
+
     }
 }
