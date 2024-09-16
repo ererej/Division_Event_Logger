@@ -16,7 +16,7 @@ module.exports = {
 			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
                 const channel = await testServer.channels.fetch("1285158576448344064");
-				let logMessage = interaction.commandName + " was ran interaction: \n"
+				let logMessage = "*/" + interaction.commandName + "* was ran interaction: \n"
 				interaction.options._hoistedOptions.forEach(option => {
 					logMessage += "**" + option.name + "** = " + option.value + " \n" 
 				});
