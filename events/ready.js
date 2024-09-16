@@ -25,7 +25,7 @@ module.exports = {
 			const testServer = await client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
                 const channel = await testServer.channels.fetch("1285158576448344064");
-				channel.send("bot started")
+				channel.send("bot started <@386838167506124800>")
 			}
 		}
 		client.user.setPresence({ activities: [{ name: "in Ace Of Aces against " + client.guilds.cache.size + " divisions and " + totalMembers + " players", type: ActivityType.Competing}], status: 'online' });
