@@ -1,4 +1,4 @@
-const { Events, ChannelType } = require('discord.js');
+const { Events } = require('discord.js');
 const db = require('../dbObjects.js');
 const noblox = require("noblox.js")
 

@@ -16,12 +16,12 @@ module.exports = {
 			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
                 const channel = await testServer.channels.fetch("1285158576448344064");
-				let logMessage = "*/" + interaction.commandName + "* was ran interaction: \n"
+				let time = new Date(interaction.createdTimestamp)
+				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] */" + interaction.commandName + "* was ran inputs: \n"
 				interaction.options._hoistedOptions.forEach(option => {
 					logMessage += "**" + option.name + "** = " + option.value + " \n" 
 				});
                 await channel.send(logMessage);
-				console.log(interaction.options)
             }
 			await command.execute(interaction);
 		} catch (error) {
@@ -30,6 +30,22 @@ module.exports = {
 				await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
 			} else {
 				await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+			}
+			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
+			if (testServer) {
+                const channel = await testServer.channels.fetch("1285158576448344064");
+				let errorLogs = "the interaction that was created at [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] failed!"
+				errorLogs += "\n**Error type:** " + error.name
+				if (error.message) {
+					errorLogs += "\n*Error message:* " + error.message
+				}
+				if (error.cause) {
+					errorLogs += "\n*cause:* " + error.cause	
+				}
+				if (error.lineNumber) {
+					errorLogs += "\n*line number:* " + error.lineNumber
+				}
+				channel.send()
 			}
 		}
 	},
