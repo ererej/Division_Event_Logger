@@ -16,7 +16,7 @@ module.exports = {
                 )
                 .addStringOption(option =>
                         option.setName('division_name')
-                                .setDescription('Please input the name of your division!(this is only needed if its the servers name)')
+                                .setDescription('This is a manual overwrite if the DAs has misstyped the division name in the officer tracker!')
                                 .setRequired(false)
                 )
                 .addIntegerOption(option => 

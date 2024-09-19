@@ -19,7 +19,13 @@ module.exports = {
         const division_name = server ? server.name : interaction.guild.name
         const sheetData = await parser.parse()
         const row = sheetData.find(row => row["Divisions"] === division_name)
-        if (!row) return await interaction.editReply({ content: `could not locate the division: ${division_name} in the officer tracker!`, ephemeral: true})
+        if (!row) {
+            if (sheetData[0]["Divisions"]) {
+                return await interaction.editReply({ content: `could not locate the division: ${division_name} in the officer tracker!`, ephemeral: true})
+            } else {
+                return await interaction.editReply({ content: `could not locate a column named "Divisions" in the officer tracker! This means that the DAs has made an opsie again! Please contact Ererej <@386838167506124800> so that he can scream at them!`})
+            }
+        }
         const exp = row.EXP.slice(10).trim()
         if (!exp) return await interaction.editReply({ content: 'There was an error while fetching the exp! This is mostlikely due to your divisions name not being the same as your discord servers name. But it can also be due to your division needing to be in the officer tracker for this to work.', ephemeral: true })
 
