@@ -17,7 +17,7 @@ module.exports = {
 			if (testServer) {
                 const channel = await testServer.channels.fetch("1285158576448344064");
 				let time = new Date(interaction.createdTimestamp)
-				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] */" + interaction.commandName + "* was ran inputs: \n"
+				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] */" + interaction.commandName + "* was ran. guild ID: " + interaction.guild.id + " inputs: \n"
 				interaction.options._hoistedOptions.forEach(option => {
 					logMessage += "**" + option.name + "** = " + option.value + " \n" 
 				});
@@ -45,7 +45,7 @@ module.exports = {
 				if (error.lineNumber) {
 					errorLogs += "\n*line number:* " + error.lineNumber
 				}
-				channel.send()
+				channel.send(errorLogs)
 			}
 		}
 	},
