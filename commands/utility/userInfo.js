@@ -14,6 +14,7 @@ module.exports = {
     async execute(interaction) {
         try {
             await interaction.deferReply()
+            interaction.client.emit('guildMemberAdd', interaction.member)
             const user = interaction.options.getUser('user')
             const user_info = await db.Users.findOne({
                 where: { user_id: user.id, guild_id: interaction.guild.id }
@@ -23,7 +24,7 @@ module.exports = {
                 embeded_error.setDescription("The user is not in the database!")
                 return interaction.editReply({ embeds: [embeded_error]});
             }
-            const rank = await db.Ranks.findOne({where: { rank_id: user_info.rank_id}})
+            const rank = await db.Ranks.findOne({where: { id: user_info.rank_id}})
             const embeded = new EmbedBuilder().setColor([0,255,0])
             embeded.setTitle(`${user.username}'s information`)
             embeded.addFields({name: "User id", value: `${user.id}`})
