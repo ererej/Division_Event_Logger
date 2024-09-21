@@ -14,7 +14,6 @@ module.exports = {
     async execute(interaction) {
         try {
             await interaction.deferReply()
-            interaction.client.emit('guildMemberAdd', interaction.member)
             const user = interaction.options.getUser('user')
             const user_info = await db.Users.findOne({
                 where: { user_id: user.id, guild_id: interaction.guild.id }
