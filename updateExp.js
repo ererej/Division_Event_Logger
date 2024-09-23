@@ -50,8 +50,8 @@ module.exports = async (db, server, interaction) => {
     let timezonefix = 0
     if (config.host === "Laptop") timezonefix = -2
     let time = new Date()
-    const timezoneOfset = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } }) ? await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } }) : 0
-    time = new Date(time - time.getTimezoneOffset() * 60000 + (parseInt(timezoneOfset.config) + timezonefix) * 3600000)
+    const timezoneOfset = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "timezone" } })).config : 0
+    time = new Date(time - time.getTimezoneOffset() * 60000 + (parseInt(timezoneOfset) + timezonefix) * 3600000)
     const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })).config : "DD/MM/YYYY"
     const date = dateFormat.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear()) + " " + time.getHours() + ":" + time.getMinutes()
     new_message += `\n-# Last updated: ${date}`
