@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
 const testers = require("../../tester_servers.json");
 const noblox = require("noblox.js")
@@ -18,7 +18,7 @@ module.exports = {
 
     async execute(interaction) {
         await interaction.deferReply()
-        const embeded_error = new EmbedBuilder().setColor([255,0,0])
+        const embeded_error = new EmbedBuilder().setColor(Colors.Red)
 
         let tester = false
         testers.servers.forEach(server => {
@@ -33,14 +33,21 @@ module.exports = {
         let  member = interaction.options.getUser('user')
         await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Updating ${member.username} please wait!`)] })
         member = await interaction.guild.members.fetch(member.id)
+        const groupId = ( await db.Servers.findOne({ where: { guild_id: interaction.guild.id }}) ).group_id
         const user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
         if (!user) {
-            const user = db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
-            const responce = await user.updateRank(noblox, interaction.guild.id, member)
-            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce)] })
-        } else {
-            const responce = await user.updateRank(noblox, interaction.guild.id, member)
-            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce ? responce : "the user was already up to date")] })
+            user = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
+        const responce = await user.updateRank(noblox, groupId, member)
+        if (user.rank_id === null) {
+            user.destroy()
+        }
+        if (!responce) {
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription("the user was already up to date").setColor(Colors.Green)] })
+        }else if (responce.startsWith("Error")) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(responce)] })
+        } else if(responce) {
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor(Colors.Yellow)] })
+        }        
     }
 };

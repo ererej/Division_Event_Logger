@@ -7,13 +7,15 @@ module.exports = {
 		let totalMembers = 0
 		if (config.host === "Laptop") {
 			console.log(`Ready! Logged in as ${client.user.tag}`);
-			const objectGuilds = Array.from(client.guilds.cache.values()).sort((a, b) => a.joinedTimestamp - b.joinedTimestamp);
-			for (let i = 0; i < objectGuilds.length; i++) {
-				let guild = objectGuilds[i];
-				let channels = guild.channels.cache.filter(channel => channel.type === ChannelType.GuildText);
-				const invite = await guild.invites.create(channels.first().id)
-				console.log(i + ` ${guild.name} has ${guild.memberCount} members!	Leaders id: ${guild.ownerId} 	Invite:  https://discord.gg/` + invite.code);
-				totalMembers += guild.memberCount
+			if (!process.argv.includes("--test")) {
+				const objectGuilds = Array.from(client.guilds.cache.values()).sort((a, b) => a.joinedTimestamp - b.joinedTimestamp);
+				for (let i = 0; i < objectGuilds.length; i++) {
+					let guild = objectGuilds[i];
+					let channels = guild.channels.cache.filter(channel => channel.type === ChannelType.GuildText);
+					const invite = await guild.invites.create(channels.first().id)
+					console.log(i + ` ${guild.name} has ${guild.memberCount} members!	Leaders id: ${guild.ownerId} 	Invite:  https://discord.gg/` + invite.code);
+					totalMembers += guild.memberCount
+				}
 			}
 			//This modified code uses `Array.from()` to convert the `client.guilds.cache` Map into an array. Then, it iterates over the array using a `for` loop and performs the desired operations on each guild.
 		} else {

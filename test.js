@@ -4,7 +4,7 @@ const config = require('./config.json')
 
 const test = async () => {
     await noblox.setCookie(config.sessionCookie) 
-    const user = await noblox.getCurrentUser();
+    const user = await noblox.getAuthenticatedUser();
     console.log(`Logged in as ${user.UserName} [${user.UserID}]`)
     const Ranks = await noblox.getRoles(14354215)
     Ranks.forEach(rank => console.log(rank.name +" "+ rank.id))
