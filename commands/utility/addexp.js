@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionFlagsBits } = require('discord.js');
 const db = require('../../dbObjects.js')
 const updateExp = require('../../updateExp.js');
-const { col } = require('sequelize');
 
 module.exports = {
 	data: new SlashCommandBuilder()

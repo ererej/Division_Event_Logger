@@ -78,6 +78,47 @@ Reflect.defineProperty(Users.prototype, 'getRank', {
 	}
 });
 
+Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
+	value: async function(noblox, groupId, MEMBER, ranks, promotions ) {
+		let rank = await this.getRank()
+		const promo_points_before = this.promo_points
+		if (!rank) {
+			return "Error: User not found in the database!"
+		}
+		let responce = "";
+		while (promotions > 0) {
+			rank = await this.getRank()
+			this.promo_points += 1
+			promotions -= 1
+			const nextRank = ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)
+			if (nextRank) {
+				if (nextRank.is_officer) {
+					return responce + "Has reached the highest rank!"
+				}
+				if (this.promo_points >=  nextRank.promo_points) {
+					responce += await this.setRank(noblox, groupId, MEMBER, nextRank ).catch((err) => {
+						console.log(err)
+						return `Error: An error occured while trying to promote the user!	The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`
+					})
+					responce += "\n"
+				} else {
+					continue
+				}
+			} else {
+				responce += "Has reached the highest rank!"
+				break
+			}
+		}
+		this.save()
+		if (responce === "") {
+			const nextRank = ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)
+			responce = `<@${this.user_id}>'s promo points increased from ***${promo_points_before}**/${nextRank.promo_points}* to ***${this.promo_points}**/${nextRank.promo_points}*!`
+		}
+		return responce
+	}
+});
+
+
 Reflect.defineProperty(Users.prototype, 'setRank', {
 	value: async function(noblox, groupId, MEMBER, rank ) {
 		let robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
@@ -90,11 +131,14 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 				return `<@${this.user_id}> needs to verify using rover!`;
 			}
 			console.log(robloxUser)
-			return `An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`;
+			return `Error: An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`;
 		}
 		robloxUser = await robloxUser.json()
-		console.log(rank.roblox_id)
-		await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id))
+
+		await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
+			console.log(err)
+			return `Error: An error occured while trying to update the users's roblox rank! try again later!`
+		})
 		const oldRank = this.rank_id
 		//add a check to see if the bot has perms to change the rank
 		MEMBER.roles.remove(oldRank)
@@ -102,8 +146,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 		this.rank_id = rank.id
 		this.promo_points = 0
 		this.save()
-		console.log(`Promoted <@${this.user_id}> from <@&${oldRank}> to <@&${rank.id}>`)
-		return `Promoted <@${this.user_id}> from <@&${oldRank}> to <@&${rank.id}>`
+		return `Promoted from <@&${oldRank}> to <@&${rank.id}>`
 	}
 });
 
@@ -124,7 +167,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		})
 		if (!(robloxUser.status + "").startsWith("2")) {
 			if (robloxUser.status === 404) {
-				return `Error: <@${this.user_id}> needs to verify using rover!`;
+				return `Error: needs to verify using rover!`;
 			}
 			console.log(robloxUser)
 			return `Error: An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`;
@@ -135,7 +178,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		const ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
 		const robloxGroup = (await noblox.getGroups(robloxUser.robloxId)).find(group => group.Id === groupId)
 		if (!robloxGroup) {
-			return `Error: <@${this.user_id}> is not in the group!`
+			return `Error: is not in the group!`
 		}
 		const rankFromRoblox = ranks.find(rank => rank.roblox_id == robloxGroup.RoleId)
 		if (!rankFromRoblox) {
@@ -160,25 +203,34 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				this.promo_points = 0
 				this.save()
 				MEMBER.roles.add(this.rank_id)
-				return `added <@${this.user_id}> to the databse with the rank <@&${this.rank_id}> (taken from roblox group rank)>`
+				return `added to the database with the rank <@&${this.rank_id}> (taken from roblox group rank)>`
 			}
 			this.rank_id = highestRank.id
 			this.save()
 			if (highestRank.roblox_id != rankFromRoblox.roblox_id) {
 				await noblox.setRank(groupId, robloxUser.robloxId, Number(highestRank.roblox_id)).catch((err) => {
 					console.log(err)
-					return `Error: An error occured while trying to update <@${MEMBER.user.id}'s roblox rank! try again later!`
+					return `Error: An error occured while trying to update the users's roblox rank! try again later!`
 				})
 			}
-			return `added <@${this.user_id}> to the databse with the rank <@&${this.rank_id}> (taken from discord roles)>`
+			return `added to the database with the rank <@&${this.rank_id}> (taken from discord roles)>`
 		}
 		//if the roblox rank is incorrect
 		if (dbRank.roblox_id != rankFromRoblox.roblox_id) {
 			noblox.setRank(groupId, robloxUser.robloxId, Number(dbRank.roblox_id)).catch((err) => {
 				console.log(err)
-				return `Error: An error occured while trying to update <@${MEMBER.user.id}'s roblox rank! try again later!`
+				return `Error: An error occured while trying to update the users's roblox rank! try again later!`
 			})
-			return `Updated <@${this.user_id}>'s roblox rank to <@&${dbRank.id}>`
+			if (!MEMBER.roles.cache.some(role => role.id === dbRank.id)) {
+				ranks.forEach(rank => {
+					if (MEMBER.roles.cache.some(role => role.id === rank.id)) {
+						MEMBER.roles.remove(rank.id)
+					}
+				})
+				MEMBER.roles.add(this.rank_id)
+				return `Updated roblox and discord rank to <@&${dbRank.id}>`
+			}
+			return `Updated roblox rank to <@&${dbRank.id}>`
 		} 
 
 		if (!MEMBER.roles.cache.some(role => role.id === dbRank.id)) {
@@ -188,7 +240,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				}
 			})
 			MEMBER.roles.add(this.rank_id)
-			return `Updated <@${this.user_id}>'s discord rank to <@&${this.rank_id}>`
+			return `Updated discord rank to <@&${this.rank_id}>`
 		}
 
 		return 

@@ -34,7 +34,7 @@ module.exports = {
         await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Updating ${member.username} please wait!`)] })
         member = await interaction.guild.members.fetch(member.id)
         const groupId = ( await db.Servers.findOne({ where: { guild_id: interaction.guild.id }}) ).group_id
-        const user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
+        let user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
         if (!user) {
             user = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }

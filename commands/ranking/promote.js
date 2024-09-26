@@ -79,33 +79,7 @@ module.exports = {
             user.save()
             return interaction.editReply({content: responce})
         } else {
-            while (promotions > 0) {
-                let rank = await user.getRank()
-                user.promo_points += 1
-                promotions -= 1
-                //console.log(ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index))
-                const nextRank = ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)
-                if (nextRank) {
-                    if (user.promo_points >=  nextRank.promo_points) {
-                        responce += await user.setRank(noblox, groupId, member, nextRank ).catch((err) => {
-                            console.log(err)
-                            return interaction.editReply({embeds: [embeded_error.setDescription(`An error occured while trying to promote the user!\nThe user ended up with ${user.promo_points} promo points and the rank <@&${rank.id}>!`)]})
-                        })
-                        console.log(responce)
-                        responce += "\n"
-                    } else {
-                        continue
-                    }
-                } else {
-                    responce += "UndefinedThe user has reached the highest rank!"
-                    break
-                }
-            }
-            console.log("test")
-            user.save()
-            if (responce === "") {
-                responce = "The user was not promoted!"
-            }
+            const responce = await user.addPromoPoints(noblox, groupId, member, ranks, promotions)
             return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(responce)]})
         }
     }

@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors } = require('discord.js');
 const db = require("../../dbObjects.js");
-const sequelize = require('sequelize');
-
+const noblox = require("noblox.js")
+const config = require('../../config.json')
+noblox.setCookie(config.sessionCookie)
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -44,7 +45,8 @@ module.exports = {
 		}
 		let roblox_id;
 		if (interaction.options.getInteger('roblox_rank_id')) {
-			roblox_id = interaction.options.getInteger('roblox_rank_id')
+			const group = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+			roblox_id = (await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id'))).id
 		} else {
 			roblox_id = 404
 		}
@@ -61,9 +63,8 @@ module.exports = {
 			embeded_error.setDescription("A rank is already linked to that role!")
 			interaction.editReply({embeds: [embeded_error]})
 		} else {
-		const groupID = await db.Servers.findOne({ where: { id: interaction.guild.id } }).group_id
 		try {
-			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, group_id: groupID, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer })
+			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer })
 			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
 			interaction.editReply({embeds: [embeded_reply]});
 		}
