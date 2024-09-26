@@ -12,7 +12,7 @@ module.exports = {
 				let guild = objectGuilds[i];
 				let channels = guild.channels.cache.filter(channel => channel.type === ChannelType.GuildText);
 				const invite = await guild.invites.create(channels.first().id)
-				console.log(i + ` ${guild.name} has ${guild.memberCount} members!	Leaders id: ${guild.ownerId} 	Invite:  https://discord.gg/` + invite.code);
+				console.log(i + ` ${guild.name} has ${guild.memberCount} members!	ID: ${guild.id}	Leaders id: ${guild.ownerId} 	Invite:  https://discord.gg/` + invite.code + "\n");
 				totalMembers += guild.memberCount
 			}
 			//This modified code uses `Array.from()` to convert the `client.guilds.cache` Map into an array. Then, it iterates over the array using a `for` loop and performs the desired operations on each guild.
