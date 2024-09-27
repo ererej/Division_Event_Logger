@@ -30,3 +30,8 @@ module.exports = {
         interaction.editReply({ embeds: [ new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully updated the exp in the database and expdisplay to be: ${interaction.options.getInteger('amount')}EXP!`)]})
     }
 }
+
+
+
+
+/////
