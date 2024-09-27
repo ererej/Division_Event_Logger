@@ -11,7 +11,7 @@ module.exports = {
         .addIntegerOption(option => 
             option.setName('amount')
                 .setDescription('the exp that the division has!')
-                .setRequired(true)
+                .setRequired(true) 
         ),
 
 	async execute(interaction) {
