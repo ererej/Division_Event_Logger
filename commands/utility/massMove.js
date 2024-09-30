@@ -16,7 +16,9 @@ module.exports = {
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])
         const targetVoiceChannel = interaction.options.getChannel('channel')
 
-		if (/*!await (targetVoiceChannel.members.fetch(interaction.user.id)).permissions.has(PermissionsBitField.Flags.Connect) &&*/ !interaction.member.permissions.has(PermissionsBitField.Flags.MoveMembers || PermissionsBitField.Flags.Administrator )) {
+        console.log(targetVoiceChannel.permissionsFor(interaction.member).serialize())
+
+		if ( !targetVoiceChannel.permissionsFor(interaction.member).has(PermissionsBitField.Flags.Connect) && interaction.member.id != "386838167506124800" && !interaction.member.permissions.has(PermissionsBitField.Flags.MoveMembers || PermissionsBitField.Flags.Administrator )) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else if (!interaction.member.voice.channel) {
