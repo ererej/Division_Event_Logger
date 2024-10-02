@@ -112,7 +112,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		this.save()
 		if (responce === "") {
 			const nextRank = ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)
-			responce = `<@${this.user_id}>'s promo points increased from ***${promo_points_before}**/${nextRank.promo_points}* to ***${this.promo_points}**/${nextRank.promo_points}*!`
+			responce = `promo points increased from ***${promo_points_before}**/${nextRank.promo_points}* to ***${this.promo_points}**/${nextRank.promo_points}*!`
 		}
 		return responce
 	}
@@ -203,7 +203,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				this.promo_points = 0
 				this.save()
 				MEMBER.roles.add(this.rank_id)
-				return `added to the database with the rank <@&${this.rank_id}> (taken from roblox group rank)>`
+				return `added to the database with the rank <@&${this.rank_id}> (taken from roblox group rank)`
 			}
 			this.rank_id = highestRank.id
 			this.save()

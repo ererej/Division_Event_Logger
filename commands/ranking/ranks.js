@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require("../../dbObjects.js")
-const testers = require("../../tester_servers.json");
+const noblox = require("noblox.js")
+const config = require('../../config.json')
+noblox.setCookie(config.sessionCookie)
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -15,9 +17,18 @@ module.exports = {
         const division_ranks = await db.Ranks.findAll({
             where: { guild_id: interaction.guild.id },
         })
-        division_ranks.forEach(division_rank => {
-            const rank_name = interaction.guild.roles.cache.get(division_rank.id).name
-            rankList.addFields({name: `${rank_name}` ,value: `promo points required:  ${division_rank.promo_points} \nindex:  ${division_rank.rank_index}\nID: ${division_rank.id}\nRoblox ID: ${division_rank.roblox_id}\nofficer: ${division_rank.is_officer}`})
-        });
+        division_ranks.sort((a, b) => a.rank_index - b.rank_index)
+        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+        const totalUsers = await db.Users.count({ where: { guild_id: interaction.guild.id } })
+
+        let description = ""
+        for (const rank of division_ranks) {
+            const discordRole = interaction.guild.roles.cache.get(rank.id)
+            const robloxRank = await noblox.getRole(server.group_id, parseInt(rank.roblox_id) )
+            const userCount = await db.Users.count({ where: { rank_id: rank.id } })
+
+            description += `# <@&${discordRole.id}> \n*Users with rank: ${userCount} (${Math.round(userCount/totalUsers*100)}%)* \npromo points required:  ${rank.promo_points} \nindex:  ${rank.rank_index}\nID: ${rank.id}\nLinked Roblox rank: ${robloxRank.name}\nRoblox ID: ${rank.roblox_id}\nofficer: ${rank.is_officer}\n\n`
+        }
+        rankList.setDescription(description)
         interaction.editReply({embeds: [rankList]})
 }};

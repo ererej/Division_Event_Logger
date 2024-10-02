@@ -43,13 +43,16 @@ module.exports = {
 		if (highest_rank_index || highest_rank_index === 0) {
 			rank_index = highest_rank_index + 1
 		}
-		let roblox_id;
+		let roblox_id = 404
+		let robloxRank
 		if (interaction.options.getInteger('roblox_rank_id')) {
 			const group = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-			roblox_id = (await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id'))).id
-		} else {
-			roblox_id = 404
-		}
+			robloxRank = await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id'))
+			if (robloxRank) {
+				roblox_id = robloxRank.id
+			} 
+		} 
+
 		let  is_officer;
 		if (interaction.options.getBoolean('officer')) {
 			is_officer = interaction.options.getBoolean('officer')
@@ -65,7 +68,7 @@ module.exports = {
 		} else {
 		try {
 			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer })
-			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
+			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked to the roblox rank **${robloxRank ? robloxRank.name : "no rank found."}**.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
 			interaction.editReply({embeds: [embeded_reply]});
 		}
 		catch (error) {

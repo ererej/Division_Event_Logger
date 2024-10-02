@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Attachment, Embed } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Attachment, Embed, Colors } = require('discord.js');
 //const { roverkey } = require('../../config.json');
 const db = require("../../dbObjects.js");
 const testers = require("../../tester_servers.json");
@@ -112,7 +112,7 @@ module.exports = {
         let event_type = ""
         let logChannelLink = ""
         let eventType = ""
-        const event_log_embed = new EmbedBuilder().setColor([255,128,0])
+        const event_log_embed = new EmbedBuilder().setColor([254, 1, 177])
         dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, id: voice_channel.id}})
         if (dbChannel) {
             eventType = dbChannel.type
