@@ -16,7 +16,7 @@ module.exports = {
         )
 		.addIntegerOption(option =>
 			option.setName('roblox_rank_id')
-				.setDescription('Add the id of the roblox rank!')
+				.setDescription('Add the id/index of the roblox rank!')
 				.setRequired(true)//set to true when adding roblox group binding
 		)
         .addIntegerOption(option => 
