@@ -3,6 +3,11 @@ const { Events, ActivityType, ChannelType } = require('discord.js');
 module.exports = {
 	name: Events.GuildCreate,
 	async execute(client) {
+
+        const guild = await client.guilds.cache.find(guild => guild.id === arguments[0].id)
+        const owner = await guild.members.cache.find(member => member.id === guild.ownerId)
+        owner.send("Thank you for adding me to your server! If you need any help with the bot, feel free to join the support server: https://discord.gg/5Wj4ujSpzb")
+
         //console.log(typeof client)
         //const guild = client.guilds.cache.find(guild => guild.id === arguments[0].id)
         //console.log(arguments[0])
@@ -19,6 +24,6 @@ module.exports = {
         testServer.members.cache.find(ererej => ererej.id = "386838167506124800")
         */
         console.log("[JOIN] server join happend")
-        client.user.setPresence({ activities: [{ name: client.guilds.cache.size + " divisions", type: ActivityType.Watching}], status: 'online' });
+        //client.user.setPresence({ activities: [{ name: client.guilds.cache.size + " divisions", type: ActivityType.Watching}], status: 'online' });
     }
 };
