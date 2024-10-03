@@ -17,7 +17,13 @@ module.exports = {
         const division_ranks = await db.Ranks.findAll({
             where: { guild_id: interaction.guild.id },
         })
-        division_ranks.sort((a, b) => a.rank_index - b.rank_index)
+        const reversedOrder = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "orderoftheranksinranks"} })
+        if (reversedOrder && reversedOrder.config === "reversed") {
+            division_ranks.sort((a, b) => -1*(a.rank_index - b.rank_index))
+        } else {
+            division_ranks.sort((a, b) => a.rank_index - b.rank_index)
+        }
+
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
         const totalUsers = await db.Users.count({ where: { guild_id: interaction.guild.id } })
 

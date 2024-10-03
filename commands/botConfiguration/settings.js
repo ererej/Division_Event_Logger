@@ -62,6 +62,20 @@ module.exports = {
                             { name: 'hide', value: 'hide'}
                         )
                 )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('orderoftheranksinranks')
+                .setDescription('when set to reversed the ranks will be displayed from highest to lowest in /ranks')
+                .addStringOption(option =>
+                    option.setName('order')
+                        .setDescription('determens the order of the ranks in /ranks')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'high_to_low', value: "reversed"},
+                            { name: 'low_to_high', value: "normal"}
+                        )
+                )
         ),
 
         async execute(interaction) {
@@ -151,6 +165,16 @@ module.exports = {
                         interaction.editReply({ content: 'The setting is saved but. There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1248017516933156870>' });
                     }
                     await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the exp display to *${showOrHide}* other divs`) ] })
+                    break;
+                case 'orderoftheranksinranks': //not tested
+                    const order = interaction.options.getString('order')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "orderoftheranksinranks" } })
+                    if (setting) {
+                        await setting.update({ config: order })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: "orderoftheranksinranks", config: order })
+                    }
+                    await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the order of the ranks in /ranks to ${order ? "high to low" : "low to high"}`) ] })
                     break;
             }
         }
