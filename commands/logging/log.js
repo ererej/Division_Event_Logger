@@ -94,14 +94,14 @@ module.exports = {
         //fetching the sea logs channel and validating it
         let dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
         if (!dbChannel) {
-            return await interaction.editReply({ content: 'There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
+            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>') });
         }
         const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
 
         //fetching the promologs channel and validating it
         dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" } })
         if (!dbChannel) {
-            return await interaction.editReply({ content: 'There is no promolog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>', ephemeral: true });
+            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no promolog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>') });
         }
         const promologsChannel = await interaction.guild.channels.fetch(dbChannel.channel_id)
 
