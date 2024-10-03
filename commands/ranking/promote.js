@@ -56,7 +56,7 @@ module.exports = {
         } 
         const promoters_rank = db.Ranks.findOne({ where: { id: promoter.rank_id, guild_id: interaction.guild.id }})
 
-        const ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})
+        const ranks = (await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})).sort((a, b) => a.rank_index - b.rank_index)
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }})
         const groupId = server.group_id
         let promotions = interaction.options.getInteger('promotions')
@@ -65,14 +65,14 @@ module.exports = {
         }
         let responce = "";
         if (interaction.options.getString('rank_or_promopoints') === 'rank') {
-            let rank = await db.Ranks.findOne({ where: { id: user.rank_id, guild_id: interaction.guild.id }})
-            if (rank.rank_index + promotions > promoters_rank.rank_index) {
+            let rank = await user.getRank()
+            if (ranks.indexOf(tRank => tRank === rank) + promotions > ranks.indexOf(promoters_rank)) {
                 return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than yours!")]})
             }
-            if (rank.rank_index + promotions >= ranks.length) {
+            if (ranks.indexOf(rank) + promotions >= ranks.length) {
                 return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than the highest rank!")]})
             }
-            responce = await user.setRank(noblox, groupId, member, rank ).catch((err) => {
+            responce = await user.setRank(noblox, groupId, member, ranks[ranks.indexOf(rank) + promotions] ).catch((err) => {
                 return interaction.editReply({embeds: [embeded_error.setDescription("An error occured while trying to promote the user!")]})
             })
             console.log(responce)

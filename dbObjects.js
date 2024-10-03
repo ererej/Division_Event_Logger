@@ -81,16 +81,18 @@ Reflect.defineProperty(Users.prototype, 'getRank', {
 Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 	value: async function(noblox, groupId, MEMBER, ranks, promotions ) {
 		let rank = await this.getRank()
-		const promo_points_before = this.promo_points
 		if (!rank) {
-			return "Error: User not found in the database!"
+			return "Error: User's rank was not found in the database!"
 		}
+		ranks = ranks.sort((a, b) => a.rank_index - b.rank_index)
+
+		const promo_points_before = this.promo_points
 		let responce = "";
 		while (promotions > 0) {
 			rank = await this.getRank()
 			this.promo_points += 1
 			promotions -= 1
-			const nextRank = ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)
+			const nextRank = ranks[ranks.indexOf(rank) + 1]
 			if (nextRank) {
 				if (nextRank.is_officer) {
 					return responce + "Has reached the highest rank!"
@@ -111,7 +113,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		}
 		this.save()
 		if (responce === "") {
-			const nextRank = ranks.find( tempRank =>  tempRank.rank_index === rank.rank_index + 1)
+			const nextRank = ranks[ranks.indexOf(rank) + 1]
 			responce = `promo points increased from ***${promo_points_before}**/${nextRank.promo_points}* to ***${this.promo_points}**/${nextRank.promo_points}*!`
 		}
 		return responce

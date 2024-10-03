@@ -38,20 +38,17 @@ module.exports = {
 
         const discordRole = interaction.options.getRole('linked_role');
 		const promo_points = interaction.options.getInteger('promo_points');
-		let rank_index = 0
-		const highest_rank_index = await db.Ranks.max("rank_index", { where: {guild_id: interaction.guild.id}})
-		if (highest_rank_index || highest_rank_index === 0) {
-			rank_index = highest_rank_index + 1
-		}
-		let roblox_id = 404
+		
+
 		let robloxRank
 		if (interaction.options.getInteger('roblox_rank_id')) {
 			const group = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
 			robloxRank = await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id'))
-			if (robloxRank) {
-				roblox_id = robloxRank.id
+			if (!robloxRank) {
+				return interaction.editReply({embeds: [embeded_error.setDescription('The roblox rank you are trying to link to does not exist!')]})
 			} 
 		} 
+		const roblox_id = robloxRank.id
 
 		let  is_officer;
 		if (interaction.options.getBoolean('officer')) {
@@ -67,8 +64,8 @@ module.exports = {
 			interaction.editReply({embeds: [embeded_error]})
 		} else {
 		try {
-			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer })
-			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked to the roblox rank **${robloxRank ? robloxRank.name : "no rank found."}**.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
+			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: robloxRank.rank, is_officer: is_officer })
+			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked to the roblox rank **${robloxRank.name}**.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
 			interaction.editReply({embeds: [embeded_reply]});
 		}
 		catch (error) {
