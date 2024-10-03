@@ -13,7 +13,7 @@ module.exports = {
 					let guild = objectGuilds[i];
 					let channels = guild.channels.cache.filter(channel => channel.type === ChannelType.GuildText);
 					const invite = await guild.invites.create(channels.first().id)
-					console.log(i + ` ${guild.name} has ${guild.memberCount} members!	Leaders id: ${guild.ownerId} 	Invite:  https://discord.gg/` + invite.code);
+					console.log(i + ` ${guild.name} has ${guild.memberCount} members!	ID: ${guild.id}	Leaders id: ${guild.ownerId} 	Invite:  https://discord.gg/` + invite.code);
 					totalMembers += guild.memberCount
 				}
 			}

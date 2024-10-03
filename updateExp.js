@@ -55,5 +55,5 @@ module.exports = async (db, server, interaction) => {
     const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })).config : "DD/MM/YYYY"
     const date = dateFormat.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear()) + " " + time.getHours() + ":" + time.getMinutes()
     new_message += `\n-# Last updated: ${date}`
-    message.edit(new_message) 
+    message.edit({ content: new_message, embeds: [] }) 
 }
