@@ -19,7 +19,11 @@ module.exports = {
                 const channel = await testServer.channels.fetch("1285158576448344064");
 				const host = config.host
 				const time = new Date(interaction.createdTimestamp + (host === "Laptop" ? 0 : 2) * 3600000)
-				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] */" + interaction.commandName + " " + (interaction.options.getSubcommand() ? interaction.options.getSubcommand() : "") + "* was ran. guild ID: " + interaction.guild.id + " inputs: \n"
+				let subcommand = "";
+				try {
+					subcommand = interaction.options.getSubcommand()
+				} catch (error) {}
+				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] */" + interaction.commandName + " " + subcommand + "* was ran. guild ID: " + interaction.guild.id + " inputs: \n"
 				interaction.options._hoistedOptions.forEach(option => {
 					logMessage += "**" + option.name + "** = " + option.value + " \n" 
 				});
