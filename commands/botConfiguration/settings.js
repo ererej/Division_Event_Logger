@@ -158,7 +158,6 @@ module.exports = {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: "expdisplayshowotherdivs", config: showOrHide })
                     }
                     server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-                    console.log(server) 
                     if (server) {
                         updateExp(db, server, interaction)
                     } else {
