@@ -17,7 +17,6 @@ module.exports = {
 					totalMembers += guild.memberCount
 				}
 			}
-			//This modified code uses `Array.from()` to convert the `client.guilds.cache` Map into an array. Then, it iterates over the array using a `for` loop and performs the desired operations on each guild.
 		} else {
 			console.log(`Ready! Logged in as ${client.user.tag}`);
 			client.guilds.cache.forEach(guild => {

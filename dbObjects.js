@@ -139,7 +139,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 
 		await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
 			console.log(err)
-			return `Error: An error occured while trying to update the users's roblox rank! try again later!`
+			return `Error: An error occured while trying to update the users's roblox rank! Error: ${err}`
 		})
 		const oldRank = this.rank_id
 		//add a check to see if the bot has perms to change the rank

@@ -23,7 +23,13 @@ module.exports = {
         .addUserOption(option => 
             option.setName('cohost')
                 .setDescription('select your cohost if you had any otherwise just leave it')
-                .setRequired(false)
+        )
+        .addStringOption(option =>
+            option.setName('event_type')
+                .setDescription('Select the event type')
+                .addChoice('Training', 'training')
+                .addChoice('Patrol', 'patrol')
+                .addChoice('Gamenight', 'gamenight')
         ),
 	async execute(interaction) {
         await interaction.deferReply()
@@ -113,9 +119,13 @@ module.exports = {
         let logChannelLink = ""
         let eventType = ""
         const event_log_embed = new EmbedBuilder().setColor([254, 1, 177])
-        dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, id: voice_channel.id}})
-        if (dbChannel) {
-            eventType = dbChannel.type
+        if (interaction.options.getString('event_type')) {
+            eventType = interaction.options.getString('event_type')
+        } else {
+            dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, id: voice_channel.id}})
+            if (dbChannel) {
+                eventType = dbChannel.type
+            }
         }
         switch (eventType) {
             case "training":
@@ -125,7 +135,7 @@ module.exports = {
                 logChannelLink = "<#1219980705967374359>"
                 break;
         }
-        event_log_embed.setTitle(eventType ? eventType : "Event").setThumbnail(wedge_picture.url)
+        event_log_embed.setTitle(eventType ?? "Event").setThumbnail(wedge_picture.url)
         let description = `**Host:** <@${host.id}>\n`
         if (cohost) {
             description+=`*Cohost:* ${cohost.displayName}\n`
