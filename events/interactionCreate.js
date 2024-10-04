@@ -29,6 +29,9 @@ module.exports = {
 				});
                 await channel.send(logMessage);
             }
+			if (config.host != "server" && interaction.guild.id !== "831851819457052692") {
+				interaction.user.send("# WARNING \nThe bot is currently running experimental code! Any changes made to the database wont be saved. Commands that wont work properly includes but is not limited to /linkChannel, /setup, /settings, /sealog, /addExp, /setExp and /updateExp. If you encounter any issues its most likely due to the bot running on a test database or that Ererej is currently changing the code for the command you ran. If you really need to use the command please contact Ererej(You can find his profile by searching for his name in the main SEA discord) and he will make the bot run on the normal database so that you can run the command.")
+			}
 			await command.execute(interaction);
 		} catch (error) {
 			console.error(error);
