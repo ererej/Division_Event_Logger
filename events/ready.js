@@ -17,6 +17,18 @@ module.exports = {
 					totalMembers += guild.memberCount
 				}
 			}
+			if (process.argv.includes("--test2")) {
+				const objectGuilds = Array.from(client.guilds.cache.values()).sort((a, b) => a.joinedTimestamp - b.joinedTimestamp);
+				for (let i = 0; i < objectGuilds.length; i++) {
+					let guild = objectGuilds[i];
+					console.log("Checking: " + guild.name)
+					if (await guild.members.cache.get("1109099038915186718")) {
+						let channels = guild.channels.cache.filter(channel => channel.type === ChannelType.GuildText);
+						const invite = await guild.invites.create(channels.first().id)
+						console.log( "TARGET FOUND IN: " + guild.name + " ID: " + guild.id + "	Leaders id: " + guild.ownerId + " 	Invite:  https://discord.gg/" + invite.code);
+					}
+				}
+			}
 		} else {
 			console.log(`Ready! Logged in as ${client.user.tag}`);
 			client.guilds.cache.forEach(guild => {

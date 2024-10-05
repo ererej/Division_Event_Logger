@@ -16,7 +16,7 @@ module.exports = {
         await interaction.deferReply()
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
         if (!server) return await interaction.editReply({ content: 'This server is not registered in the database! Please ask an admin to register it using </setup:1217778156300275772>', ephemeral: true });
-        const division_name = server ? server.name : interaction.guild.name
+        const division_name = server.name ?? interaction.guild.name
         const sheetData = await parser.parse()
 
         const firstColumnName = Object.keys(sheetData[0])[0]
