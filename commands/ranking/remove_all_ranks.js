@@ -31,7 +31,7 @@ module.exports = {
         try {
             const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 60_000 })
 
-            if (confirmation.customId === 'delete_rank') {
+            if (confirmation.customId === 'delete_all_ranks') {
                 const removeCount = await db.Ranks.destroy({where: { guild_id: interaction.guild.id}})
                 return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(`successfuly removed all ${removeCount} ranks`)], components: []})
             
