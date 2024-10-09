@@ -40,6 +40,7 @@ module.exports = {
                     await interaction.editReply({embeds: [rankList]})
                 } else {
                     await interaction.followUp({embeds: [rankList]})
+                    console.log("follow up sent")
                 }
                 description = ""
                 oneEmbedSent = true;
