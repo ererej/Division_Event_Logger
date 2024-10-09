@@ -4,20 +4,19 @@ const noblox = require("noblox.js")
 
 module.exports = {
 	name: Events.GuildMemberAdd,
-	async execute(client) {
+	async execute(member) {
         /*const testServer = await client.guilds.cache.find(guild => guild.id == "831851819457052692")
         if (testServer) {
             const channel = await testServer.channels.fetch("1285158576448344064");
             channel.send("[guildMemberAdd]")
         }*/
-        const guild = arguments[0].guild
-        const rounding = await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ? parseInt( (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })).config) : 1
+        const guild = member.guild
+        const rounding = parseInt( (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })).config) ?? 1
         let channel = await db.Channels.findOne({where: {guild_id: guild.id, type: 'guildMemberCount'}})
         if (channel) {
             guild.channels.cache.get(channel.channel_id).setName(`Member Count: ${Math.floor(guild.memberCount / rounding) * rounding}`)
-        } else {
-            return
         }
+        
 
         
         channel = await db.Channels.findOne({where: {guild_id: guild.id, type: 'robloxGroupCount'}})
@@ -31,8 +30,6 @@ module.exports = {
                     guild.channels.cache.get(channel.channel_id).setName(`group not linked. please link a group with /setup`)
                 }
             })
-        } else {
-            return
         }
     }
 };
