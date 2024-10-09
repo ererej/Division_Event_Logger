@@ -36,6 +36,7 @@ module.exports = {
             user.destroy()
             return await interaction.editReply({ embeds: [embeded_error.setDescription("failed to verify your rank! due to: \n" + updateRankResponce)] })
         } */
+        const officer_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id, is_officer: true}})
         let is_officer = false
         for (let i=0; i<officer_ranks.length;i++) {
             if (interaction.member.roles.cache.some(role => role.id === officer_ranks[i].id)) {
