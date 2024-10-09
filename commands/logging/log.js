@@ -127,7 +127,7 @@ module.exports = {
                 logChannelLink = "<#1219980705967374359>"
                 break;
         }
-        event_log_embed.setTitle(eventType ?? "Event").setThumbnail(wedge_picture.url)
+        event_log_embed.setTitle(eventType ? eventType : "Event").setThumbnail(wedge_picture.url)
         let description = `**Host:** <@${host.id}>\n`
         if (cohost) {
             description+=`*Cohost:* ${cohost.displayName}\n`
