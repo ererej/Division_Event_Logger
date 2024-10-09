@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Attachment, Embed, Colors } = require('discord.js');
-//const { roverkey } = require('../../config.json');
 const db = require("../../dbObjects.js");
 const testers = require("../../tester_servers.json");
 const noblox = require("noblox.js")
@@ -31,21 +30,12 @@ module.exports = {
                 .addChoice('Patrol', 'patrol')
                 .addChoice('Gamenight', 'gamenight')
         ),
+    testerLock: true,
 	async execute(interaction) {
         await interaction.deferReply()
         
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
 
-        //check if the server is a tester server
-        let tester = false
-        testers.servers.forEach(server => {
-            if ( !tester && server.id === interaction.guild.id) {
-                tester = true
-            }
-        });
-        if (!tester && interaction.user.id != "386838167506124800") {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription('This command is **only enabled** for testers!')] });
-        }  
 
         const host = await interaction.guild.members.fetch(interaction.member.user.id)
         const dbHost = await db.Users.findOne({ where: { user_id: host.id, guild_id: interaction.guild.id }})

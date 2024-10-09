@@ -163,7 +163,7 @@ module.exports = {
                     } else {
                         interaction.editReply({ content: 'The setting is saved but. There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1248017516933156870>' });
                     }
-                    await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the exp display to *${showOrHide}* other divs`) ] })
+                    await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Orange).setDescription(`Successfully set the exp display to *${showOrHide}* other divs`) ] })
                     break;
                 case 'orderoftheranksinranks': //not tested
                     const order = interaction.options.getString('order')
