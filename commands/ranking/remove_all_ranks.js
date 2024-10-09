@@ -41,8 +41,5 @@ module.exports = {
         } catch (error) {
             return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 60 secounds, cancelling!")], components: []})
         }
-
-        
-        interaction.editReply({embeds: [embededReply]})
     }
 }
