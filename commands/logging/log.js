@@ -26,9 +26,11 @@ module.exports = {
         .addStringOption(option =>
             option.setName('event_type')
                 .setDescription('Select the event type')
-                .addChoice('Training', 'training')
-                .addChoice('Patrol', 'patrol')
-                .addChoice('Gamenight', 'gamenight')
+                .addChoices(
+                    { name: 'training', value: 'training'},
+                    { name: 'patrol', value: 'patrol'},
+                    { name: 'gamenight', value: 'gamenight'}
+                )
         ),
     testerLock: true,
 	async execute(interaction) {
