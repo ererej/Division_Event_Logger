@@ -51,6 +51,11 @@ module.exports = {
         if (description === "") {
             description = "No ranks linked!"
         }
+        
         rankList.setDescription(description)
-        interaction.editReply({embeds: [rankList]})
+        if (!oneEmbedSent) {
+            return interaction.editReply({embeds: [rankList]})
+        } else {
+            return interaction.followUp({embeds: [rankList]})
+        }
 }};
