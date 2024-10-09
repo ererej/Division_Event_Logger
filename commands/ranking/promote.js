@@ -27,20 +27,12 @@ module.exports = {
                 .setDescription('How many promotions/promopoints to give')
                 .setRequired(false)
         ),
+        
+    testerLock: true,
 
     async execute(interaction) {
         await interaction.deferReply()
-        const embeded_error = new EmbedBuilder().setColor([255,0,0])
-
-        let tester = false
-        testers.servers.forEach(server => {
-            if ( !tester && server.id === interaction.guild.id) {
-                tester = true
-            }
-        });
-        if (!tester) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription('This command is **only enabled** for testers!')] });
-        }  
+        const embeded_error = new EmbedBuilder().setColor([255,0,0]) 
 
         let member = interaction.options.getUser('user')
         let user = await db.Users.findOne({ where: { user_id: member.id, guild_id: interaction.guild.id }}).catch((err) => {

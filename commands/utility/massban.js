@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, User } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -14,7 +14,7 @@ module.exports = {
             option.setName('reason')
                 .setDescription('why are these users getting banned?')
         ),
-
+    botPermissions: [PermissionsBitField.Flags.BanMembers],
     async execute(interaction) {
         await interaction.deferReply()
         const UserIDs = interaction.options.getString('users').split(',')

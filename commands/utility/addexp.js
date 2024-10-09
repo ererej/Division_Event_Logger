@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField } = require('discord.js');
 const db = require('../../dbObjects.js')
 const updateExp = require('../../updateExp.js');
 const { col } = require('sequelize');
@@ -17,7 +17,7 @@ module.exports = {
 	async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor(Colors.Red)
-		if (!interaction.member.permissions.has(PermissionFlagsBits.ManageServer || PermissionFlagsBits.Administrator)) {
+		if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error]});
 		} 

@@ -11,6 +11,8 @@ module.exports = {
                 .setRequired(true)
         ),
 
+    testerLock: true,
+
     async execute(interaction) {
         try {
             await interaction.deferReply()

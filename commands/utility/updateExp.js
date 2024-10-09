@@ -4,13 +4,15 @@ const spreadsheetId = '1sQIT3aOs1dWB9-f8cbsYe7MnSRfCfLRgMDSuE5b3w1I'
 const options = { useFormat: true }
 const parser = new PublicGoogleSheetsParser(spreadsheetId, options)
 const db = require("../../dbObjects.js")
-const updateExp = require('../../updateExp.js')
+const updateExp = require('../../updateExp.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('updateexp')
         .setDescription('Updates the Exp display!')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageServer || PermissionsBitField.Flags.Administrator),
+
+    botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages],
 
     async execute(interaction) {
         await interaction.deferReply()

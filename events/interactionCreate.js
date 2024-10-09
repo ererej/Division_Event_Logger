@@ -1,5 +1,6 @@
-const { Events } = require('discord.js');
+const { Events, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const config = require('../config.json');
+const testers = require('../tester_servers.json');
 
 module.exports = {
 	name: Events.InteractionCreate,
@@ -14,25 +15,36 @@ module.exports = {
 		}
 
 		try {
+			//logs 
 			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
                 const channel = await testServer.channels.fetch("1285158576448344064");
-				const host = config.host
-				const time = new Date(interaction.createdTimestamp + (host === "Laptop" ? 0 : 2) * 3600000)
+				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 2) * 3600000)
 				let subcommand = "";
 				try {
 					subcommand = interaction.options.getSubcommand()
 				} catch (error) {}
-				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] */" + interaction.commandName + " " + subcommand + "* was ran. guild ID: " + interaction.guild.id + " inputs: \n"
+				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + " inputs: \n"
 				interaction.options._hoistedOptions.forEach(option => {
 					logMessage += "**" + option.name + "** = " + option.value + " \n" 
 				});
                 await channel.send(logMessage);
             }
+			//warning message
 			if (config.host != "server" && interaction.guild.id !== "831851819457052692") {
 				interaction.user.send("# WARNING \nThe bot is currently running experimental code! Any changes made to the database wont be saved. Commands that wont work properly includes but is not limited to /linkChannel, /setup, /settings, /sealog, /addExp, /setExp and /updateExp. If you encounter any issues its most likely due to the bot running on a test database or that Ererej is currently changing the code for the command you ran. If you really need to use the command please contact Ererej(You can find his profile by searching for his name in the main SEA discord) and he will make the bot run on the normal database so that you can run the command.")
 			}
-			await command.execute(interaction);
+			//tester lock
+			if (command.testerLock && interaction.user.id != "386838167506124800" && !Object.values(testers).includes(interaction.guild.id)) {
+				interaction.reply({ embeds: [new EmbedBuilder().setTitle("This command is locked to **testers only!**").setColor([255, 0, 0])] });
+			} else if (command.botPermissions) {
+				const requiredPermissions = new PermissionsBitField(command.botPermissions);
+				if (!interaction.guild.members.cache.get("1201941514520117280").permissions.has(requiredPermissions)) {
+					interaction.reply({ embeds: [new EmbedBuilder().setTitle("I'm missing permissions!").setDescription(`I'm need the following permissions to run this command: \`${requiredPermissions.toArray().join(', ')}\``).setColor([255, 0, 0])] });
+				}
+			} else {
+				await command.execute(interaction);
+			}
 		} catch (error) {
 			console.error(error);
 			if (interaction.replied || interaction.deferred) {
@@ -43,8 +55,7 @@ module.exports = {
 			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
                 const channel = await testServer.channels.fetch("1285158576448344064");
-				const host = config.host
-				const time = new Date(interaction.createdTimestamp + (host === "Laptop" ? 0 : 2) * 3600000)
+				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 2) * 3600000)
 
 				let errorLogs = "the interaction that was created at [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] failed!"
 				errorLogs += "\n**Error type:** " + error.name
