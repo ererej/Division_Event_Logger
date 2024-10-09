@@ -12,6 +12,7 @@ module.exports = {
 
     async execute(interaction) {
         await interaction.deferReply()
+        embeded_error = new EmbedBuilder().setColor(Colors.Red)
 
         const deleteButton = new ButtonBuilder()
             .setCustomId('delete_all_ranks')
