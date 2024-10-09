@@ -23,6 +23,8 @@ module.exports = {
             option.setName('promo_points')
                 .setDescription('Input how many points are required to rank up to this rank!')
                 .setRequired(true)
+				.setMinValue(0)
+				.setMaxValue(1_000_000)
         )
 		.addBooleanOption(option =>
 			option.setName('officer')

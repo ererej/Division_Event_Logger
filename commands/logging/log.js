@@ -50,7 +50,7 @@ module.exports = {
         const host = await interaction.guild.members.fetch(interaction.member.user.id)
         const dbHost = await db.Users.findOne({ where: { user_id: host.id, guild_id: interaction.guild.id }})
 
-        let cohost = null
+        let cohost;
         if (interaction.options.getUser('cohost')) {
             cohost = await interaction.guild.members.fetch(interaction.options.getUser('cohost').id)
             const dbCohost = await db.Users.findOne({ where: { user_id: cohost.id, guild_id: interaction.guild.id }})
