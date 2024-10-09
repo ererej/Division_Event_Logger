@@ -28,12 +28,24 @@ module.exports = {
         const totalUsers = await db.Users.count({ where: { guild_id: interaction.guild.id } })
 
         let description = ""
+        let oneEmbedSent = false
         for (const rank of division_ranks) {
             const discordRole = interaction.guild.roles.cache.get(rank.id)
             const robloxRank = await noblox.getRole(server.group_id, parseInt(rank.roblox_id)).catch(() => { return { name: "not found" } })
             const userCount = await db.Users.count({ where: { rank_id: rank.id } })
-
-            description += `# <@&${discordRole.id}> \n*Users with rank: ${userCount} (${Math.round(userCount/totalUsers*100)}%)* \npromo points required:  ${rank.promo_points} \nindex:  ${rank.rank_index}\nID: ${rank.id}\nLinked Roblox rank: ${robloxRank.name}\nRoblox ID: ${rank.roblox_id}\nofficer: ${rank.is_officer}\n\n`
+            const rankInfo = `# <@&${discordRole.id}> \n*Users with rank: ${userCount} (${Math.round(userCount/totalUsers*100)}%)* \npromo points required:  ${rank.promo_points} \nindex:  ${rank.rank_index}\nID: ${rank.id}\nLinked Roblox rank: ${robloxRank.name}\nRoblox ID: ${rank.roblox_id}\nofficer: ${rank.is_officer}\n\n`
+            if (description.length + rankInfo.length > 4096) {
+                vcList.setDescription(description)
+                if (!oneEmbedSent) {
+                    await interaction.editReply({embeds: [vcList]})
+                } else {
+                    await interaction.followUp({embeds: [vcList]})
+                }
+                description = ""
+                oneEmbedSent = true;
+                
+            }
+            description += rankInfo
         }
         if (description === "") {
             description = "No ranks linked!"
