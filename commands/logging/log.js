@@ -139,7 +139,7 @@ module.exports = {
 
 
         for (const member of voice_channel.members.values()) {
-            if (!member.user.bot && host.id != member.user.id && (cohost === null || cohost.id != member.user.id)) {
+            if (!member.user.bot && host.id != member.user.id && (cohost ? cohost : null != member.user.id)) {
             description += `\n\n <@${member.id}>: `;
             total_event_attendes++;
             let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});
