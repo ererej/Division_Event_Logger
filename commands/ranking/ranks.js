@@ -37,9 +37,9 @@ module.exports = {
             if (description.length + rankInfo.length > 4096) {
                 vcList.setDescription(description)
                 if (!oneEmbedSent) {
-                    await interaction.editReply({embeds: [vcList]})
+                    await interaction.editReply({embeds: [rankList]})
                 } else {
-                    await interaction.followUp({embeds: [vcList]})
+                    await interaction.followUp({embeds: [rankList]})
                 }
                 description = ""
                 oneEmbedSent = true;
