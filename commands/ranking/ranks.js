@@ -35,6 +35,6 @@ module.exports = {
 
             description += `# <@&${discordRole.id}> \n*Users with rank: ${userCount} (${Math.round(userCount/totalUsers*100)}%)* \npromo points required:  ${rank.promo_points} \nindex:  ${rank.rank_index}\nID: ${rank.id}\nLinked Roblox rank: ${robloxRank.name}\nRoblox ID: ${rank.roblox_id}\nofficer: ${rank.is_officer}\n\n`
         }
-        rankList.setDescription(description)
+        rankList.setDescription(description ?? "No ranks linked yet!")
         interaction.editReply({embeds: [rankList]})
 }};
