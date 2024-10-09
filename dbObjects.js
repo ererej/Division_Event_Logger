@@ -92,7 +92,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 			rank = await this.getRank()
 			this.promo_points += 1
 			promotions -= 1
-			const nextRank = ranks[ranks.indexOf(rank) + 1]
+			const nextRank = ranks[ranks.indexOf(rank) + 2]
 			if (nextRank) {
 				if (nextRank.is_officer) {
 					return responce + "Has reached the highest rank!"
