@@ -10,7 +10,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
         .setName('promote')
         .setDescription('Promotes a user to a higher rank! or adds ')
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
+        // .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addUserOption(option => 
             option.setName('user')
                 .setDescription('Please input the user that will be promoted!')
@@ -37,17 +37,23 @@ module.exports = {
         await interaction.deferReply()
         const embeded_error = new EmbedBuilder().setColor([255,0,0]) 
 
+        let promoter = await db.Users.findOne({ where: { user_id: interaction.member.id, guild_id: interaction.guild.id }})
+        if (!promoter) {
+            return interaction.editReply({embeds: [embeded_error.setDescription("You are not in the database!")]})
+        } 
+        const promoters_rank = db.Ranks.findOne({ where: { id: promoter.rank_id, guild_id: interaction.guild.id }})
+
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator) && !promoters_rank.is_officer) {
+            embeded_error.setDescription("Insuficent permissions!")
+            await interaction.editReply({ embeds: [embeded_error]});
+		}
+
         let member = interaction.options.getUser('user')
         member = await interaction.guild.members.fetch(member.id)
         let user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
         if (!user) {
             return interaction.editReply({embeds: [embeded_error.setDescription("User not found in the database!")]})
         }
-        let promoter = await db.Users.findOne({ where: { user_id: interaction.member.id, guild_id: interaction.guild.id }})
-        if (!promoter) {
-            return interaction.editReply({embeds: [embeded_error.setDescription("You are not in the database!")]})
-        } 
-        const promoters_rank = db.Ranks.findOne({ where: { id: promoter.rank_id, guild_id: interaction.guild.id }})
 
         const ranks = (await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})).sort((a, b) => a.rank_index - b.rank_index)
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }})
