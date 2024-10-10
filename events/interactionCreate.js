@@ -38,13 +38,17 @@ module.exports = {
 			//tester lock
 			if (command.testerLock && interaction.user.id != "386838167506124800" && !Object.values(testers).includes(interaction.guild.id)) {
 				interaction.reply({ embeds: [new EmbedBuilder().setTitle("This command is locked to **testers only!**").setColor([255, 0, 0])] });
-			} else if (command.botPermissions) {
-				const requiredPermissions = new PermissionsBitField(command.botPermissions);
-				if (!interaction.guild.members.cache.get("1201941514520117280").permissions.has(requiredPermissions)) {
-					interaction.reply({ embeds: [new EmbedBuilder().setTitle("I'm missing permissions!").setDescription(`I'm need the following permissions to run this command: \`${requiredPermissions.toArray().join(', ')}\``).setColor([255, 0, 0])] });
-				}
 			} else {
-				await command.execute(interaction);
+				if (command.botPermissions) {
+					const requiredPermissions = new PermissionsBitField(command.botPermissions);
+					if (!interaction.guild.members.cache.get("1201941514520117280").permissions.has(requiredPermissions)) {
+						interaction.reply({ embeds: [new EmbedBuilder().setTitle("I'm missing permissions!").setDescription(`I'm need the following permissions to run this command: \`${requiredPermissions.toArray().join(', ')}\``).setColor([255, 0, 0])] });
+					} else {
+						await command.execute(interaction);
+					}
+				} else {
+					await command.execute(interaction);
+				}
 			}
 		} catch (error) {
 			console.error(error);
