@@ -3,7 +3,6 @@ const db = require("../../dbObjects.js");
 const testers = require("../../tester_servers.json");
 const noblox = require("noblox.js")
 const config = require('../../config.json');
-const { botPermissions } = require('../utility/addexp.js');
 noblox.setCookie(config.sessionCookie)
 
 module.exports = {
@@ -45,7 +44,7 @@ module.exports = {
 
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator) && !promoters_rank.is_officer) {
             embeded_error.setDescription("Insuficent permissions!")
-            await interaction.editReply({ embeds: [embeded_error]});
+            return interaction.editReply({ embeds: [embeded_error]});
 		}
 
         let member = interaction.options.getUser('user')
