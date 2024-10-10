@@ -67,11 +67,12 @@ module.exports = {
             responce = await user.setRank(noblox, groupId, member, ranks[ranks.indexOf(rank) + promotions] ).catch((err) => {
                 return interaction.editReply({embeds: [embeded_error.setDescription("An error occured while trying to promote the user!")]})
             })
-            console.log(responce)
+            user.promo_points = 0
             user.save()
             return interaction.editReply({content: responce})
         } else {
             const responce = await user.addPromoPoints(noblox, groupId, member, ranks, promotions)
+            user.save()
             return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(responce)]})
         }
     }

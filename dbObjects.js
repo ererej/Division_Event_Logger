@@ -1,8 +1,9 @@
 const Sequelize = require('sequelize');
 const config = require('./config.json');
 const { MembershipScreeningFieldType } = require('discord.js');
-const dbcredentoiols = config.db;
+const dbcredentoiols = process.argv.includes("--productiondb") ? config.productionDb : config.db;
 
+console.log("Connecting to database: " + dbcredentoiols.database)
 const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
 	host: dbcredentoiols.host,
 	dialect: 'mysql',
@@ -88,20 +89,30 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 
 		const promo_points_before = this.promo_points
 		let responce = "";
+		let nextRank;
 		while (promotions > 0) {
 			rank = await this.getRank()
 			this.promo_points += 1
 			promotions -= 1
-			const nextRank = ranks[ranks.indexOf(rank) + 2]
+			var rankIndexInRanks;
+			ranks.some(function(tempRank, i) {
+				if (tempRank.id == rank.id) {
+					rankIndexInRanks = i;
+					return true;
+				}
+			});
+			nextRank = ranks[rankIndexInRanks + 1]
 			if (nextRank) {
 				if (nextRank.is_officer) {
-					return responce + "Has reached the highest rank!"
+					return responce + "Can not be promoted with promo points!"
 				}
 				if (this.promo_points >=  nextRank.promo_points) {
+
 					responce += await this.setRank(noblox, groupId, MEMBER, nextRank ).catch((err) => {
 						console.log(err)
 						return `Error: An error occured while trying to promote the user!	The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`
 					})
+					this.promo_points -= nextRank.promo_points
 					responce += "\n"
 				} else {
 					continue
@@ -113,7 +124,6 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		}
 		this.save()
 		if (responce === "") {
-			const nextRank = ranks[ranks.indexOf(rank) + 1]
 			responce = `promo points increased from ***${promo_points_before}**/${nextRank.promo_points}* to ***${this.promo_points}**/${nextRank.promo_points}*!`
 		}
 		return responce
@@ -122,7 +132,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 
 
 Reflect.defineProperty(Users.prototype, 'setRank', {
-	value: async function(noblox, groupId, MEMBER, rank ) {
+	value: async function(noblox, groupId, MEMBER, rank) {
 		let robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
 			headers: {
 			'Authorization': `Bearer ${config.roverkey}`
@@ -146,7 +156,6 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 		MEMBER.roles.remove(oldRank)
 		MEMBER.roles.add(rank.id)
 		this.rank_id = rank.id
-		this.promo_points = 0
 		this.save()
 		return `Promoted from <@&${oldRank}> to <@&${rank.id}>`
 	}
