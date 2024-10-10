@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js")
 const updateExp = require('../../updateExp.js')
-const noblox = require("noblox.js")
+const noblox = require("noblox.js");
+const { botPermissions } = require('./linkChannel.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -77,7 +78,7 @@ module.exports = {
                         )
                 )
         ),
-
+        botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages, PermissionsBitField.Flags.ManageChannels],
         async execute(interaction) {
             await interaction.deferReply()
             const embeded_error = new EmbedBuilder().setColor([255,0,0])

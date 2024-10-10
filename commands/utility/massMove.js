@@ -10,7 +10,7 @@ module.exports = {
                 .setRequired(true)
                 .addChannelTypes(ChannelType.GuildVoice , ChannelType.GuildStageVoice)
             ),
-
+    botPermissions: [PermissionsBitField.Flags.MoveMembers],
     async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])

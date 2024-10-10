@@ -36,7 +36,7 @@ module.exports = {
                     { name: 'none', value: "none"}
                 )
         ),
-
+    botPermissions: [PermissionsBitField.Flags.ManageChannels],
     async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])

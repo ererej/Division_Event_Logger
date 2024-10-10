@@ -2,7 +2,8 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('disc
 const db = require("../../dbObjects.js");
 const testers = require("../../tester_servers.json");
 const noblox = require("noblox.js")
-const config = require('../../config.json')
+const config = require('../../config.json');
+const { botPermissions } = require('../utility/addexp.js');
 noblox.setCookie(config.sessionCookie)
 
 module.exports = {
@@ -31,7 +32,7 @@ module.exports = {
         ),
         
     testerLock: true,
-
+    botPermissions: [PermissionsBitField.Flags.ManageRoles],
     async execute(interaction) {
         await interaction.deferReply()
         const embeded_error = new EmbedBuilder().setColor([255,0,0]) 

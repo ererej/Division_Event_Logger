@@ -12,7 +12,7 @@ module.exports = {
                 .setDescription('the exp that the division has earned!')
                 .setRequired(true)
         ),
-
+    botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages],
 	async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor(Colors.Red)

@@ -10,6 +10,7 @@ module.exports = {
         .setDescription('makes sure that all the SEA banned users are banned!')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator),
 
+    botPermissions: [PermissionsBitField.Flags.BanMembers],
     async execute(interaction) {
         return interaction.reply("This command is  broken, and fixing it is not worth the time. If you want to ban all SEA banned users, do it manually :D")
         await interaction.reply(`**Fetching SEA banned users...**`)
