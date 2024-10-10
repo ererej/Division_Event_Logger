@@ -48,6 +48,7 @@ module.exports = {
                 return interaction.editReply({embeds: [embeded_error]})
             }
             dbRank.roblox_id = robloxRank.id
+            dbRank.rank_index = robloxRank.rank
         }
 
         if (interaction.options.getInteger('promo_points')) {
