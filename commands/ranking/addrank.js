@@ -44,11 +44,13 @@ module.exports = {
 
 		let robloxRank
 		if (interaction.options.getInteger('roblox_rank_id')) {
-			const group = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-			robloxRank = await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id'))
-			if (!robloxRank) {
+			const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+			if (!server) {
+				return interaction.editReply({embeds: [embeded_error.setDescription('The server is not in the database! Run /setup to add the server to the database')]})
+			}
+			robloxRank = await noblox.getRole(server.group_id, interaction.options.getInteger('roblox_rank_id')).catch(() => {
 				return interaction.editReply({embeds: [embeded_error.setDescription('The roblox rank you are trying to link to does not exist!')]})
-			} 
+			})
 		} 
 		const roblox_id = robloxRank.id
 
