@@ -35,7 +35,7 @@ module.exports = {
 				interaction.user.send("# WARNING \nThe bot is currently running experimental code! Any changes made to the database wont be saved. Commands that wont work properly includes but is not limited to /linkChannel, /setup, /settings, /sealog, /addExp, /setExp and /updateExp. If you encounter any issues its most likely due to the bot running on a test database or that Ererej is currently changing the code for the command you ran. If you really need to use the command please contact Ererej(You can find his profile by searching for his name in the main SEA discord) and he will make the bot run on the normal database so that you can run the command.")
 			}
 			//tester lock
-			if (command.testerLock && interaction.user.id != "386838167506124800" && !Object.values(testers).includes(interaction.guild.id)) {
+			if (command.testerLock && interaction.user.id != "386838167506124800" && testers.servers.some(server => server.id == interaction.guild.id)) {
 				interaction.reply({ embeds: [new EmbedBuilder().setTitle("This command is locked to **testers only!**").setColor([255, 0, 0])] });
 			} else {
 				if (command.botPermissions) {
