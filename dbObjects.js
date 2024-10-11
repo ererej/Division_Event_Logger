@@ -228,20 +228,31 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		}
 		//if the roblox rank is incorrect
 		if (dbRank.roblox_id != rankFromRoblox.roblox_id) {
-			noblox.setRank(groupId, robloxUser.robloxId, Number(dbRank.roblox_id)).catch((err) => {
-				console.log(err)
-				return `Error: An error occured while trying to update the users's roblox rank! try again later!`
-			})
 			if (!MEMBER.roles.cache.some(role => role.id === dbRank.id)) {
-				ranks.forEach(rank => {
+				let highestRank;
+				ranks.forEach(async rank => {
 					if (MEMBER.roles.cache.some(role => role.id === rank.id)) {
-						MEMBER.roles.remove(rank.id)
+						if (rank.rank_index > (highestRank ? highestRank.rank_index : 0)) {
+							highestRank = rank
+						} else { //removes extra rank roles 
+							MEMBER.roles.remove(rank.id)
+						}
 					}
 				})
-				MEMBER.roles.add(this.rank_id)
-				return `Updated roblox and discord rank to <@&${dbRank.id}>`
+				this.rank_id = highestRank.id
+				this.save()
+				const rank = await this.getRank()
+				if (rank.roblox_id != rankFromRoblox.roblox_id) {
+					await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
+						console.log(err)
+						return `Error: An error occured while trying to update the users's roblox rank! try again later!`
+					})
+					return `Updated roblox and database rank to <@&${rank.id}> (taken from discord roles)`
+				}
+				return `Updated database rank to <@&${dbRank.id}> (taken from discord roles)`
 			}
-			return `Updated roblox rank to <@&${dbRank.id}>`
+			
+			return `Updated roblox rank to <@&${dbRank.id}> (taken from database)`
 		} 
 
 		if (!MEMBER.roles.cache.some(role => role.id === dbRank.id)) {
@@ -251,7 +262,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				}
 			})
 			MEMBER.roles.add(this.rank_id)
-			return `Updated discord rank to <@&${this.rank_id}>`
+			return `Updated discord rank to <@&${this.rank_id}> (taken from database)`
 		}
 
 		return 
