@@ -249,7 +249,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 					})
 					return `Updated roblox and database rank to <@&${rank.id}> (taken from discord roles)`
 				}
-				return `Updated database rank to <@&${dbRank.id}> (taken from discord roles)`
+				return `Updated database rank to <@&${rank.id}> (taken from discord roles)`
 			}
 			
 			return `Updated roblox rank to <@&${dbRank.id}> (taken from database)`
