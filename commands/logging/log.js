@@ -44,7 +44,9 @@ module.exports = {
 
         let cohost;
         if (interaction.options.getUser('cohost')) {
-            cohost = await interaction.guild.members.fetch(interaction.options.getUser('cohost').id)
+            cohost = await interaction.guild.members.fetch(interaction.options.getUser('cohost').id).catch(() => {
+                return interaction.editReply({embeds: [embeded_error.setDescription('The cohost you are trying to link to does not exist!')]})
+            })
             const dbCohost = await db.Users.findOne({ where: { user_id: cohost.id, guild_id: interaction.guild.id }})
         }
         const voice_channel = await interaction.guild.channels.fetch(host.voice.channelId)
