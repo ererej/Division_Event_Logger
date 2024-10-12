@@ -38,14 +38,14 @@ module.exports = {
         if (failedBans > 0) {
             replyString += `***failed to ban ${failedBans} users!***\n`
         } 
-        if (replyString.length() <= 2000) {
+        if (replyString.length <= 2000) {
             interaction.editReply(replyString)
         } else {
             interaction.editReply('# ***banning users:***')
             let subStrings = replyString.split("\n")
             let tempstring = ""
-            for (i=0; i < replyString.length(); i++){
-                if ((tempstring + subStrings[i]).length() >= 2000) {
+            for (i=0; i < replyString.length; i++){
+                if ((tempstring + subStrings[i]).length >= 2000) {
                     interaction.channel.send(tempstring)
                     tempstring = subStrings[i]
                 } else {
