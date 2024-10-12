@@ -155,6 +155,9 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 		//add a check to see if the bot has perms to change the rank
 		MEMBER.roles.remove(oldRank)
 		MEMBER.roles.add(rank.id)
+		if (rank.tag) {
+			MEMBER.setNickname(rank.tag + robloxUser.robloxUsername)
+		}
 		this.rank_id = rank.id
 		this.save()
 		return `Promoted from <@&${oldRank}> to <@&${rank.id}>`
@@ -262,6 +265,9 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				}
 			})
 			MEMBER.roles.add(this.rank_id)
+			if (dbRank.tag) {
+				MEMBER.setNickname(dbRank.tag + robloxUser.robloxUsername)
+			}
 			return `Updated discord rank to <@&${this.rank_id}> (taken from database)`
 		}
 

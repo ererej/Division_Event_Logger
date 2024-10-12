@@ -26,6 +26,11 @@ module.exports = {
 				.setMinValue(0)
 				.setMaxValue(1_000_000)
         )
+		.addStringOption(option =>
+			option.setName('tag')
+				.setDescription('Input the tag that should be displayed in front of the users name when they have this rank')
+				.setRequired(false)
+		)
 		.addBooleanOption(option =>
 			option.setName('officer')
 				.setDescription('Input **True** if the members with this rank are able to host events')
@@ -68,7 +73,7 @@ module.exports = {
 			interaction.editReply({embeds: [embeded_error]})
 		} else {
 		try {
-			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: robloxRank.rank, is_officer: is_officer })
+			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: robloxRank.rank, is_officer: is_officer, tag: interaction.options.getString('tag') ? interaction.options.getString('tag') : null})
 			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked to the roblox rank **${robloxRank.name}**.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
 			interaction.editReply({embeds: [embeded_reply]});
 		}

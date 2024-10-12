@@ -22,6 +22,10 @@ module.exports = (sequelize, DataTypes) => {
         is_officer: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
+        },
+        tag: {
+            type: DataTypes.STRING,
+            allowNull: true,
         } 
     });
 }
