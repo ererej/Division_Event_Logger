@@ -21,11 +21,20 @@ module.exports = {
         let bancount = 0
         let failedBans = 0
         let replyString = ""
+        const guildBans = await interaction.guild.bans.fetch()
+        let bannedUsers = []
+        guildBans.forEach(ban => {
+            bannedUsers.push(ban.user.id)
+        })
         UserIDs.forEach(userId => {
             try {
-                interaction.guild.members.ban(userId, {reason: `massban by ${interaction.user.tag} (${interaction.user.id})! reason: ` + interaction.options.getString('reason')})
-                replyString += `*banned <@${userId}>!*\n`
-                bancount++
+                if (!bannedUsers.includes(userId)) {
+                    interaction.guild.members.ban(userId, {reason: `massban by ${interaction.user.tag} (${interaction.user.id})! reason: ` + interaction.options.getString('reason')})
+                    replyString += `*banned <@${userId}>!!!!*\n`
+                    bancount++
+                    return
+                }
+                replyString += `*<@${userId}> is already banned :D*\n`
             } catch(err)  {
                 if (interaction.guild.members.fetch(userId) && interaction.guild.members.fetch(userId).bannable === false) {
                     replyString += `**unable to ban <@${userId}> due to missing permissions.\n`
@@ -44,14 +53,15 @@ module.exports = {
             interaction.editReply('# ***banning users:***')
             let subStrings = replyString.split("\n")
             let tempstring = ""
-            for (i=0; i < replyString.length; i++){
+            for (i=0; i < subStrings.length; i++){
                 if ((tempstring + subStrings[i]).length >= 2000) {
                     interaction.channel.send(tempstring)
-                    tempstring = subStrings[i]
+                    tempstring = subStrings[i] + "\n"
                 } else {
-                    tempstring += subStrings[i]
+                    tempstring += subStrings[i] + "\n"
                 }
             }
+            console.log(typeof tempstring)
             interaction.channel.send(tempstring)
         }
 
