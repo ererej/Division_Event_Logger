@@ -64,6 +64,9 @@ module.exports = {
         if (interaction.options.getBoolean('officer')) {
             dbRank.is_officer = interaction.options.getBoolean('officer')
         }
+        if (interaction.options.getString('tag')) {
+            dbRank.tag = interaction.options.getString('tag')
+        }
         dbRank.save()
 
         return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription(`The rank <@&${dbRank.id}> has been updated! ${robloxRank ? `\nThe rank was linked to the roblox rank: ${robloxRank.name}` : ''} ${interaction.options.getInteger('promo_points') ? `\nThe promo points required got updated to: ${dbRank.promo_points}` : ''} ${interaction.options.getBoolean('officer') ? `\nIf the rank is an officer rank was updated to: ${dbRank.is_officer}` : ''} ${interaction.options.getString("tag") ? "The tag was updated to: " + interaction.options.getString("tag") : ""}`)] } )

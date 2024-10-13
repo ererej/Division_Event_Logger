@@ -259,12 +259,29 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		} 
 
 		if (!MEMBER.roles.cache.some(role => role.id === dbRank.id)) {
-			ranks.forEach(rank => {
+			let highestRank;
+			ranks.forEach(async rank => {
 				if (MEMBER.roles.cache.some(role => role.id === rank.id)) {
-					MEMBER.roles.remove(rank.id)
+					if (rank.rank_index > (highestRank ? highestRank.rank_index : 0)) {
+						highestRank = rank
+					} else { //removes extra rank roles 
+						MEMBER.roles.remove(rank.id)
+					}
 				}
 			})
-			MEMBER.roles.add(this.rank_id)
+			if (highestRank) {
+				this.rank_id = highestRank.id
+				this.save()
+				const rank = await this.getRank()
+				await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
+					console.log(err)
+					return `Error: An error occured while trying to update the users's roblox rank! try again later!`
+				})
+				if (rank.tag) {
+					MEMBER.setNickname(rank.tag + robloxUser.robloxUsername)
+				}
+				return `Updated database and roblox rank to <@&${highestRank.id}> (taken from discord roles)`
+			}
 			if (dbRank.tag) {
 				MEMBER.setNickname(dbRank.tag + robloxUser.robloxUsername)
 			}
