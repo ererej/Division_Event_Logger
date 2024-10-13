@@ -156,7 +156,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 		MEMBER.roles.remove(oldRank)
 		MEMBER.roles.add(rank.id)
 		if (rank.tag) {
-			MEMBER.setNickname(rank.tag + robloxUser.robloxUsername)
+			MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 		}
 		this.rank_id = rank.id
 		this.save()
@@ -278,12 +278,12 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 					return `Error: An error occured while trying to update the users's roblox rank! try again later!`
 				})
 				if (rank.tag) {
-					MEMBER.setNickname(rank.tag + robloxUser.robloxUsername)
+					MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 				}
 				return `Updated database and roblox rank to <@&${highestRank.id}> (taken from discord roles)`
 			}
 			if (dbRank.tag) {
-				MEMBER.setNickname(dbRank.tag + robloxUser.robloxUsername)
+				MEMBER.setNickname(dbRank.tag + " " + robloxUser.cachedUsername)
 			}
 			return `Updated discord rank to <@&${this.rank_id}> (taken from database)`
 		}
