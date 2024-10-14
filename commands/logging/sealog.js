@@ -79,7 +79,7 @@ module.exports = {
         const sea_format_channel = dbChannel ? await interaction.guild.channels.fetch(dbChannel.channel_id) : interaction.channel
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
         const division_name = server ? server.name : interaction.guild.name
-        await sea_format_channel.send({content: "```Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: ```", files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
+        await sea_format_channel.send({content: "```" + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot:` + "```", files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
         if (!dbChannel) {
             return await interaction.editReply({ content: 'you can make the format always get posted in a specific channel with </linkchannel:1246002135204626454>', ephemeral: true });
         }

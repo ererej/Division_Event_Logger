@@ -183,7 +183,7 @@ module.exports = {
         if (logChannelLink) {
             sea_format_channel.send(`VVV${logChannelLink}VVV`)
         }
-        sea_format_channel.send({content: "```Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n```", files: [{attachment: wedge_picture.url}] });
+        sea_format_channel.send({content: "```" + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + "```", files: [{attachment: wedge_picture.url}] });
         
         //event/promo logs
         await promologsChannel.send({embeds: [event_log_embed]})
