@@ -41,17 +41,6 @@ Reflect.defineProperty(Users.prototype, 'addItem', {
 	},
 });
 
-Reflect.defineProperty(Ranks.prototype, 'addRank', {// ?!?!? aint this suposed to be on the server object??
-	value: async (discord_rank, roblox_id, promo_points, rank_index, is_officer) => {
-		const division_rank = await Ranks.findOne({
-			where: {discord_rank_id: this.discord_rank_id},
-		});
-		
-		if (!division_rank) {
-			return Ranks.create({ id: this.discord_rank.id, guild_id: discord_rank.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: rank_index, is_officer: is_officer/*send help idk what i'm doing plz fix. this is a fucntion to add a rank. becouse it dident know what .crate() is in add_ranks.js*/ })
-		}
-	}
-});
 
 Reflect.defineProperty(Servers.prototype, "getRanks", {
 	value: () => {
@@ -103,7 +92,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 			});
 			nextRank = ranks[rankIndexInRanks + 1]
 			if (nextRank) {
-				if (nextRank.is_officer) {
+				if (nextRank.obtainable === false) {
 					return responce + "Can not be promoted with promo points!"
 				}
 				if (this.promo_points >=  nextRank.promo_points) {

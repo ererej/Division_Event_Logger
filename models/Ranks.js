@@ -26,6 +26,11 @@ module.exports = (sequelize, DataTypes) => {
         tag: {
             type: DataTypes.STRING,
             allowNull: true,
-        } 
+        },
+        obtainable: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true,
+          },
     });
 }

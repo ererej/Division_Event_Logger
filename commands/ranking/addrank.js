@@ -33,7 +33,12 @@ module.exports = {
 		)
 		.addBooleanOption(option =>
 			option.setName('officer')
-				.setDescription('Input **True** if the members with this rank are able to host events')
+				.setDescription('Are the people with this rank able to host? (events will make obtainable false by default)')
+				.setRequired(false)
+		)
+		.addBooleanOption(option =>
+			option.setName('obtainable')
+				.setDescription('Input **False** to make the not obtainable with promo points')
 				.setRequired(false)
 		),
 
@@ -66,6 +71,11 @@ module.exports = {
 			is_officer = false
 		}
 
+		let obtainable = true
+		if (interaction.options.getBoolean('obtainable') === false || (is_officer && interaction.options.getBoolean('obtainable') === undefined)) {
+			obtainable = false
+		}
+
 		let rank = await db.Ranks.findOne({ where: { id: discordRole.id, guild_id: interaction.guild.id}})
 		
 		if (rank) {
@@ -73,8 +83,8 @@ module.exports = {
 			interaction.editReply({embeds: [embeded_error]})
 		} else {
 		try {
-			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: robloxRank.rank, is_officer: is_officer, tag: interaction.options.getString('tag') ? interaction.options.getString('tag') : null})
-			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked to the roblox rank **${robloxRank.name}**.`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
+			rank = await db.Ranks.create({ id: discordRole.id, guild_id: interaction.guild.id, roblox_id: roblox_id, promo_points: promo_points, rank_index: robloxRank.rank, is_officer: is_officer, tag: interaction.options.getString('tag') ? interaction.options.getString('tag') : null, obtainable: obtainable})
+			const embeded_reply = new EmbedBuilder().setDescription(`Rank **<@&${discordRole.id}>** succsesfuly linked to the roblox rank **${robloxRank.name}**. Obtainable set to: ${obtainable}`).setColor(discordRole.color).setFooter({ text: "run **/ranks** to se all the ranks"})
 			interaction.editReply({embeds: [embeded_reply]});
 		}
 		catch (error) {
