@@ -39,7 +39,8 @@ module.exports = {
 		} else {
 			console.log(`Ready! Logged in as ${client.user.tag}`);
 			if (testServer) {
-				const time = new Date((config.host === "Laptop" ? 0 : 2) * 3600000 + new Date())
+				let time = new Date()
+				 time = new Date( time + (config.host === "Laptop" ? 0 : 2) * 3600000)
                 const channel = await testServer.channels.fetch("1285158576448344064");
 				channel.send("[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Bot started <@386838167506124800>")
 			}
