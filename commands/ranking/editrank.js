@@ -72,7 +72,7 @@ module.exports = {
         if (interaction.options.getString('tag')) {
             dbRank.tag = interaction.options.getString('tag')
         }
-        if (interaction.options.getBoolean('obtainable') !== undefined) {
+        if (interaction.options.getBoolean('obtainable') !== null) {
             dbRank.obtainable = interaction.options.getBoolean('obtainable')
         }
         dbRank.save()
