@@ -120,7 +120,7 @@ module.exports = {
                                         } else if (failed != 0) {
                                                 return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was successful! ${responceString}`)], components: []})
                                         } else {
-                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was not 100% successful ${} ${responceString}`)], components: []})
+                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was not 100% successful ${""} ${responceString}`)], components: []})
                                         }
 
 
