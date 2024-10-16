@@ -54,9 +54,11 @@ module.exports = {
         if (interaction.options.getInteger('roblox_rank_id')) {
             const group = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
             let multipleRanks;
-            robloxRank = await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id')).catch( async (err) => {
-                multipleRanks = true
-            })
+            robloxRank = await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id')).catch(async (err) => {
+                if (err.message.includes('There are two or more roles with the rank')) {
+                    multipleRanks = true;
+                }
+            });
             if (multipleRanks) {
                 let ranks = await noblox.getRoles(group.group_id)
                 ranks = ranks.filter(rank => rank.rank === interaction.options.getInteger('roblox_rank_id'))

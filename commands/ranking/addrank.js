@@ -58,9 +58,25 @@ module.exports = {
 			if (!server) {
 				return interaction.editReply({embeds: [embeded_error.setDescription('The server is not in the database! Run /setup to add the server to the database')]})
 			}
-			robloxRank = await noblox.getRole(server.group_id, interaction.options.getInteger('roblox_rank_id')).catch(() => {
-				return interaction.editReply({embeds: [embeded_error.setDescription('The roblox rank you are trying to link to does not exist!')]})
-			})
+			let multipleRanks;
+            robloxRank = await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id')).catch(async (err) => {
+                if (err.message.includes('There are two or more roles with the rank')) {
+                    multipleRanks = true;
+                }
+            });
+            if (multipleRanks) {
+                let ranks = await noblox.getRoles(group.group_id)
+                ranks = ranks.filter(rank => rank.rank === interaction.options.getInteger('roblox_rank_id'))
+                let rankString = ""
+                ranks.forEach(rank => {
+                    rankString += "\n" + rank.name + ": " + rank.id
+                }) 
+                return interaction.editReply({embeds: [embeded_error.setDescription("There are multiple roblox ranks with that rank index. Please rerun the command with ID of the rank you wanted to link. \nRanks with the index of " + interaction.options.getInteger("roblox_rank_id") + ":" + rankString)]})
+            }
+			if (!robloxRank) {
+				embeded_error.setTitle('Error').setDescription('The roblox rank you are trying to link to does not exist!')
+				return interaction.editReply({embeds: [embeded_error]})
+			}
 		} 
 		const roblox_id = robloxRank.id
 
