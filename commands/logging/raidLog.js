@@ -77,7 +77,7 @@ module.exports = {
         }
         let winner = ""
         if (win === "win") {
-            winner = division_name + " " + allys_name + " "
+            winner = division_name + allys_name
         } else {    
             winner = enemy_division
         }
@@ -87,10 +87,10 @@ module.exports = {
         
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
         if (raid_discutions === null) {
-            await sea_format_channel.send({ content: `Division(s): ${division_name}${allys_name}VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
+            await sea_format_channel.send({ content: `Division(s): ${division_name}${allys_name} VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
         
         } else {
-            await sea_format_channel.send({ content: ` <@624633098583408661> \nDivision(s): ${interaction.guild.name + " " + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
+            await sea_format_channel.send({ content: ` <@624633098583408661> \nDivision(s): ${division_name + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
         }
         if (!dbChannel) {
             return await interaction.editReply({ content: 'If you want the raidlogs to always go to a spesific channel then use this command </linkchannel:1246002135204626454>', ephemeral: true });
