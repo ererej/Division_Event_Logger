@@ -185,7 +185,8 @@ module.exports = {
             await sea_format_channel.send(`VVV${logChannelLink}VVV`)
         }
 
-        const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "codeblock" } })).config === "codeblock" ? "```" : "" 
+        const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "codeblock" } })
+        const codeblock =  codeblockSetting ? ( codeblockSetting.config === "codeblock" ? "```" : "" ) : "" 
 
         await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + codeblock, files: [{attachment: wedge_picture.url}] });
         

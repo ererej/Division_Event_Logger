@@ -80,7 +80,9 @@ module.exports = {
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
         const division_name = server ? server.name : interaction.guild.name
 
-        const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "codeblock" } })).config === "codeblock" ? "```" : "" 
+
+        const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "codeblock" } })
+        const codeblock =  codeblockSetting ? ( codeblockSetting.config === "codeblock" ? "```" : "" ) : "" 
 
         await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot:` + codeblock, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
         if (!dbChannel) {
