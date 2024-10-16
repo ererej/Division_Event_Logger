@@ -77,6 +77,20 @@ module.exports = {
                             { name: 'low_to_high', value: "normal"}
                         )
                 )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('makesealogcodeblock')
+                .setDescription('puts the sea log in a code block to make it easier to copy')
+                .addStringOption(option =>
+                    option.setName('configuration')
+                        .setDescription('do you want the sealogs to be in a code block?')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'codeblock', value: 'codeblock'},
+                            { name: 'normal', value: 'normal'}
+                        )
+                )
         ),
         botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages, PermissionsBitField.Flags.ManageChannels],
         async execute(interaction) {
@@ -116,15 +130,14 @@ module.exports = {
                         updateExp(db, server, interaction)
                     }
                     if (hours > 0) {
-                        await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the timezone to GMT+${hours}`) ] })
+                        return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the timezone to GMT+${hours}`) ] })
                     } else if (hours < 0) {
-                        await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the timezone to GMT${hours}`) ] })
+                        return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the timezone to GMT${hours}`) ] })
                     } else {
-                        await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the timezone to GMT`) ] })
+                        return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the timezone to GMT`) ] })
                     }
-                    
-                    break;
-                case 'membercountrounding':
+                
+                    case 'membercountrounding':
                     const rounding = interaction.options.getInteger('rounding')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "membercountrounding" } })
                     if (setting) {
@@ -148,9 +161,9 @@ module.exports = {
                             guild.channels.cache.get(channel.id).setName(`group not linked. please link a group with /setup`)
                         }
                     }
-                    await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the member count rounding to ${(rounding + "").length-1} digets`) ]})
-                    break;
-                case 'expdisplayshowotherdivs':
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the member count rounding to ${(rounding + "").length-1} digets`) ]})
+                
+                    case 'expdisplayshowotherdivs':
                     const showOrHide = interaction.options.getString('showorhide')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplayshowotherdivs" } })
                     if (setting) {
@@ -161,12 +174,10 @@ module.exports = {
                     server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
                     if (server) {
                         updateExp(db, server, interaction)
-                    } else {
-                        interaction.editReply({ content: 'The setting is saved but. There is no expdisplay channel linked in this server! Please ask an admin to link one using </linkchannel:1248017516933156870>' });
-                    }
-                    await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Orange).setDescription(`Successfully set the exp display to *${showOrHide}* other divs`) ] })
-                    break;
-                case 'orderoftheranksinranks': //not tested
+                    } 
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Orange).setDescription(`Successfully set the exp display to *${showOrHide}* other divs`) ] })
+
+                case 'orderoftheranksinranks':
                     const order = interaction.options.getString('order')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "orderoftheranksinranks" } })
                     if (setting) {
@@ -174,8 +185,20 @@ module.exports = {
                     } else {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: "orderoftheranksinranks", config: order })
                     }
-                    await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the order of the ranks in /ranks to ${order ? "high to low" : "low to high"}`) ] })
-                    break;
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the order of the ranks in /ranks to ${order ? "high to low" : "low to high"}`) ] })
+                case 'makesealogcodeblock':
+                    const configuration = interaction.options.getString('configuration')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock" } })
+                    if (setting) {
+                        await setting.update({ config: configuration })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: "makesealogcodeblock", config: configuration })
+                    }
+                    if (configuration === "codeblock") {
+                        return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the sea log to be in a code block`) ] })
+                    } else {
+                        return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the sea log to be normal`) ] })
+                    }
             }
         }
 

@@ -1,8 +1,9 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
 noblox.setCookie(config.sessionCookie)
+const testers = require('../tester_servers.json');
 
 
 module.exports = {
@@ -69,6 +70,66 @@ module.exports = {
                         await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), name: groupName, exp: interaction.options.getInteger("current_exp") ?? 0})
                         const embeded_reply = new EmbedBuilder().setDescription(`Server successfully saved to the database and linked to the roblox group **${groupName}**.`).setColor([0,255,0])
                         await interaction.editReply({ embeds: [embeded_reply]});
+                }
+
+
+                if (!testers.servers.some(server => server.id == interaction.guild.id)) {
+                        return
+                }
+
+                if (!db.Ranks.findOne({ where: { guild_id: interaction.guild.id }})) {
+                        const confirmButton = new ButtonBuilder()
+                                .setCustomId('run_auto_setup')
+                                .setLabel('Run auto setup')
+                                .setStyle(ButtonStyle.Primary)
+                        const cancelButton = new ButtonBuilder()
+                                .setCustomId('no')
+                                .setLabel('No')
+                                .setStyle(ButtonStyle.Secondary)
+
+                        const row = new ActionRowBuilder().addComponents(confirmButton, cancelButton)
+
+                        const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(`Do you want to run auto rank setup? Depending on how your ranks are struktured this might fail :(`)], components: [row]})
+
+                        const collectorFilter = i => i.customId === 'run_auto_setup' && i.user.id === interaction.user.id
+                        try {
+                                const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 60_000 })
+
+                                if (confirmation.customId === 'run_auto_setup') {
+                                        let responceString = ""
+                                        let sussesful = 0
+                                        let failed = 0
+                                        const group_ranks = await noblox.getRoles(interaction.options.getInteger("roblox_group_id"))
+                                        for (const rank of group_ranks) {
+                                                const role = await interaction.guild.roles.find(role => role.name === rank.name)
+                                                if (role) {
+                                                        if (role.indexOf("[") > -1 && role.indexOf("]") > -1) {
+                                                                const tag = role.name.substring(0, role.name.indexOf("]"))
+                                                        }
+                                                        await db.Ranks.create({ id: role.id, guild_id: interaction.guild.id, roblox_id: rank.id, promo_points: 1, rank_index: rank.rank, is_officer: false, tag: tag ? tag : null, obtainable: true})
+                                                        responceString += `\n\n${role.name} was linked to the roblox rank **${rank.name}**` + (tag ? ` with the tag **${tag}**` : "")
+                                                        sussesful++
+                                                } else {
+                                                        responceString += `\n\n**${rank.name}** no role found! (the roles are found by looking for the roblox ranks name)`
+                                                        failed++
+                                                }
+                                        }
+
+                                        if (sussesful === 0) {
+                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(`Auto rank setup failed, no ranks where linked`)], components: []})
+                                        } else if (failed != 0) {
+                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was successful! ${responceString}`)], components: []})
+                                        } else {
+                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was not 100% successful ${} ${responceString}`)], components: []})
+                                        }
+
+
+                                } else if (confirmation.customId === 'no') {
+                                        return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup has been cancelled!`)], components: []})
+                                }
+                        } catch (error) {
+                                return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 60 secounds, cancelling!")], components: []})
+                        }
                 }
         }
 

@@ -142,6 +142,7 @@ module.exports = {
 
         for (const member of voice_channel.members.values()) {
             if (!member.user.bot && host.id != member.user.id && (cohost ? cohost : null != member.user.id)) {
+            interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)]})
             description += `\n\n <@${member.id}>: `;
             total_event_attendes++;
             let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});
@@ -181,9 +182,12 @@ module.exports = {
 
         //send the sea format to the sea logs channel
         if (logChannelLink) {
-            sea_format_channel.send(`VVV${logChannelLink}VVV`)
+            await sea_format_channel.send(`VVV${logChannelLink}VVV`)
         }
-        sea_format_channel.send({content: "```" + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + "```", files: [{attachment: wedge_picture.url}] });
+
+        const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "codeblock" } })).config === "codeblock" ? "```" : "" 
+
+        await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + codeblock, files: [{attachment: wedge_picture.url}] });
         
         //event/promo logs
         await promologsChannel.send({embeds: [event_log_embed]})

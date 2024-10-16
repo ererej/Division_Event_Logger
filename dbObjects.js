@@ -185,7 +185,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		}
 		const rankFromRoblox = ranks.find(rank => rank.roblox_id == robloxGroup.RoleId)
 		if (!rankFromRoblox) {
-			return `Error: The roblox rank ${robloxGroup.Role} is not linked! please get a admin to link it using /linkrank!`
+			return `Error: The roblox rank ${robloxGroup.Role} is not linked! please get a admin to link it using /addrank!`
 		}
 
 		if (!dbRank) {

@@ -59,7 +59,7 @@ module.exports = {
 				return interaction.editReply({embeds: [embeded_error.setDescription('The server is not in the database! Run /setup to add the server to the database')]})
 			}
 			let multipleRanks;
-            robloxRank = await noblox.getRole(group.group_id, interaction.options.getInteger('roblox_rank_id')).catch(async (err) => {
+            robloxRank = await noblox.getRole(server.group_id, interaction.options.getInteger('roblox_rank_id')).catch(async (err) => {
                 if (err.message.includes('There are two or more roles with the rank')) {
                     multipleRanks = true;
                 }
