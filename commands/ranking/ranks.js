@@ -25,7 +25,7 @@ module.exports = {
         }
 
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-        const totalUsers = await db.Users.count({ where: { guild_id: interaction.guild.id } })
+        const totalUsers = (await db.Users.count({ where: { guild_id: interaction.guild.id } })) ?? 1
 
         let description = ""
         let oneEmbedSent = false
