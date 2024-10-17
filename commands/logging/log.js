@@ -53,7 +53,7 @@ module.exports = {
 
 
         //check if the user has permission to host events. 
-        if (/*!(await dbHost.getRank()).is_officer &&*/ !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+        if (!(await dbHost.getRank()).is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error]});
         } else if (voice_channel.id === undefined) { //check if the host is in a voice channel
@@ -65,7 +65,7 @@ module.exports = {
         } else if (cohost != null && host.id === cohost.id) { //check that the cohost is not the host
             embeded_error.setDescription("No uh! you are not both the host and the cohost!!!")
             return await interaction.editReply({ embeds: [embeded_error]})
-        } else {
+        }
 
         
 
@@ -141,7 +141,7 @@ module.exports = {
 
 
         for (const member of voice_channel.members.values()) {
-            if (!member.user.bot && host.id != member.user.id && (cohost ? cohost : null != member.user.id)) {
+            if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)]})
             description += `\n\n <@${member.id}>: `;
             total_event_attendes++;
@@ -170,6 +170,10 @@ module.exports = {
             dbUser.save()
             }
         }
+        if (total_event_attendes === 0) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")]})
+        }
+        
         event_log_embed.setDescription(description)
         event_log_embed.setFooter({ text: `Total attendees: ${total_event_attendes}`})
 
@@ -196,6 +200,6 @@ module.exports = {
         const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged")
         await interaction.editReply({embeds: [success_embed]});
 
-        }  
+        
 	},
 };
