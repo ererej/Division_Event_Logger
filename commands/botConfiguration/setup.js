@@ -83,7 +83,7 @@ module.exports = {
                 if (!await db.Ranks.findOne({ where: { guild_id: interaction.guild.id }})) {
                         const confirmButton = new ButtonBuilder()
                                 .setCustomId('run_auto_setup')
-                                .setLabel('Run auto setup')
+                                .setLabel('Run auto rank setup')
                                 .setStyle(ButtonStyle.Primary)
                         const cancelButton = new ButtonBuilder()
                                 .setCustomId('no')
@@ -141,8 +141,11 @@ module.exports = {
                                         return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup has been cancelled!`)], components: []})
                                 }
                         } catch (error) {
-                                console.error(error)
-                                return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 60 secounds, cancelling!")], components: []})
+                                if (error.message === "Collector received no interactions before ending with reason: time") {
+                                        return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 60 secounds, cancelling!")], components: []})
+                                } else {
+                                        throw error
+                                }
                         }
                 }
         }

@@ -49,7 +49,11 @@ module.exports = {
                 return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The deletion has been cancelled!`)], components: []})
             }
         } catch (error) {
-            return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 60 secounds, cancelling!")], components: []})
+            if (error.message === "Collector received no interactions before ending with reason: time") {
+                return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 60 secounds, cancelling!")], components: []})
+        } else {
+                throw error
+        }
         }
     }
 };
