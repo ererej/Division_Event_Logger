@@ -81,7 +81,8 @@ module.exports = {
         const division_name = server ? server.name : interaction.guild.name
 
 
-        const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "codeblock" } })
+        const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock" } })
+
         const codeblock =  codeblockSetting ? ( codeblockSetting.config === "codeblock" ? "```" : "" ) : "" 
 
         await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot:` + codeblock, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});

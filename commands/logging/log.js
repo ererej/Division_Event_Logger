@@ -173,7 +173,7 @@ module.exports = {
         if (total_event_attendes === 0) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")]})
         }
-        
+
         event_log_embed.setDescription(description)
         event_log_embed.setFooter({ text: `Total attendees: ${total_event_attendes}`})
 
@@ -189,7 +189,7 @@ module.exports = {
             await sea_format_channel.send(`VVV${logChannelLink}VVV`)
         }
 
-        const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "codeblock" } })
+        const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock" } })
         const codeblock =  codeblockSetting ? ( codeblockSetting.config === "codeblock" ? "```" : "" ) : "" 
 
         await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + codeblock, files: [{attachment: wedge_picture.url}] });
