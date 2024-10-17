@@ -73,7 +73,7 @@ module.exports = {
                 }
 
 
-                if (!testers.servers.some(server => server.id == interaction.guild.id)) {
+                if (!testers.servers.some(server => server.id == interaction.guild.id) && !interaction.member.user.id === "386838167506124800") {
                         return
                 }
 
