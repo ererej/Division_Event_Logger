@@ -1,4 +1,4 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors } = require('discord.js');
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
@@ -59,16 +59,19 @@ module.exports = {
                 
                 let server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
                 const groupName = interaction.options.getString("division_name") ?? (await noblox.getGroup(interaction.options.getInteger("roblox_group_id"))).name
+                let reply;
                 if (server) {
                         server.group_id = interaction.options.getInteger("roblox_group_id")
                         server.exp = interaction.options.getInteger("current_exp") ?? server.exp
                         server.name = groupName
                         server.save();
-                        const embeded_reply = new EmbedBuilder().setDescription(`Successfully updated the server in the database! \nThe server is linked to the roblox group **${groupName}** \n The divisions name is set to **${server.name}**\nThe division has **${server.exp}**EXP`).setColor([0,255,0])
+                        reply = `Successfully updated the server in the database! \nThe server is linked to the roblox group **${groupName}** \n The divisions name is set to **${server.name}**\nThe division has **${server.exp}**EXP`
+                        embeded_reply = new EmbedBuilder().setDescription(reply).setColor([0,255,0])
                         await interaction.editReply({ embeds: [embeded_reply]});
                 } else {
                         await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), name: groupName, exp: interaction.options.getInteger("current_exp") ?? 0})
-                        const embeded_reply = new EmbedBuilder().setDescription(`Server successfully saved to the database and linked to the roblox group **${groupName}**.`).setColor([0,255,0])
+                        reply = `Server successfully saved to the database and linked to the roblox group **${groupName}**.`
+                        embeded_reply = new EmbedBuilder().setDescription(reply).setColor([0,255,0])
                         await interaction.editReply({ embeds: [embeded_reply]});
                 }
 
@@ -77,7 +80,7 @@ module.exports = {
                         return
                 }
 
-                if (!db.Ranks.findOne({ where: { guild_id: interaction.guild.id }})) {
+                if (!await db.Ranks.findOne({ where: { guild_id: interaction.guild.id }})) {
                         const confirmButton = new ButtonBuilder()
                                 .setCustomId('run_auto_setup')
                                 .setLabel('Run auto setup')
@@ -89,7 +92,7 @@ module.exports = {
 
                         const row = new ActionRowBuilder().addComponents(confirmButton, cancelButton)
 
-                        const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(`Do you want to run auto rank setup? Depending on how your ranks are struktured this might fail :(`)], components: [row]})
+                        const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(reply + `\nDo you want to run auto rank setup? Depending on how your ranks are struktured this might fail :(`)], components: [row]})
 
                         const collectorFilter = i => i.customId === 'run_auto_setup' && i.user.id === interaction.user.id
                         try {
@@ -101,20 +104,23 @@ module.exports = {
                                         let failed = 0
                                         const group_ranks = await noblox.getRoles(interaction.options.getInteger("roblox_group_id"))
                                         for (const rank of group_ranks) {
-                                                const role = await interaction.guild.roles.find(role => role.name === rank.name)
+                                                if (rank.name === "Guest") {
+                                                        continue
+                                                }
+                                                const role = await interaction.guild.roles.cache.find(role => role.name === rank.name)
                                                 if (role) {
                                                         let tag;
-                                                        if (role.indexOf("[") > -1 && role.indexOf("]") > -1) {
-                                                                tag = role.name.substring(0, role.name.indexOf("]"))
-                                                        } else if (role.indexOf("(") > -1 && role.indexOf(")") > -1) {
-                                                                tag = role.name.substring(0, role.name.indexOf(")"))
-                                                        } else if (role.indexOf("{") > -1 && role.indexOf("}") > -1) {
-                                                                tag = role.name.substring(0, role.name.indexOf("}"))
+                                                        if (role.name.indexOf("[") > -1 && role.name.indexOf("]") > -1) {
+                                                                tag = role.name.substring(0, role.name.indexOf("]") + 1)
+                                                        } else if (role.name.indexOf("(") > -1 && role.name.indexOf(")") > -1) {
+                                                                tag = role.name.substring(0, role.name.indexOf(")") + 1)
+                                                        } else if (role.name.indexOf("{") > -1 && role.name.indexOf("}") > -1) {
+                                                                tag = role.name.substring(0, role.name.indexOf("}") + 1)
                                                         }
 
 
                                                         await db.Ranks.create({ id: role.id, guild_id: interaction.guild.id, roblox_id: rank.id, promo_points: 1, rank_index: rank.rank, is_officer: false, tag: tag ? tag : null, obtainable: true})
-                                                        responceString += `\n\n${role.name} was linked to the roblox rank **${rank.name}**` + (tag ? ` with the tag **${tag}**` : "")
+                                                        responceString += `\n\n<@&${role.id}> was linked to the roblox rank **${rank.name}**` + (tag ? ` with the tag **${tag}**` : "")
                                                         sussesful++
                                                 } else {
                                                         responceString += `\n\n**${rank.name}** no role found! (the roles are found by looking for the roblox ranks name)`
@@ -125,7 +131,7 @@ module.exports = {
                                         if (sussesful === 0) {
                                                 return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(`Auto rank setup failed, no ranks where linked`)], components: []})
                                         } else if (failed != 0) {
-                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was successful! ${responceString}`)], components: []})
+                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was successful! ${responceString} \n# The rank links where created now you need to use /editrank to configure how many promopoints are required to reach each rank, and if the rank is an officer rank and if you are able to reach it with promopoints`)], components: []})
                                         } else {
                                                 return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was not 100% successful ${failed} roblox ranks where not linked ${responceString} \n# The rank links where created now you need to use /editrank to configure how many promopoints are required to reach each rank, and if the rank is an officer rank and if you are able to reach it with promopoints`)], components: []})
                                         }
@@ -135,6 +141,7 @@ module.exports = {
                                         return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup has been cancelled!`)], components: []})
                                 }
                         } catch (error) {
+                                console.error(error)
                                 return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 60 secounds, cancelling!")], components: []})
                         }
                 }
