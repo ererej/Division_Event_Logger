@@ -65,9 +65,11 @@ module.exports = {
         if (duplicateLinks.length === 1) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`This channelLink already exists!`)] })
         } else if (duplicateLinks.length > 1) {
-            duplicateLinks.forEach(link => {
-                link.destroy()
-            })
+            const duplicateCount = duplicateLinks.length
+            for (let i = 1; i < duplicateLinks.length - 1; i++) {
+                duplicateLinks[i].destroy()
+            }
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`This channelLink already exists! (removed ${duplicateCount - 1 } extra links)`)] })
         }
 
         if (textChannels.includes(interaction.options.getString('linktype'))) {

@@ -103,9 +103,16 @@ module.exports = {
                                         for (const rank of group_ranks) {
                                                 const role = await interaction.guild.roles.find(role => role.name === rank.name)
                                                 if (role) {
+                                                        let tag;
                                                         if (role.indexOf("[") > -1 && role.indexOf("]") > -1) {
-                                                                const tag = role.name.substring(0, role.name.indexOf("]"))
+                                                                tag = role.name.substring(0, role.name.indexOf("]"))
+                                                        } else if (role.indexOf("(") > -1 && role.indexOf(")") > -1) {
+                                                                tag = role.name.substring(0, role.name.indexOf(")"))
+                                                        } else if (role.indexOf("{") > -1 && role.indexOf("}") > -1) {
+                                                                tag = role.name.substring(0, role.name.indexOf("}"))
                                                         }
+
+
                                                         await db.Ranks.create({ id: role.id, guild_id: interaction.guild.id, roblox_id: rank.id, promo_points: 1, rank_index: rank.rank, is_officer: false, tag: tag ? tag : null, obtainable: true})
                                                         responceString += `\n\n${role.name} was linked to the roblox rank **${rank.name}**` + (tag ? ` with the tag **${tag}**` : "")
                                                         sussesful++
@@ -120,7 +127,7 @@ module.exports = {
                                         } else if (failed != 0) {
                                                 return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was successful! ${responceString}`)], components: []})
                                         } else {
-                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was not 100% successful ${""} ${responceString}`)], components: []})
+                                                return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was not 100% successful ${failed} roblox ranks where not linked ${responceString} \n# The rank links where created now you need to use /editrank to configure how many promopoints are required to reach each rank, and if the rank is an officer rank and if you are able to reach it with promopoints`)], components: []})
                                         }
 
 
