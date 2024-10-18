@@ -52,8 +52,8 @@ module.exports = {
         const voice_channel = await interaction.guild.channels.fetch(host.voice.channelId)
 
 
-        //check if the user has permission to host events. 
-        if (!(await dbHost.getRank()).is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+        //check if the user has permission to host events
+        if ( !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error]});
         } else if (voice_channel.id === undefined) { //check if the host is in a voice channel
