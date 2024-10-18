@@ -65,7 +65,7 @@ module.exports = {
                 }
             });
             if (multipleRanks) {
-                let ranks = await noblox.getRoles(group.group_id)
+                let ranks = await noblox.getRoles(server.group_id)
                 ranks = ranks.filter(rank => rank.rank === interaction.options.getInteger('roblox_rank_id'))
                 let rankString = ""
                 ranks.forEach(rank => {
