@@ -61,7 +61,7 @@ module.exports = {
                     tempstring += subStrings[i] + "\n"
                 }
             }
-            console.log(typeof tempstring)
+
             interaction.channel.send(tempstring)
         }
 
