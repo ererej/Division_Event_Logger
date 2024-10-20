@@ -48,6 +48,9 @@ module.exports = {
 		}
 
         let member = interaction.options.getUser('user')
+        const ranks = (await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})).sort((a, b) => a.rank_index - b.rank_index)
+        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }})
+        const groupId = server.group_id
         member = await interaction.guild.members.fetch(member.id)
         let user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
         if (!user) {
@@ -58,9 +61,7 @@ module.exports = {
             user.destroy()
         }
 
-        const ranks = (await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})).sort((a, b) => a.rank_index - b.rank_index)
-        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }})
-        const groupId = server.group_id
+        
         let promotions = interaction.options.getInteger('promotions')
         if (!promotions) {
             promotions = 1
