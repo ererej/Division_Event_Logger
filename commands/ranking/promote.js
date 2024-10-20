@@ -51,7 +51,11 @@ module.exports = {
         member = await interaction.guild.members.fetch(member.id)
         let user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
         if (!user) {
-            return interaction.editReply({embeds: [embeded_error.setDescription("User not found in the database!")]})
+            user = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
+        }
+        const updateResponce = await user.updateRank(noblox, groupId, member) ?? ""
+        if (user.rank_id === null) {
+            user.destroy()
         }
 
         const ranks = (await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})).sort((a, b) => a.rank_index - b.rank_index)
@@ -79,27 +83,27 @@ module.exports = {
                 }
             });
             if (ranks.indexOf(rank) + promotions >= ranks.length) {
-                return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than the highest rank!")]})
+                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nYou can't promote someone to a rank higher than the highest rank!")]})
             }
             const botHighestRole = interaction.guild.members.cache.get("1201941514520117280").roles.highest;
             const targetRole = interaction.guild.roles.cache.get(ranks[membersRankIndexInRanks + promotions].id);
 
             if (botHighestRole.comparePositionTo(targetRole) <= 0) {
-                return interaction.editReply({ embeds: [embeded_error.setDescription("I can't promote someone to a role higher than or equal to my highest role!")] });
+                return interaction.editReply({ embeds: [embeded_error.setDescription(updateResponce + "\nI can't promote someone to a role higher than or equal to my highest role!")] });
             }
             if (membersRankIndexInRanks + promotions > promotersRankIndexInRanks) {
-                return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than yours!")]})
+                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nYou can't promote someone to a rank higher than yours!")]})
             }
             responce = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks + promotions] ).catch((err) => {
-                return interaction.editReply({embeds: [embeded_error.setDescription("An error occured while trying to promote the user!")]})
+                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nAn error occured while trying to promote the user!")]})
             })
             user.promo_points = 0
             user.save()
-            return interaction.editReply({embeds: [new EmbedBuilder().setDescription(responce)]})
+            return interaction.editReply({embeds: [new EmbedBuilder().setDescription(updateResponce + "\n" + responce)]})
         } else {
             const responce = await user.addPromoPoints(noblox, groupId, member, ranks, promotions)
             user.save()
-            return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(responce)]})
+            return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(updateResponce + "\n" + responce)]})
         }
     }
 }
