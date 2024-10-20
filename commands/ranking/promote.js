@@ -64,18 +64,38 @@ module.exports = {
         let responce = "";
         if (interaction.options.getString('rank_or_promopoints') === 'rank') {
             let rank = await user.getRank()
-            if (ranks.indexOf(tRank => tRank === rank) + promotions > ranks.indexOf(promoters_rank)) {
-                return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than yours!")]})
-            }
+            let membersRankIndexInRanks;
+			ranks.some(function(tempRank, i) {
+				if (tempRank.id == rank.id) {
+					membersRankIndexInRanks = i;
+					return true;
+				}
+			});
+            let promotersRankIndexInRanks;
+            ranks.some(function(tempRank, i) {
+                if (tempRank.id == promoters_rank.id) {
+                    promotersRankIndexInRanks = i;
+                    return true;
+                }
+            });
             if (ranks.indexOf(rank) + promotions >= ranks.length) {
                 return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than the highest rank!")]})
             }
-            responce = await user.setRank(noblox, groupId, member, ranks[ranks.indexOf(rank) + promotions] ).catch((err) => {
+            const botHighestRole = interaction.guild.members.cache.get("1201941514520117280").roles.highest;
+            const targetRole = interaction.guild.roles.cache.get(ranks[membersRankIndexInRanks + promotions].id);
+
+            if (botHighestRole.comparePositionTo(targetRole) <= 0) {
+                return interaction.editReply({ embeds: [embeded_error.setDescription("I can't promote someone to a role higher than or equal to my highest role!")] });
+            }
+            if (membersRankIndexInRanks + promotions > promotersRankIndexInRanks) {
+                return interaction.editReply({embeds: [embeded_error.setDescription("You can't promote someone to a rank higher than yours!")]})
+            }
+            responce = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks + promotions] ).catch((err) => {
                 return interaction.editReply({embeds: [embeded_error.setDescription("An error occured while trying to promote the user!")]})
             })
             user.promo_points = 0
             user.save()
-            return interaction.editReply({content: responce})
+            return interaction.editReply({embeds: [new EmbedBuilder().setDescription(responce)]})
         } else {
             const responce = await user.addPromoPoints(noblox, groupId, member, ranks, promotions)
             user.save()
