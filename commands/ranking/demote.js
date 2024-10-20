@@ -6,17 +6,17 @@ noblox.setCookie(config.sessionCookie)
 
 module.exports = {
 	data: new SlashCommandBuilder()
-        .setName('promote')
-        .setDescription('Promotes a user to a higher rank! or adds promopoints')
+        .setName('demote')
+        .setDescription('Demotes a user to a lower rank! or removes promopoints')
         // .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addUserOption(option => 
             option.setName('user')
-                .setDescription('Please input the user that will be promoted!')
+                .setDescription('Please input the user that will be demoted!')
                 .setRequired(true)
         )
         .addStringOption(option => 
             option.setName('rank_or_promopoints')
-                .setDescription('Please input whether to promote the user a whole rank or just some promopoints!')
+                .setDescription('Please input whether to demote the user a whole rank or just some promopoints!')
                 .setRequired(false)
                 .addChoices(
                     { name: 'rank', value: 'rank'},
@@ -24,8 +24,8 @@ module.exports = {
                 )
         )
         .addIntegerOption(option => 
-            option.setName('promotions')
-                .setDescription('How many promotions/promopoints to give')
+            option.setName('demotions')
+                .setDescription('How many promotions/promopoints to remove')
                 .setRequired(false)
         ),
         
@@ -61,9 +61,9 @@ module.exports = {
         }
 
         
-        let promotions = interaction.options.getInteger('promotions')
-        if (!promotions) {
-            promotions = 1
+        let demotions = interaction.options.getInteger('demotions')
+        if (!demotions) {
+            demotions = 1
         }
         let responce = "";
         if (interaction.options.getString('rank_or_promopoints') === 'rank') {
@@ -82,26 +82,28 @@ module.exports = {
                     return true;
                 }
             });
-            if (membersRankIndexInRanks + promotions >= ranks.length) {
-                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nYou can't promote someone to a rank higher than the highest rank!")]})
+            if (membersRankIndexInRanks - demotions >= ranks.length) {
+                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nYou can't demote someone to a lower rank then what exists!")]})
             }
             const botHighestRole = interaction.guild.members.cache.get("1201941514520117280").roles.highest;
-            const targetRole = interaction.guild.roles.cache.get(ranks[membersRankIndexInRanks + promotions].id);
+            const membersRole = interaction.guild.roles.cache.get(ranks[membersRankIndexInRanks].id);
 
-            if (botHighestRole.comparePositionTo(targetRole) <= 0) {
-                return interaction.editReply({ embeds: [embeded_error.setDescription(updateResponce + "\nI can't promote someone to a role higher than or equal to my highest role!")] });
+            if (botHighestRole.comparePositionTo(membersRole) <= 0) {
+                return interaction.editReply({ embeds: [embeded_error.setDescription(updateResponce + "\nI can't demote someone that is a higher rank than or equal to my highest role!")] });
             }
-            if (membersRankIndexInRanks + promotions > promotersRankIndexInRanks) {
-                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nYou can't promote someone to a rank higher than yours!")]})
+            if (membersRankIndexInRanks > promotersRankIndexInRanks) {
+                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nYou can't demote someone that is a higher rank than yours!")]})
             }
-            responce = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks + promotions] ).catch((err) => {
-                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nAn error occured while trying to promote the user!")]})
+            responce = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks - demotions] ).catch((err) => {
+                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nAn error occured while trying to demote the user!")]})
             })
             user.promo_points = 0
             user.save()
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(updateResponce + "\n" + responce)]})
         } else {
-            const responce = await user.addPromoPoints(noblox, groupId, member, ranks, promotions)
+                //!!!!! add removePromoPoints function to the user model
+            // const responce = await user.addPromoPoints(noblox, groupId, member, ranks, demotions)
+            return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nErerej has not had the time to implement this part of the command yet!")]})
             user.save()
             return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(updateResponce + "\n" + responce)]})
         }
