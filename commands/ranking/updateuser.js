@@ -43,11 +43,11 @@ module.exports = {
             user.destroy()
         }
         if (!responce) {
-            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`<@${member}: ` + "was already up to date").setColor(Colors.Green)] })
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`${member}: ` + "was already up to date").setColor(Colors.Green)] })
         }else if (responce.startsWith("Error")) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription(`<@${member}: ` + responce)] })
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`${member}: ` + responce)] })
         } else if(responce) {
-            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`<@${member}: ` + responce).setColor(Colors.Yellow)] })
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`${member}: ` + responce).setColor(Colors.Yellow)] })
         }        
     }
 };

@@ -116,7 +116,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		}
 		this.save()
 		if (showPromoPoints) {
-			responce += `promo points increased from ***${promo_points_before}**/${nextRank.promo_points}* to ***${this.promo_points}**/${nextRank.promo_points}*!`
+			responce += `promo points increased from ***${promo_points_before}**/${!nextRank.is_officer ? nextRank.promo_points : "∞"}* to ***${this.promo_points}**/${!nextRank.is_officer ? nextRank.promo_points : "∞"}*!`
 		}
 		return responce
 	}
@@ -135,13 +135,15 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 		let showPromoPoints = true;
 		let nextRank;
 		let rankIndexInRanks;
-		const RankIndexInRanksBefore = rankIndexInRanks
+		
 		ranks.some(function(tempRank, i) {
 			if (tempRank.id == rank.id) {
 				rankIndexInRanks = i;
 				return true;
 			}
 		});
+		const RankIndexInRanksBefore = rankIndexInRanks
+
 		while (demotions > 0) {
 			rank = await this.getRank()
 			this.promo_points -= 1
@@ -176,7 +178,7 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 		if (showPromoPoints) {
 			const rankAbove = ranks[rankIndexInRanks + 1]
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
-			responce += (responce ?? "\n") + `promo points decreased from ***${promo_points_before}**/${rankAboveBefore.promo_points}* to ***${this.promo_points}**/${rankAbove.promo_points}*!`
+			responce += (responce ?? "\n") + `promo points decreased from ***${promo_points_before}**/${!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞"}* to ***${this.promo_points}**/${!rankAbove.is_officer ? rankAbove.promo_points: "∞"}*!`
 		}
 		return responce	
 	}

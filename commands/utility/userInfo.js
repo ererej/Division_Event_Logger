@@ -25,7 +25,7 @@ module.exports = {
                 embeded_error.setDescription("The user is not in the database!")
                 return interaction.editReply({ embeds: [embeded_error]});
             }
-            const rank = await db.Ranks.findOne({where: { id: user_info.rank_id}})
+            
             const embeded = new EmbedBuilder().setColor([0,255,0])
             embeded.setTitle(`${user.username}'s information`)
             embeded.addFields({name: "User id", value: `${user.id}`})
@@ -37,7 +37,7 @@ module.exports = {
             } else {
                 embeded.addFields({name: "Recruited by", value: "<@386838167506124800> trust me bro!"})
             }
-            embeded.addFields({name: "Officer", value: `${user_info.is_officer}`})
+            embeded.addFields({name: "Officer", value: `${(await user_info.getRank()).is_officer}`})
             //when the officer table is added make it dispay info about officers if the user is an officer
 
             interaction.editReply({ embeds: [embeded]})
