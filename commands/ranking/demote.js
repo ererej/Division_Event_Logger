@@ -36,8 +36,14 @@ module.exports = {
         const embeded_error = new EmbedBuilder().setColor([255,0,0]) 
 
         let promoter = await db.Users.findOne({ where: { user_id: interaction.member.id, guild_id: interaction.guild.id }})
+        let promoterUpdateResponce = ""
         if (!promoter) {
-            return interaction.editReply({embeds: [embeded_error.setDescription("You are not in the database!")]})
+            promoter = await db.Users.create({ user_id: interaction.member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
+            promoterUpdateResponce = await promoter.updateRank(noblox, groupId, interaction.member)
+            if (promoter.rank_id === null) {
+                promoter.destroy()
+                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
+            }
         } 
         const promoters_rank = db.Ranks.findOne({ where: { id: promoter.rank_id, guild_id: interaction.guild.id }})
 
@@ -65,7 +71,7 @@ module.exports = {
         if (!demotions) {
             demotions = 1
         }
-        let responce = "";
+        let reply = (promoterUpdateResponce ? "Verified your rank: " + promoterUpdateResponce + "\n" : "")`<@${member.id}>: ` + (updateResponce ? updateResponce + "\n" : "");
         if (interaction.options.getString('rank_or_promopoints') === 'rank') {
             let rank = await user.getRank()
             let membersRankIndexInRanks;
@@ -83,28 +89,28 @@ module.exports = {
                 }
             });
             if (membersRankIndexInRanks - demotions >= ranks.length) {
-                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nYou can't demote someone to a lower rank then what exists!")]})
+                return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nYou can't demote someone to a lower rank then what exists!")]})
             }
             const botHighestRole = interaction.guild.members.cache.get("1201941514520117280").roles.highest;
             const membersRole = interaction.guild.roles.cache.get(ranks[membersRankIndexInRanks].id);
 
             if (botHighestRole.comparePositionTo(membersRole) <= 0) {
-                return interaction.editReply({ embeds: [embeded_error.setDescription(updateResponce + "\nI can't demote someone that is a higher rank than or equal to my highest role!")] });
+                return interaction.editReply({ embeds: [embeded_error.setDescription(reply + "\nI can't demote someone that is a higher rank than or equal to my highest role!")] });
             }
             if (membersRankIndexInRanks > promotersRankIndexInRanks) {
-                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nYou can't demote someone that is a higher rank than yours!")]})
+                return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nYou can't demote someone that is a higher rank than yours!")]})
             }
-            responce = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks - demotions] ).catch((err) => {
-                return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nAn error occured while trying to demote the user!")]})
+            reply += await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks - demotions] ).catch((err) => {
+                return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nAn error occured while trying to demote the user!")]})
             })
             user.promo_points = 0
             user.save()
-            return interaction.editReply({embeds: [new EmbedBuilder().setDescription(updateResponce + "\n" + responce)]})
+            return interaction.editReply({embeds: [new EmbedBuilder().setDescription(reply)]})
         } else {
 
-            const responce = await user.removePromoPoints(noblox, groupId, member, ranks, demotions)
+            reply += await user.removePromoPoints(noblox, groupId, member, ranks, demotions)
             user.save()
-            return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(updateResponce + "\n" + responce)]})
+            return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(reply)]})
         }
     }
 }

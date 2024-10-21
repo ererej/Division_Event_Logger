@@ -31,7 +31,7 @@ module.exports = {
         }  
 
         let  member = interaction.options.getUser('user')
-        await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Updating ${member.username} please wait!`)] })
+        await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Updating <@${member.id}> please wait!`)] })
         member = await interaction.guild.members.fetch(member.id)
         const groupId = ( await db.Servers.findOne({ where: { guild_id: interaction.guild.id }}) ).group_id
         let user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
@@ -43,11 +43,11 @@ module.exports = {
             user.destroy()
         }
         if (!responce) {
-            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription("the user was already up to date").setColor(Colors.Green)] })
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`<@${member}: ` + "was already up to date").setColor(Colors.Green)] })
         }else if (responce.startsWith("Error")) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription(responce)] })
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`<@${member}: ` + responce)] })
         } else if(responce) {
-            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor(Colors.Yellow)] })
+            return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`<@${member}: ` + responce).setColor(Colors.Yellow)] })
         }        
     }
 };
