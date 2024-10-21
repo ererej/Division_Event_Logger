@@ -71,7 +71,7 @@ module.exports = {
         if (!demotions) {
             demotions = 1
         }
-        let reply = (promoterUpdateResponce ? "Verified your rank: " + promoterUpdateResponce + "\n" : "")`<@${member.id}>: ` + (updateResponce ? updateResponce + "\n" : "");
+        let reply = (promoterUpdateResponce ? "Verified your rank: " + promoterUpdateResponce + "\n" : "") + `<@${member.id}>: ` + (updateResponce ? updateResponce + "\n" : "");
         if (interaction.options.getString('rank_or_promopoints') === 'rank') {
             let rank = await user.getRank()
             let membersRankIndexInRanks;
