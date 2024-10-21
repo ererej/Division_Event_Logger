@@ -78,12 +78,14 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 
 		const promo_points_before = this.promo_points
 		let responce = "";
+		let showPromoPoints = true;
 		let nextRank;
 		while (promotions > 0) {
 			rank = await this.getRank()
 			this.promo_points += 1
 			promotions -= 1
-			var rankIndexInRanks;
+			showPromoPoints = true
+			let rankIndexInRanks;
 			ranks.some(function(tempRank, i) {
 				if (tempRank.id == rank.id) {
 					rankIndexInRanks = i;
@@ -103,6 +105,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 					})
 					this.promo_points -= nextRank.promo_points
 					responce += "\n"
+					showPromoPoints = false
 				} else {
 					continue
 				}
@@ -112,10 +115,70 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 			}
 		}
 		this.save()
-		if (responce === "") {
-			responce = `promo points increased from ***${promo_points_before}**/${nextRank.promo_points}* to ***${this.promo_points}**/${nextRank.promo_points}*!`
+		if (showPromoPoints) {
+			responce += `promo points increased from ***${promo_points_before}**/${nextRank.promo_points}* to ***${this.promo_points}**/${nextRank.promo_points}*!`
 		}
 		return responce
+	}
+});
+
+Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
+	value: async function(noblox, groupId, MEMBER, ranks, demotions) {
+		let rank = await this.getRank()
+		if (!rank) {
+			return "Error: User's rank was not found in the database!"
+		}
+		ranks = ranks.sort((a, b) => a.rank_index - b.rank_index)
+
+		const promo_points_before = this.promo_points
+		let responce = "";
+		let showPromoPoints = true;
+		let nextRank;
+		let rankIndexInRanks;
+		const RankIndexInRanksBefore = rankIndexInRanks
+		ranks.some(function(tempRank, i) {
+			if (tempRank.id == rank.id) {
+				rankIndexInRanks = i;
+				return true;
+			}
+		});
+		while (demotions > 0) {
+			rank = await this.getRank()
+			this.promo_points -= 1
+			demotions -= 1
+			showPromoPoints = true
+			if (this.promo_points === -1) {
+
+				nextRank = ranks[rankIndexInRanks - 1]
+				if (nextRank) {
+					if (nextRank.obtainable === false) {
+						return responce + "Can not be demoted with promo points!"
+					}
+					if (rank.promo_points > 0) {
+						this.promo_points = rank.promo_points - 1
+					} else {
+						this.promo_points = 0
+					}
+					responce += await this.setRank(noblox, groupId, MEMBER, nextRank ).catch((err) => {
+						console.log(err)
+						return `Error: An error occured while trying to demote the user!	The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`
+					})
+					showPromoPoints = false
+					rankIndexInRanks -= 1
+					responce += "\n"
+				} else {
+					responce += "Has reached the lowest rank!"
+					break
+				}
+			}
+		}
+		this.save()
+		if (showPromoPoints) {
+			const rankAbove = ranks[rankIndexInRanks + 1]
+			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
+			responce += (responce ?? "\n") + `promo points decreased from ***${promo_points_before}**/${rankAboveBefore.promo_points}* to ***${this.promo_points}**/${rankAbove.promo_points}*!`
+		}
+		return responce	
 	}
 });
 

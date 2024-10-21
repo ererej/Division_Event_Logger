@@ -101,9 +101,8 @@ module.exports = {
             user.save()
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(updateResponce + "\n" + responce)]})
         } else {
-                //!!!!! add removePromoPoints function to the user model
-            // const responce = await user.addPromoPoints(noblox, groupId, member, ranks, demotions)
-            return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce + "\nErerej has not had the time to implement this part of the command yet!")]})
+
+            const responce = await user.removePromoPoints(noblox, groupId, member, ranks, demotions)
             user.save()
             return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(updateResponce + "\n" + responce)]})
         }
