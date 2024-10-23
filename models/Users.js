@@ -1,5 +1,3 @@
-const Ranks = require("./Ranks");
-
 module.exports = (sequelize, DataTypes) => {
 	const User = sequelize.define('users', {
 		user_id: {
@@ -20,7 +18,11 @@ module.exports = (sequelize, DataTypes) => {
 		},
 		recruted_by: {
 			type: DataTypes.STRING
-		}
+		},
+		events: {
+			type: DataTypes.STRING,
+			defaultValue: '',
+		},
 	});
 	return User
 };

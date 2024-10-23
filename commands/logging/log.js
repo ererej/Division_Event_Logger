@@ -94,14 +94,14 @@ module.exports = {
         //fetching the sea logs channel and validating it
         let dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
         if (!dbChannel) {
-            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>') });
+            return await interaction.editReply({ embeds: [embeded_error.setDescription('There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>')] });
         }
         const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
 
         //fetching the promologs channel and validating it
         dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" } })
         if (!dbChannel) {
-            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no promolog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>') });
+            return await interaction.editReply({ embeds: [embeded_error.setDescription('There is no promolog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>')] });
         }
         const promologsChannel = await interaction.guild.channels.fetch(dbChannel.channel_id)
 
@@ -109,7 +109,7 @@ module.exports = {
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
-        let event_type = ""
+        let event_type = "event"
         let logChannelLink = ""
         let eventType = ""
         const event_log_embed = new EmbedBuilder().setColor([254, 1, 177])
@@ -121,6 +121,9 @@ module.exports = {
                 eventType = dbChannel.type
             }
         }
+        if (!eventType) {
+            eventType = "event"
+        }
         switch (eventType) {
             case "training":
                 logChannelLink = "<#1085337363359731782>"
@@ -129,13 +132,15 @@ module.exports = {
                 logChannelLink = "<#1219980705967374359>"
                 break;
         }
-        event_log_embed.setTitle(eventType ? eventType : "Event").setThumbnail(wedge_picture.url)
+        event_log_embed.setTitle(eventType.charAt(0).toUpperCase() + eventType.slice(1)).setThumbnail(wedge_picture.url)
         let description = `**Host:** <@${host.id}>\n`
         if (cohost) {
             description+=`*Cohost:* ${cohost.displayName}\n`
         }
         description+=`**Attendees:** `
-        let total_event_attendes = 0
+        let attendees = [], officers = []
+        let total_attendes = 0, total_officers = 0
+
         let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
         guild_ranks = guild_ranks.sort((a, b) => {a.rank_index - b.rank_index})
 
@@ -144,15 +149,29 @@ module.exports = {
             if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)]})
             description += `\n\n <@${member.id}>: `;
-            total_event_attendes++;
+            
             let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});
             if (!dbUser) {
                 dbUser = await db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null});
             }
+
+            
+            
             const updateRankResponse = await dbUser.updateRank(noblox, server.group_id, member);
             if (dbUser.rank_id === null) {
                 dbUser.destroy()
+                description += updateRankResponse
+                continue;
             }
+
+            attendees.push(member.id)
+            total_attendes++
+            const rank = await dbUser.getRank()
+            if (rank.is_officer) {
+                officers.push(member.id)
+                total_officers++
+            }
+
             if (updateRankResponse) {
                 if (updateRankResponse.includes("highest rank")) {
                 description += "Thanks for attending (can not get promoted by attending events!)";
@@ -170,12 +189,12 @@ module.exports = {
             dbUser.save()
             }
         }
-        if (total_event_attendes === 0) {
+        if (total_attendes === 0) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")]})
         }
 
         event_log_embed.setDescription(description)
-        event_log_embed.setFooter({ text: `Total attendees: ${total_event_attendes}`})
+        event_log_embed.setFooter({ text: `Total attendees: ${total_attendes}`})
 
         /* might be reworked and reintroduced later
         const promoter_role_id = "1109546594535211168" 
@@ -183,6 +202,9 @@ module.exports = {
         */
         //place rank up function here!
         //SEA Format
+
+
+        db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendees.toString(), amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers})
 
         //send the sea format to the sea logs channel
         if (logChannelLink) {
@@ -197,7 +219,7 @@ module.exports = {
         //event/promo logs
         await promologsChannel.send({embeds: [event_log_embed]})
         
-        const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged")
+        const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged and saved to the database!")
         await interaction.editReply({embeds: [success_embed]});
 
         

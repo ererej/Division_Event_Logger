@@ -1,6 +1,5 @@
 const Sequelize = require('sequelize');
 const config = require('./config.json');
-const { MembershipScreeningFieldType } = require('discord.js');
 const dbcredentoiols = process.argv.includes("--productiondb") ? config.productionDb : config.db;
 
 console.log("Connecting to database: " + dbcredentoiols.database)
@@ -15,17 +14,14 @@ const Servers = require('./models/Servers.js')(sequelize, Sequelize.DataTypes);
 const Ranks = require('./models/Ranks.js')(sequelize, Sequelize.DataTypes);
 const Channels = require('./models/Channels.js')(sequelize, Sequelize.DataTypes);
 const Settings = require('./models/Settings.js')(sequelize, Sequelize.DataTypes);
+const Events = require('./models/Events.js')(sequelize, Sequelize.DataTypes);
 
-Users.hasOne(Ranks, {
-	foreignKey: 'id'
-});
-Ranks.belongsTo(Users, { foreignKey: "id", as: "rank" })
 
 
 //Ranks.belongsTo(Servers, {foreignKey: 'guild_id', as: 'ranks'});
 //Users.belongsTo(Ranks, {as: 'rank', foreignkey: 'id'})
 //Ranks.belongsTo(Users , {foreignKey: 'rank', as: 'rank'})
-
+/*
 Reflect.defineProperty(Users.prototype, 'addItem', {
 	value: async item => {
 		const userItem = await UserItems.findOne({
@@ -40,7 +36,10 @@ Reflect.defineProperty(Users.prototype, 'addItem', {
 		return UserItems.create({ user_id: this.user_id, item_id: item.id, amount: 1 });
 	},
 });
+*/
 
+Users.belongsTo(Ranks, { foreignKey: 'rank_id', as: 'rank' });
+Ranks.hasMany(Users, { foreignKey: 'rank_id', as: 'users' });
 
 Reflect.defineProperty(Servers.prototype, "getRanks", {
 	value: () => {
@@ -347,4 +346,4 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 });
 
 
-module.exports = { Users, Channels, Servers, Ranks, Settings};
+module.exports = { Users, Channels, Servers, Ranks, Settings, Events};
