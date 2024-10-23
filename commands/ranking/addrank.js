@@ -81,14 +81,18 @@ module.exports = {
 		const roblox_id = robloxRank.id
 
 		let  is_officer;
+		let obtainable = true
 		if (interaction.options.getBoolean('officer')) {
 			is_officer = interaction.options.getBoolean('officer')
+			if (is_officer) {
+				obtainable = false
+			}
 		} else {
 			is_officer = false
 		}
 
-		let obtainable = true
-		if (interaction.options.getBoolean('obtainable') === false || (is_officer && interaction.options.getBoolean('obtainable') === undefined)) {
+		
+		if (interaction.options.getBoolean('obtainable') === false ) {
 			obtainable = false
 		}
 
