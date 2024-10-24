@@ -116,7 +116,7 @@ module.exports = {
         if (interaction.options.getString('event_type')) {
             eventType = interaction.options.getString('event_type')
         } else {
-            dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, id: voice_channel.id}})
+            dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, channel_id: voice_channel.id}})
             if (dbChannel) {
                 eventType = dbChannel.type
             }
@@ -144,6 +144,7 @@ module.exports = {
         let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
         guild_ranks = guild_ranks.sort((a, b) => {a.rank_index - b.rank_index})
 
+        let dbAttendees = []
 
         for (const member of voice_channel.members.values()) {
             if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
@@ -154,15 +155,15 @@ module.exports = {
             if (!dbUser) {
                 dbUser = await db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null});
             }
-
-            
-            
+    
             const updateRankResponse = await dbUser.updateRank(noblox, server.group_id, member);
             if (dbUser.rank_id === null) {
                 dbUser.destroy()
                 description += updateRankResponse
                 continue;
             }
+
+            dbAttendees.push(dbUser)
 
             attendees.push(member.id)
             total_attendes++
@@ -204,7 +205,12 @@ module.exports = {
         //SEA Format
 
 
-        db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendees.toString(), amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers})
+        const dbEvent = await db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendees.toString(), amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers})
+
+        dbAttendees.forEach(async dbUser => {
+            dbUser.events = dbUser.events ? dbUser.events + "," + dbEvent.id : "" + dbEvent.id
+            dbUser.save()
+        })
 
         //send the sea format to the sea logs channel
         if (logChannelLink) {
