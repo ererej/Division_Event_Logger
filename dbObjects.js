@@ -110,7 +110,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 					continue
 				}
 			} else {
-				responce += "Has reached the highest rank!"
+				responce += "Has reached the highest rank!\n"
 				break
 			}
 		}
