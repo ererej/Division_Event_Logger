@@ -38,13 +38,17 @@ module.exports = {
         
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
 
+        const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
+        if (!server) { //!!!!!!!! make the reply link to the /setup command.
+            return await interaction.editReply({ Embeds: [embeded_error.setDescription("Server not found in the database! Please contact an admin to link the server!")]})
+        }
 
         const host = await interaction.guild.members.fetch(interaction.member.user.id)
         let dbHost = await db.Users.findOne({ where: { user_id: host.id, guild_id: interaction.guild.id }})
         if (!dbHost) {
-            dbHost = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
+            dbHost = await db.Users.create({ user_id: host.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
-        const updateResponce = await dbHost.updateRank(noblox, groupId, member) ?? ""
+        const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
         if (dbHost.rank_id === null) {
             dbHost.destroy()
             return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
@@ -65,7 +69,7 @@ module.exports = {
 
 
         //check if the user has permission to host events
-        if ( !(await dbHost.getRank()).is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+        if ( !(await dbHost.getRank()).is_officer ) {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error]});
         } else if (voice_channel.id === undefined) { //check if the host is in a voice channel
@@ -82,10 +86,7 @@ module.exports = {
         
 
         const wedge_picture = interaction.options.getAttachment('wedge_picture')
-        const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
-        if (!server) { //!!!!!!!! make the reply link to the /setup command.
-            return await interaction.editReply({ Embeds: [embeded_error.setDescription("Server not found in the database! Please contact an admin to link the server!")]})
-        }
+        
         const division_name = server ? server.name : interaction.guild.name
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
         const regex = /^https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+$/;
