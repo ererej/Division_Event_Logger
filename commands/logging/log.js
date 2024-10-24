@@ -48,7 +48,7 @@ module.exports = {
         if (!dbHost) {
             dbHost = await db.Users.create({ user_id: host.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
-        const updateResponce = await dbHost.updateRank(noblox, server.group_id, dbHost) ?? ""
+        const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
         if (dbHost.rank_id === null) {
             dbHost.destroy()
             return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
@@ -69,7 +69,7 @@ module.exports = {
 
 
         //check if the user has permission to host events
-        if ( !(await dbHost.getRank()).is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+        if ( !(await dbHost.getRank()).is_officer ) {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error]});
         } else if (voice_channel.id === undefined) { //check if the host is in a voice channel
