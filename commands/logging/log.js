@@ -132,7 +132,7 @@ module.exports = {
         event_log_embed.setTitle(eventType ? eventType : "Event").setThumbnail(wedge_picture.url)
         let description = `**Host:** <@${host.id}>\n`
         if (cohost) {
-            description+=`*Cohost:* ${cohost.displayName}\n`
+            description+=`*Cohost:* <@${cohost.id}>\n`
         }
         description+=`**Attendees:** `
         let total_event_attendes = 0
