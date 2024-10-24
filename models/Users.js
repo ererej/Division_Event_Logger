@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.STRING,
 			defaultValue: '',
 		},
+		became_officer: {
+			type: DataTypes.DATE,
+			allowNull: true
+		},
 	});
 	return User
 };

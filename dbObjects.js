@@ -212,6 +212,9 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 		}
 		this.rank_id = rank.id
+		if (rank.is_officer && !this.became_officer) {
+			this.became_officer = new Date()
+		}
 		this.save()
 		return `Promoted from <@&${oldRank}> to <@&${rank.id}>`
 	}
