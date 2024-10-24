@@ -48,7 +48,7 @@ module.exports = {
         if (!dbHost) {
             dbHost = await db.Users.create({ user_id: host.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
-        const updateResponce = await dbHost.updateRank(noblox, server.group_id, member) ?? ""
+        const updateResponce = await dbHost.updateRank(noblox, server.group_id, dbHost) ?? ""
         if (dbHost.rank_id === null) {
             dbHost.destroy()
             return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
