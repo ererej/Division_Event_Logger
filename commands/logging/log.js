@@ -40,7 +40,19 @@ module.exports = {
 
 
         const host = await interaction.guild.members.fetch(interaction.member.user.id)
-        const dbHost = await db.Users.findOne({ where: { user_id: host.id, guild_id: interaction.guild.id }})
+        let dbHost = await db.Users.findOne({ where: { user_id: host.id, guild_id: interaction.guild.id }})
+        if (!dbHost) {
+            dbHost = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
+        }
+        const updateResponce = await dbHost.updateRank(noblox, groupId, member) ?? ""
+        if (dbHost.rank_id === null) {
+            dbHost.destroy()
+            return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
+        }
+        
+        if (updateResponce) {
+            interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + updateResponce)]})
+        }
 
         let cohost;
         if (interaction.options.getUser('cohost')) {
@@ -53,7 +65,7 @@ module.exports = {
 
 
         //check if the user has permission to host events
-        if ( !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+        if ( !(await dbHost.getRank()).is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error]});
         } else if (voice_channel.id === undefined) { //check if the host is in a voice channel
@@ -135,7 +147,7 @@ module.exports = {
         event_log_embed.setTitle(eventType.charAt(0).toUpperCase() + eventType.slice(1)).setThumbnail(wedge_picture.url)
         let description = `**Host:** <@${host.id}>\n`
         if (cohost) {
-            description+=`*Cohost:* ${cohost.displayName}\n`
+            description+=`*Cohost:* <@${cohost.id}>\n`
         }
         description+=`**Attendees:** `
         let attendees = [], officers = []
@@ -143,11 +155,13 @@ module.exports = {
 
         let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
         guild_ranks = guild_ranks.sort((a, b) => {a.rank_index - b.rank_index})
+        let mentions = `<@${host.id}> ${cohost ? `<@${cohost.id}> ` : ""}`
 
         let dbAttendees = []
 
         for (const member of voice_channel.members.values()) {
             if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
+            mentions += `<@${member.id}> `
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)]})
             description += `\n\n <@${member.id}>: `;
             
@@ -223,7 +237,7 @@ module.exports = {
         await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + codeblock, files: [{attachment: wedge_picture.url}] });
         
         //event/promo logs
-        await promologsChannel.send({embeds: [event_log_embed]})
+        await promologsChannel.send({content: mentions, embeds: [event_log_embed]})
         
         const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged and saved to the database!")
         await interaction.editReply({embeds: [success_embed]});
