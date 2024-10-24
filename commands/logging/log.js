@@ -42,7 +42,7 @@ module.exports = {
         const host = await interaction.guild.members.fetch(interaction.member.user.id)
         let dbHost = await db.Users.findOne({ where: { user_id: host.id, guild_id: interaction.guild.id }})
         if (!dbHost) {
-            dbHost = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
+            dbHost = await db.Users.create({ user_id: host.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
         const updateResponce = await dbHost.updateRank(noblox, groupId, member) ?? ""
         if (dbHost.rank_id === null) {
