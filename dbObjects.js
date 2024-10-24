@@ -116,7 +116,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		}
 		this.save()
 		if (showPromoPoints) {
-			responce += `promo points increased from ***${promo_points_before}**/${!nextRank.is_officer ? nextRank.promo_points : "∞"}* to ***${this.promo_points}**/${!nextRank.is_officer ? nextRank.promo_points : "∞"}*!`
+			responce += `promo points increased from ***${promo_points_before}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}*!`
 		}
 		return responce
 	}
