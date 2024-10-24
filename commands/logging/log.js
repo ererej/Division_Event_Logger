@@ -138,10 +138,12 @@ module.exports = {
         let total_event_attendes = 0
         let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
         guild_ranks = guild_ranks.sort((a, b) => {a.rank_index - b.rank_index})
+        let mentions = `<@${host.id}> ${cohost ? `<@${cohost.id}> ` : ""}`
 
 
         for (const member of voice_channel.members.values()) {
             if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
+            mentions += `<@${member.id}> `
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)]})
             description += `\n\n <@${member.id}>: `;
             total_event_attendes++;
@@ -195,7 +197,7 @@ module.exports = {
         await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + codeblock, files: [{attachment: wedge_picture.url}] });
         
         //event/promo logs
-        await promologsChannel.send({embeds: [event_log_embed]})
+        await promologsChannel.send({content: mentions, embeds: [event_log_embed]})
         
         const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged")
         await interaction.editReply({embeds: [success_embed]});
