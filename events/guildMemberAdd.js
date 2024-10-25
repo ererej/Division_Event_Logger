@@ -21,15 +21,15 @@ module.exports = {
         
         channel = await db.Channels.findOne({where: {guild_id: guild.id, type: 'robloxGroupCount'}})
         if (channel) {
-            db.Servers.findOne({where: {guild_id: guild.id}}).then(server => {
+            const server = await db.Servers.findOne({where: {guild_id: guild.id}})
                 if (server) {
-                    noblox.getGroup(server.group_id).then(group => {
-                        guild.channels.cache.get(channel.channel_id).setName(`Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
-                    })
+                    const group = noblox.getGroup(server.group_id) // make check that group is group :P
+                    if (!group || !group.memberCount) guild.channels.cache.get(channel.id).setName(`could not fetch group! please run /setup again!`)
+                    else guild.channels.cache.get(channel.id).setName(`Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
+                    
                 } else {
                     guild.channels.cache.get(channel.channel_id).setName(`group not linked. please link a group with /setup`)
                 }
-            })
         }
     }
 };

@@ -11,7 +11,6 @@ module.exports = {
 	data: new SlashCommandBuilder()
         .setName('linkchannel')
         .setDescription('link a voice channel to an event type or function, like logs or expdisplay.')
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageChannels || PermissionsBitField.Flags.ManageGuild || PermissionsBitField.Flags.Administrator)
         .addChannelOption(option =>
             option.setName('channel')
                 .setDescription('the channel that will be linked to something.')
@@ -40,6 +39,10 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])
+
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator || PermissionsBitField.Flags.ManageChannels || PermissionsBitField.Flags.ManageGuild)) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`You do not have the required permissions to use this command!`)] })
+        }
         if (interaction.options.getString('linktype') === "none") {
             const channel = await db.Channels.findAll({ where: { guild_id: interaction.guild.id, channel_id: interaction.options.getChannel('channel').id } })
             channel.forEach(channel => {
@@ -126,17 +129,17 @@ module.exports = {
             interaction.guild.channels.cache.get(channel.id).setName(`Member Count: ${Math.floor(interaction.guild.memberCount / rounding) * rounding}`)
         } else if (interaction.options.getString('linktype') == "robloxGroupCount") {
             const guild = interaction.guild
-            const rounding = db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ? parseInt( await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }).config) : 1
-            db.Servers.findOne({where: {guild_id: guild.id}}).then(server => {
-                if (server) {
-                    replyString += "fetching the group member count might take a copule of seconds be patient! but "
-                    noblox.getGroup(server.group_id).then(group => {
-                        guild.channels.cache.get(channel.id).setName(`Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
-                    })
-                } else {
-                    guild.channels.cache.get(channel.id).setName(`group not linked. please link a group with /setup`)
-                }
-            })
+            const rounding = (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })) ? parseInt( (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })).config) : 1
+            const server = await db.Servers.findOne({where: {guild_id: guild.id}})
+            if (server) {
+                replyString += "fetching the group member count might take a copule of seconds be patient! but "
+                const group = await noblox.getGroup(server.group_id) // make check that group is group :P
+                if (!group || !group.memberCount) guild.channels.cache.get(channel.id).setName(`could not fetch group! please run /setup again!`)
+                else guild.channels.cache.get(channel.id).setName(`Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
+                
+            } else {
+                guild.channels.cache.get(channel.id).setName(`group not linked. Please link the group with /setup`)
+            }
         }
         db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
         return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${channel.id}> the **${interaction.options.getString('linktype')}** channel!`)] })
