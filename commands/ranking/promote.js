@@ -35,7 +35,11 @@ module.exports = {
         await interaction.deferReply()
         const embeded_error = new EmbedBuilder().setColor([255,0,0]) 
 
+        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }})
+        const groupId = server.group_id
+
         let promoter = await db.Users.findOne({ where: { user_id: interaction.member.id, guild_id: interaction.guild.id }})
+        
         let promoterUpdateResponce = ""
         if (!promoter) {
             promoter = await db.Users.create({ user_id: interaction.member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
@@ -54,8 +58,7 @@ module.exports = {
 
         let member = interaction.options.getUser('user')
         const ranks = (await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }})).sort((a, b) => a.rank_index - b.rank_index)
-        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id }})
-        const groupId = server.group_id
+        
         member = await interaction.guild.members.fetch(member.id)
         let user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: interaction.guild.id }})
         if (!user) {
