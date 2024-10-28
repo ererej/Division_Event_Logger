@@ -33,7 +33,7 @@ module.exports = {
             }
             const server = await db.Servers.findOne({where: {guild_id: guild.id}})
                 if (server) {
-                    const group = noblox.getGroup(server.group_id) // make check that group is group :P
+                    const group = await noblox.getGroup(server.group_id) // make check that group is group :P
                     if (!group || !group.memberCount) discordChannel.setName(`could not fetch group! please run /setup again!`)
                     else discordChannel.setName(`Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
                     
