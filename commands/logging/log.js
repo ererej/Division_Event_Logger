@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Attachment, Embed, Colors } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, UserSelectMenuBuilder, ActionRowBuilder,  PermissionsBitField, Attachment, Embed, Colors } = require('discord.js');
 const db = require("../../dbObjects.js");
-const testers = require("../../tester_servers.json");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
 noblox.setCookie(config.sessionCookie)
@@ -66,6 +65,11 @@ module.exports = {
             const dbCohost = await db.Users.findOne({ where: { user_id: cohost.id, guild_id: interaction.guild.id }})
         }
         const voice_channel = await interaction.guild.channels.fetch(host.voice.channelId)
+        let attendees = []
+        if (voice_channel.members) {
+            attendees = voice_channel.members.values()
+        }
+        
 
 
         //check if the user has permission to host events
@@ -73,11 +77,30 @@ module.exports = {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error]});
         } else if (voice_channel.id === undefined) { //check if the host is in a voice channel
-            embeded_error.setDescription("Unable to automaticly promote attendees as you are not in a Voice Chat with them! \nHave fun manualy promoting :D")
-            return await interaction.editReply({ embeds: [embeded_error]});
-        } else if (cohost != null && cohost.voice.channelId != voice_channel.id) { //check that the cohost is a valid cohost
-            embeded_error.setDescription("Invalid cohost make sure the cohost you specified is in your VC!")
-            return await interaction.editReply({ embeds: [embeded_error]})
+            const selectAttendees = new UserSelectMenuBuilder()
+            .setCustomId('select_attendees')
+            .setPlaceholder('Select the attendees')
+            .setMinValues(1)
+            .setMaxValues(25)
+            const row = new ActionRowBuilder().addComponents(selectAttendees)
+
+            const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please enter the attendees of your event. \nNext time run /log before everyone leaves and you wont have to manualy do it`)], components: [row]})
+
+            const collectorFilter = i => i.customId === 'select_attendees' && i.user.id === interaction.user.id
+            try {
+                const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                confirmation.values.forEach(async value => {
+                    const member = await interaction.guild.members.fetch(value)
+                    attendees.push(member)
+                })
+                
+            } catch (error) {
+                if (error.message === "Collector received no interactions before ending with reason: time") {
+                    return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 300 secounds, cancelling!")], components: []})
+                } else {
+                        throw error
+                }
+            }
         } else if (cohost != null && host.id === cohost.id) { //check that the cohost is not the host
             embeded_error.setDescription("No uh! you are not both the host and the cohost!!!")
             return await interaction.editReply({ embeds: [embeded_error]})
@@ -128,7 +151,7 @@ module.exports = {
         const event_log_embed = new EmbedBuilder().setColor([254, 1, 177])
         if (interaction.options.getString('event_type')) {
             eventType = interaction.options.getString('event_type')
-        } else {
+        } else if (voice_channel.id !== undefined) {    
             dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, id: voice_channel.id}})
             if (dbChannel) {
                 eventType = dbChannel.type
@@ -154,7 +177,7 @@ module.exports = {
         let mentions = `<@${host.id}> ${cohost ? `<@${cohost.id}> ` : ""}`
 
 
-        for (const member of voice_channel.members.values()) {
+        for (const member of attendees) {
             if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
             mentions += `<@${member.id}> `
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)]})
