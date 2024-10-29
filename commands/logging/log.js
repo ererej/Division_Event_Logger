@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, UserSelectMenuBuilder, ActionRowBuilder,  PermissionsBitField, Attachment, Embed, Colors } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, UserSelectMenuBuilder, StringSelectMenuOptionBuilder, StringSelectMenuBuilder, ActionRowBuilder,  PermissionsBitField, Attachment, Embed, Colors } = require('discord.js');
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
@@ -28,7 +28,9 @@ module.exports = {
                 .addChoices(
                     { name: 'training', value: 'training'},
                     { name: 'patrol', value: 'patrol'},
-                    { name: 'gamenight', value: 'gamenight'}
+                    { name: 'gamenight', value: 'gamenight'},
+                    { name: 'rallybeforeraid', value: 'rallybeforeraid'},
+                    { name: 'rallyafterraid', value: 'rallyafterraid'},
                 )
         ),
     testerLock: true,
@@ -70,7 +72,7 @@ module.exports = {
             attendees = voice_channel.members.values()
         }
         
-
+        let manualEventTypeInput;
 
         //check if the user has permission to host events
         if ( !(await dbHost.getRank()).is_officer ) {
@@ -94,6 +96,33 @@ module.exports = {
                     attendees.push(member)
                 })
                 
+                if (!interaction.options.getString('event_type')) {
+                    const selectEventType = new StringSelectMenuBuilder()
+                    .setCustomId('select_event_type')
+                    .setPlaceholder('Select the event type')
+                    .addOptions([
+                        { label: 'Training', value: 'training'},
+                        { label: 'Patrol', value: 'patrol'},
+                        { label: 'Gamenight', value: 'gamenight'},
+                        { label: 'Rallybeforeraid', value: 'rallybeforeraid'},
+                        { label: 'Rallyafterraid', value: 'rallyafterraid'},
+                        { label: 'Other', value: 'other'}
+                    ])
+                    const row = new ActionRowBuilder().addComponents(selectEventType)
+                    const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please select the event type`)], components: [row]})
+                    const collectorFilter = i => i.customId === 'select_event_type' && i.user.id === interaction.user.id
+                    try {
+                        const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                        manualEventTypeInput = confirmation.values[0]
+                    } catch (error) {
+                        if (error.message === "Collector received no interactions before ending with reason: time") {
+                            return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 300 secounds, cancelling!")], components: []})
+                        } else {
+                            throw error
+                        }
+                    }
+                }
+
             } catch (error) {
                 if (error.message === "Collector received no interactions before ending with reason: time") {
                     return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 300 secounds, cancelling!")], components: []})
@@ -103,7 +132,7 @@ module.exports = {
             }
         } else if (cohost != null && host.id === cohost.id) { //check that the cohost is not the host
             embeded_error.setDescription("No uh! you are not both the host and the cohost!!!")
-            return await interaction.editReply({ embeds: [embeded_error]})
+            return await interaction.editReply({ embeds: [embeded_error], components: []})
         }
 
         
@@ -113,31 +142,31 @@ module.exports = {
         const division_name = server ? server.name : interaction.guild.name
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
         const regex = /^https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+$/;
-        if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!' });
+        if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!', components: [] });
         let announcmentChannel;
         try {
             announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
         } catch (error) {
-            return await interaction.editReply({ content: 'The link you provided looks to refer to a message in anouther discord server and will there for not work.' });
+            return await interaction.editReply({ content: 'The link you provided looks to refer to a message in anouther discord server and will there for not work.', components: [] });
         }
         let announcmentMessage;
         try {
             announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
         } catch (error) {
-            return await interaction.editReply({ content: 'could not locate the announcment message please dubble check your message link!' });
+            return await interaction.editReply({ content: 'could not locate the announcment message please dubble check your message link!', components: [] });
         }
 
         //fetching the sea logs channel and validating it
         let dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
         if (!dbChannel) {
-            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>') });
+            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>'), components: [] });
         }
         const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
 
         //fetching the promologs channel and validating it
         dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" } })
         if (!dbChannel) {
-            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no promolog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>') });
+            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no promolog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>'), components: [] });
         }
         const promologsChannel = await interaction.guild.channels.fetch(dbChannel.channel_id)
 
@@ -145,7 +174,6 @@ module.exports = {
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
-        let event_type = ""
         let logChannelLink = ""
         let eventType = ""
         const event_log_embed = new EmbedBuilder().setColor([254, 1, 177])
@@ -156,7 +184,10 @@ module.exports = {
             if (dbChannel) {
                 eventType = dbChannel.type
             }
+        } else if (manualEventTypeInput) {
+            eventType = manualEventTypeInput
         }
+
         switch (eventType) {
             case "training":
                 logChannelLink = "<#1085337363359731782>"
@@ -180,7 +211,7 @@ module.exports = {
         for (const member of attendees) {
             if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
             mentions += `<@${member.id}> `
-            interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)]})
+            interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)], components: []})
             description += `\n\n <@${member.id}>: `;
             total_event_attendes++;
             let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});
@@ -209,7 +240,7 @@ module.exports = {
             }
         }
         if (total_event_attendes === 0) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")]})
+            return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
         }
 
         event_log_embed.setDescription(description)
@@ -230,13 +261,14 @@ module.exports = {
         const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock" } })
         const codeblock =  codeblockSetting ? ( codeblockSetting.config === "codeblock" ? "```" : "" ) : "" 
 
-        await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + codeblock, files: [{attachment: wedge_picture.url}] });
-        
+        if (!["rallybeforeraid", "rallyafterraid", "gamenight"].includes(eventType)) {
+            await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + codeblock, files: [{attachment: wedge_picture.url}] });
+        }
         //event/promo logs
         await promologsChannel.send({content: mentions, embeds: [event_log_embed]})
         
         const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged")
-        await interaction.editReply({embeds: [success_embed]});
+        await interaction.editReply({embeds: [success_embed], components: []});
 
         
 	},
