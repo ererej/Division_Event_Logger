@@ -26,10 +26,10 @@ module.exports = {
         guildBans.forEach(ban => {
             bannedUsers.push(ban.user.id)
         })
-        UserIDs.forEach(userId => {
+        UserIDs.forEach(async userId => {
             try {
                 if (!bannedUsers.includes(userId)) {
-                    interaction.guild.members.ban(userId, {reason: `massban by ${interaction.user.tag} (${interaction.user.id})! reason: ` + interaction.options.getString('reason')})
+                    await interaction.guild.members.ban(userId, {reason: `massban by ${interaction.user.tag} (${interaction.user.id})! reason: ` + interaction.options.getString('reason')})
                     replyString += `*banned <@${userId}>!!!!*\n`
                     bancount++
                     return
