@@ -19,7 +19,7 @@ module.exports = {
                 console.log("Channel not found, deleting from database. guild: " + guild.id)
                 return await db.Channels.destroy({where: {guild_id: guild.id, type: 'robloxGroupCount'}})
             }
-            guild.channels.cache.get(channel.channel_id).setName(`Member Count: ${Math.floor(guild.memberCount / rounding) * rounding}`)
+            guild.channels.cache.get(channel.channel_id).setName(`⛄Member Count: ${Math.floor(guild.memberCount / rounding) * rounding}`)
         }
         
 
@@ -35,7 +35,7 @@ module.exports = {
                 if (server) {
                     const group = await noblox.getGroup(server.group_id) // make check that group is group :P
                     if (!group || !group.memberCount) discordChannel.setName(`could not fetch group! please run /setup again!`)
-                    else discordChannel.setName(`Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
+                    else discordChannel.setName(`🎅Group members: ${Math.floor(group.memberCount / rounding) * rounding}`)
                     
                 } else {
                     discordChannel.setName(`group not linked. please link a group with /setup`)
