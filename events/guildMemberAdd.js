@@ -35,7 +35,7 @@ module.exports = {
                 if (server) {
                     const group = await noblox.getGroup(server.group_id) // make check that group is group :P
                     if (!group || !group.memberCount) discordChannel.setName(`could not fetch group! please run /setup again!`)
-                    else discordChannel.setName(`🎅Group members: ${Math.floor(group.memberCount / rounding) * rounding}`)
+                    else discordChannel.setName(`🎅Group Members: ${Math.floor(group.memberCount / rounding) * rounding}`)
                     
                 } else {
                     discordChannel.setName(`group not linked. please link a group with /setup`)
