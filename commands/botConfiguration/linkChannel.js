@@ -126,7 +126,7 @@ module.exports = {
             const guild = interaction.guild
             const rounding = await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ? parseInt( (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })).config) : 1
             console.log(rounding)
-            interaction.guild.channels.cache.get(channel.id).setName(`Member Count: ${Math.floor(interaction.guild.memberCount / rounding) * rounding}`)
+            interaction.guild.channels.cache.get(channel.id).setName(`⛄Member Count: ${Math.floor(interaction.guild.memberCount / rounding) * rounding}`)
         } else if (interaction.options.getString('linktype') == "robloxGroupCount") {
             const guild = interaction.guild
             const rounding = (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })) ? parseInt( (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })).config) : 1
@@ -135,7 +135,7 @@ module.exports = {
                 replyString += "fetching the group member count might take a copule of seconds be patient! but "
                 const group = await noblox.getGroup(server.group_id) // make check that group is group :P
                 if (!group || !group.memberCount) guild.channels.cache.get(channel.id).setName(`could not fetch group! please run /setup again!`)
-                else guild.channels.cache.get(channel.id).setName(`Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
+                else guild.channels.cache.get(channel.id).setName(`🎅Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
                 
             } else {
                 guild.channels.cache.get(channel.id).setName(`group not linked. Please link the group with /setup`)
