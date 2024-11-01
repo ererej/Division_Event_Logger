@@ -27,7 +27,7 @@ module.exports = async (db, server, interaction) => {
 
 
     const procentage = Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)
-    let new_message = `# __🎄Level🎄 ${level}__\n`
+    let new_message = `# __🎄Level ${level}🎄__\n`
     new_message += `**Possition compared to other divs:** #${guildsPosission + 1}\n`
     const showOrHideOtherDivs = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplayshowotherdivs" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplayshowotherdivs" }})).config : "show"
     
