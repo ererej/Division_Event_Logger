@@ -112,7 +112,7 @@ module.exports = {
 
             if (promologs) {
                 const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
-                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> promoted <@${member.id}>\n${reply}`)]})
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> promoted <@${member.id}>\n${reply}`)], content: `<@${member.id}>`})
             }
 
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(reply)]})
@@ -123,7 +123,7 @@ module.exports = {
             
             if (promologs) {
                 const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
-                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> has promoted <@${member.id}> by ${promotions} promopoints! \n${reply}`)]})
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> has promoted <@${member.id}> by ${promotions} promopoints! \n${reply}`)], content: `<@${member.id}>`})
             }
 
             return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(reply)]})
