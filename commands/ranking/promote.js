@@ -69,6 +69,7 @@ module.exports = {
             user.destroy()
         }
 
+        const promologs = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" }})
         
         let promotions = interaction.options.getInteger('promotions')
         if (!promotions) {
@@ -108,10 +109,23 @@ module.exports = {
             })
             user.promo_points = 0
             user.save()
+
+            if (promologs) {
+                const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> promoted <@${member.id}>\n${reply}`)]})
+            }
+
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(reply)]})
         } else {
             reply += await user.addPromoPoints(noblox, groupId, member, ranks, promotions)
             user.save()
+
+            
+            if (promologs) {
+                const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> has promoted <@${member.id}> by ${promotions} promopoints! \n${reply}`)]})
+            }
+
             return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(reply)]})
         }
     }
