@@ -29,17 +29,25 @@ module.exports = {
         UserIDs.forEach(async userId => {
             try {
                 if (!bannedUsers.includes(userId)) {
-                    await interaction.guild.members.ban(userId, {reason: `massban by ${interaction.user.tag} (${interaction.user.id})! reason: ` + interaction.options.getString('reason')})
+                    const user = await interaction.guild.members.fetch(userId).catch(err => {
+                        replyString += `**failed to find a user with the id: ${userId}!**\n`
+                        failedBans++
+                        return
+                    })
+                    if (user.bannable === false) {
+                        replyString += `**unable to ban <@${userId}> due to missing permissions.\n`
+                        failedBans++
+                        return
+                    }
+                    user.ban({reason: `massban by ${interaction.user.tag} (${interaction.user.id})! reason: ` + interaction.options.getString('reason')})
                     replyString += `*banned <@${userId}>!!!!*\n`
                     bancount++
                     return
+                    
                 }
                 replyString += `*<@${userId}> is already banned :D*\n`
             } catch(err)  {
-                if (interaction.guild.members.fetch(userId) && interaction.guild.members.fetch(userId).bannable === false) {
-                    replyString += `**unable to ban <@${userId}> due to missing permissions.\n`
-                }
-                replyString += `**failed to ban <@${userId}>!**\n`
+                replyString += `**failed to ban <@${userId}>! Error recived: ${err.name}  ${err.message}**\n`
                 failedBans++
             }
         })
