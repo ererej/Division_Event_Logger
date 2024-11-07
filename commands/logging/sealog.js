@@ -53,7 +53,7 @@ module.exports = {
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
         const announcmentMessageLink = interaction.options.getString('announcemnt_link')
-        const regex = /^https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+$/;
+        const regex = /^https:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+\/\d+$/;
         if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!' });
         let announcmentChannel;
         try {
