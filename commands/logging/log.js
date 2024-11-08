@@ -193,7 +193,7 @@ module.exports = {
                 logChannelLink = "<#1085337363359731782>"
                 break;
             case "patrol":
-                logChannelLink = "<#1219980705967374359>"
+                logChannelLink = "<#1085337383618236457>"
                 break;
         }
         event_log_embed.setTitle(eventType ? eventType : "Event").setThumbnail(wedge_picture.url)
