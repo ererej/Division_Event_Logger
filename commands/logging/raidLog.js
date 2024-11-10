@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
-const db = require("../../dbObjects.js")
+const db = require("../../dbObjects.js");
+const log = require('./log.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -54,7 +55,7 @@ module.exports = {
         }
 
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
-		if (!(await dbLogger.getRank()).is_officer &&!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+		if (!(await dbLogger.getRank()).is_officer && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
@@ -97,18 +98,19 @@ module.exports = {
         const sea_format_channel = dbChannel ? await interaction.guild.channels.fetch(dbChannel.channel_id) : interaction.channel
         
         sea_format_channel.send(`VVV <#980566115187048499> VVV`)
+        let logMessage;
         if (raid_discutions === null) {
-            await sea_format_channel.send({ content: `Division(s): ${division_name}${allys_name} VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
+            logMessage = await sea_format_channel.send({ content: `Division(s): ${division_name}${allys_name} VS  ${enemy_division} \nVictory: ${winner}\nMap: ${map}\nDate: ${date}\nScreenshot: `, files: [{attachment: resoult.url}]});
         
         } else {
-            await sea_format_channel.send({ content: ` <@624633098583408661> \nDivision(s): ${division_name + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
+            logMessage = await sea_format_channel.send({ content: ` <@624633098583408661> \nDivision(s): ${division_name + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
         }
         if (!dbChannel) {
             return await interaction.editReply({ content: 'If you want the raidlogs to always go to a spesific channel then use this command </linkchannel:1246002135204626454>', ephemeral: true });
         }
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
-        .setDescription("format succesfully logged!")
+        .setDescription(`format succesfully logged! https://discord.com/channels/${logMessage.guild.id}/${logMessage.channel.id}/${logMessage.id}`)
         interaction.editReply({ embeds: [embedReply]})
         } catch (error) {
             const embededError = new EmbedBuilder()
