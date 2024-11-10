@@ -18,6 +18,10 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
         const UserIDs = interaction.options.getString('users').split(',')
+        if (UserIDs.length < 1) {
+            UserIDs = [interaction.options.getString('users').split('\n')]
+        }  
+        userIDs = UserIDs.map(id => id.trim())
         let bancount = 0
         let failedBans = 0
         let replyString = ""
