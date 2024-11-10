@@ -42,8 +42,19 @@ module.exports = {
 
 	async execute(interaction) {
         await interaction.deferReply()
+        let dbLogger = await db.Users.findOne({ where: { guild_id: interaction.guild.id } })
+        const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
+        if (dbHost.rank_id === null) {
+            dbHost.destroy()
+            return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
+        }
+        
+        if (updateResponce) {
+            interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + updateResponce)]})
+        }
+
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
-		if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
+		if (!(await dbLogger.getRank()).is_officer &&!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions!")
             await interaction.editReply({ embeds: [embeded_error]});
 		} else {
