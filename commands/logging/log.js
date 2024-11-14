@@ -29,6 +29,7 @@ module.exports = {
                     { name: 'training', value: 'training'},
                     { name: 'patrol', value: 'patrol'},
                     { name: 'gamenight', value: 'gamenight'},
+                    { name: 'tryout', value: 'tryout'},
                     { name: 'rallybeforeraid', value: 'rallybeforeraid'},
                     { name: 'rallyafterraid', value: 'rallyafterraid'},
                 )
@@ -104,6 +105,7 @@ module.exports = {
                         { label: 'Training', value: 'training'},
                         { label: 'Patrol', value: 'patrol'},
                         { label: 'Gamenight', value: 'gamenight'},
+                        { label: 'tryout', value: 'tryout'},
                         { label: 'Rallybeforeraid', value: 'rallybeforeraid'},
                         { label: 'Rallyafterraid', value: 'rallyafterraid'},
                         { label: 'Other', value: 'other'}
@@ -194,6 +196,9 @@ module.exports = {
                 break;
             case "patrol":
                 logChannelLink = "<#1085337383618236457>"
+                break;
+            case "tryout":
+                logChannelLink = "<#1085337402329022574>"
                 break;
         }
         event_log_embed.setTitle(eventType ? eventType : "Event").setThumbnail(wedge_picture.url)

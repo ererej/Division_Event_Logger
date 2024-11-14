@@ -21,9 +21,10 @@ module.exports = {
                 .setDescription('Please input the event type / funktion you want to link this channel to (select "none" to remove)!')
                 .setRequired(true)
                 .addChoices(
-                    { name: 'training', value: "training" },
-                    { name: 'patrol', value: "patrol" },
-                    { name: "gamenight", value: "gamenight" },
+                    { name: 'training vc', value: "training" },
+                    { name: 'patrol vc', value: "patrol" },
+                    { name: 'tryout vc', value: "tryout" },
+                    { name: "gamenight vc", value: "gamenight" },
                     { name: 'raid', value: "raid" },
                     { name: 'expdisplay', value: "expdisplay" },
                     { name: 'robloxGroupCountDisplay', value: "robloxGroupCount" },
@@ -51,7 +52,7 @@ module.exports = {
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(`Successfully removed all links <#${interaction.options.getChannel('channel').id}> had!`)] })
         }
         const channel = interaction.options.getChannel('channel')
-        const vcChannels = ["training", "patrol", "raid", "gamenight"]
+        const vcChannels = ["training", "patrol", "raid", "gamenight", "tryout"]
         const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs"]
         const VcDisplays = ["robloxGroupCount", "guildMemberCount"]

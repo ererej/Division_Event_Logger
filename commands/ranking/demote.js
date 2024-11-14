@@ -27,6 +27,7 @@ module.exports = {
             option.setName('demotions')
                 .setDescription('How many promotions/promopoints to remove')
                 .setRequired(false)
+                .setMinValue(1)
         ),
         
     testerLock: true,
@@ -64,14 +65,16 @@ module.exports = {
         const updateResponce = await user.updateRank(noblox, groupId, member) ?? ""
         if (user.rank_id === null) {
             user.destroy()
+            return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce.message)]} )
         }
 
+        const promologs = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" }})
         
         let demotions = interaction.options.getInteger('demotions')
         if (!demotions) {
             demotions = 1
         }
-        let reply = (promoterUpdateResponce ? "Verified your rank: " + promoterUpdateResponce + "\n" : "") + `<@${member.id}>: ` + (updateResponce ? updateResponce + "\n" : "");
+        let reply = (promoterUpdateResponce ? "Verified your rank: " + promoterUpdateResponce.message + "\n" : "") + `<@${member.id}>: ` + (updateResponce.message ? updateResponce.message + "\n" : "");
         if (interaction.options.getString('rank_or_promopoints') === 'rank') {
             let rank = await user.getRank()
             let membersRankIndexInRanks;
@@ -100,16 +103,30 @@ module.exports = {
             if (membersRankIndexInRanks > promotersRankIndexInRanks) {
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nYou can't demote someone that is a higher rank than yours!")]})
             }
-            reply += await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks - demotions] ).catch((err) => {
+            const setRankResult = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks - demotions], updateResponce.robloxUser ).catch((err) => {
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nAn error occured while trying to demote the user!")]})
             })
+            reply += setRankResult.message
             user.promo_points = 0
             user.save()
+
+            if (promologs && !setRankResult.error) {
+                const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> demoted <@${member.id}>\n${reply}`)], content: `<@${member.id}>`})
+            }
+
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(reply)]})
         } else {
 
-            reply += await user.removePromoPoints(noblox, groupId, member, ranks, demotions)
+            const removePromoPointsResponce = await user.removePromoPoints(noblox, groupId, member, ranks, demotions, updateResponce.robloxUser)
+            reply += removePromoPointsResponce.message
             user.save()
+
+            if (promologs && !removePromoPointsResponce.error ) {
+                const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> has demoted <@${member.id}> by ${demotions} promopoints! \n${reply}`)], content: `<@${member.id}>`})
+            }
+
             return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(reply)]})
         }
     }

@@ -27,6 +27,7 @@ module.exports = {
             option.setName('promotions')
                 .setDescription('How many promotions/promopoints to give')
                 .setRequired(false)
+                .setMinValue(1)
         ),
         
     testerLock: true,
@@ -41,7 +42,12 @@ module.exports = {
         let promoter = await db.Users.findOne({ where: { user_id: interaction.member.id, guild_id: interaction.guild.id }})
         
         let promoterUpdateResponce = ""
-        if (!promoter) {
+        if (promoter) {
+            promoterUpdateResponce = await promoter.updateRank(noblox, groupId, interaction.member)
+            if (promoter.rank_id === null) {
+                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]} )
+            }
+        } else {
             promoter = await db.Users.create({ user_id: interaction.member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
             promoterUpdateResponce = await promoter.updateRank(noblox, groupId, interaction.member)
             if (promoter.rank_id === null) {
@@ -64,18 +70,18 @@ module.exports = {
         if (!user) {
             user = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
-        const updateResponce = await user.updateRank(noblox, groupId, member) ?? ""
+        const updateResponce = await user.updateRank(noblox, groupId, member)
         if (user.rank_id === null) {
             user.destroy()
+            return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce.message ?? "")]} )
         }
 
         const promologs = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" }})
         
-        let promotions = interaction.options.getInteger('promotions')
-        if (!promotions) {
-            promotions = 1
-        }
-        let reply = (promoterUpdateResponce ? "Verified your rank: " + promoterUpdateResponce + "\n" : "") + `<@${member.id}>: ` + (updateResponce ? updateResponce + "\n" : "");
+        let promotions = interaction.options.getInteger('promotions') ?? 1
+
+
+        let reply = (promoterUpdateResponce.message ? "Verified your rank: " + promoterUpdateResponce.message + "\n" : "") + `<@${member.id}>: ` + (updateResponce.message ? updateResponce.message + "\n" : "");
         if (interaction.options.getString('rank_or_promopoints') === 'rank') {
             let rank = await user.getRank()
             let membersRankIndexInRanks;
@@ -104,24 +110,27 @@ module.exports = {
             if (membersRankIndexInRanks + promotions > promotersRankIndexInRanks) {
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nYou can't promote someone to a rank higher than yours!")]})
             }
-            reply += await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks + promotions] ).catch((err) => {
+            const setRankResult = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks + promotions], updateResponce.robloxUser ).catch((err) => {
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nAn error occured while trying to promote the user!")]})
             })
+            reply += setRankResult.message
             user.promo_points = 0
             user.save()
 
-            if (promologs) {
+            if (promologs && !setRankResult.error) {
                 const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
                 promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> promoted <@${member.id}>\n${reply}`)], content: `<@${member.id}>`})
             }
 
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(reply)]})
         } else {
-            reply += await user.addPromoPoints(noblox, groupId, member, ranks, promotions)
+            const addPromoPointsResponce = await user.addPromoPoints(noblox, groupId, member, ranks, promotions, updateResponce.robloxUser)
             user.save()
+            reply += addPromoPointsResponce.message
+            
 
             
-            if (promologs) {
+            if (promologs && !addPromoPointsResponce.error ) {
                 const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
                 promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> has promoted <@${member.id}> by ${promotions} promopoints! \n${reply}`)], content: `<@${member.id}>`})
             }
