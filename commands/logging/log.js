@@ -223,24 +223,26 @@ module.exports = {
             if (!dbUser) {
                 dbUser = await db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null});
             }
+
             const updateRankResponse = await dbUser.updateRank(noblox, server.group_id, member);
             if (dbUser.rank_id === null) {
                 dbUser.destroy()
             }
-            if (updateRankResponse) {
-                if (updateRankResponse.includes("highest rank")) {
+            if (updateRankResponse.message) {
+                if (updateRankResponse.message.includes("highest rank")) {
                 description += "Thanks for attending (can not get promoted by attending events!)";
                 } else {
-                description += updateRankResponse
+                description += updateRankResponse.message
                 }
-                if (updateRankResponse.includes("Error")) {
+                if (updateRankResponse.error) {
                 continue;
                 }
             }
             dbUser.total_events_attended += 1
-            const addPromoPointResponce = await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, 1)
-            if (addPromoPointResponce && updateRankResponse) { description += "\n" }
-            description += addPromoPointResponce
+            const robloxUser = updateRankResponse.robloxUser
+            const addPromoPointResponce = await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, 1, robloxUser)
+            if (addPromoPointResponce && updateRankResponse.message) { description += "\n" }
+            description += addPromoPointResponce.message
             dbUser.save()
             }
         }

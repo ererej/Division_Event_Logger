@@ -1,6 +1,9 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { Colors, ActionRowBuilder, UserSelectMenuBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
-
+const noblox = require("noblox.js")
+const config = require('../../config.json')
+noblox.setCookie(config.sessionCookie)
+const testers = require("../../tester_servers.json")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -52,14 +55,15 @@ module.exports = {
         }
 
         let dbLogger = await db.Users.findOne({ where: { guild_id: interaction.guild.id } })
-        const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
-        if (dbHost.rank_id === null) {
-            dbHost.destroy()
+        const groupId = (await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })).group_id
+        const updateResponce = await dbLogger.updateRank(noblox, groupId, interaction.member) ?? ""
+        if (dbLogger.rank_id === null) {
+            dbLogger.destroy()
             return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
         }
         
-        if (updateResponce) {
-            interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + updateResponce)]})
+        if (updateResponce.message) {
+            interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription(`Your rank was updated: ` + updateResponce.message)]})
         }
 
 		const embeded_error = new EmbedBuilder().setColor([255,0,0])
@@ -115,10 +119,18 @@ module.exports = {
         if (!dbChannel) {
             return await interaction.editReply({ content: 'If you want the raidlogs to always go to a spesific channel then use this command </linkchannel:1246002135204626454>', ephemeral: true });
         }
+
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
-        .setDescription(`format succesfully logged! https://discord.com/channels/${logMessage.guild.id}/${logMessage.channel.id}/${logMessage.id} \n\n do you want to give the attendees promo points?`)
         
+        if ( !testers.servers.some(server => server.id == interaction.guild.id)) {
+            embedReply.setDescription(`format succesfully logged! https://discord.com/channels/${logMessage.guild.id}/${logMessage.channel.id}/${logMessage.id}`)
+            return interaction.editReply({embeds: [embedReply]})
+        }
+
+        embedReply.setDescription(`format succesfully logged! https://discord.com/channels/${logMessage.guild.id}/${logMessage.channel.id}/${logMessage.id} \n\n do you want to give the attendees promo points?`)
+        
+
         const promoteAttendeesButton = new ButtonBuilder()
             .setCustomId('promote_attendees')
             .setLabel('Promote')
@@ -131,6 +143,7 @@ module.exports = {
         const row = new ActionRowBuilder().addComponents(promoteAttendeesButton, noButton)
 
         const response = await interaction.editReply({embeds: [embedReply], components: [row]})
+        let followUp;
 
         const collectorFilter = i => i.customId === 'promote_attendees' && i.user.id === interaction.user.id
         try {
@@ -149,27 +162,27 @@ module.exports = {
                     .setMaxValues(25)
                     const row = new ActionRowBuilder().addComponents(selectAttendees)
 
-                    const response = await interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please enter the attendees of your event. \nNext time run /log before everyone leaves and you wont have to manualy do it`)], components: [row]})
+                    followUp = await interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please enter the attendees of your event. \nNext time run /log before everyone leaves and you wont have to manualy do it`)], components: [row]})
 
                     const collectorFilter = i => i.customId === 'select_attendees' && i.user.id === interaction.user.id
                     try {
-                        const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
+                        const confirmation = await followUp.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
                         confirmation.values.forEach(async value => {
                             const member = await interaction.guild.members.fetch(value)
                             attendees.push(member)
                         })
                     } catch(error) {
                         if (error.message === "Collector received no interactions before ending with reason: time") {
-                            return interaction.followUp({embeds: [embeded_error.setDescription("No responce was given in within 10 min, cancelling!")], components: []})
+                            return followUp.edit({embeds: [embeded_error.setDescription("No responce was given in within 10 min, cancelling!")], components: []})
                         } else {
                             throw error
                         }
                     }
                 }
                 
-                return interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`attendees have been promoted!`)], components: []})
             } else if (confirmation.customId === 'no') {
                 return interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`As requested the attendees wont be paid for this raid :D`)], components: []})
+                
             }
         } catch (error) {
             if (error.message === "Collector received no interactions before ending with reason: time") {
@@ -183,16 +196,17 @@ module.exports = {
 
         const promologsChannel = promologChannelLink ? await interaction.guild.channels.fetch(promologChannelLink.channel_id) : undefined
 
-
+        const guild_ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id } })
+        
         let total_event_attendes = 0
         const event_log_embed = new EmbedBuilder().setTitle("Raid").setColor([255,0,0]).setThumbnail(resoult.url)
-        const mentions = ""
-        const description = "**Raid Leader:** <@" + interaction.member.id + ">\n**Division(s):** " + division_name + allys_name + "\n**Enemy Division:** " + enemy_division + "\n**Victory:** " + winner + "\n**Map:** " + map + "\n**Date:** " + date + "\n\n**Attendees:**"
+        let mentions = ""
+        let description = "**Raid Leader:** <@" + interaction.member.id + ">\n**Division(s):** " + division_name + allys_name + "\n**Enemy Division:** " + enemy_division + "\n**Victory:** " + winner + "\n**Map:** " + map + "\n**Date:** " + date + "\n\n**Attendees:**"
         //promote attendees
         for (const member of attendees) {
             if (!member.user.bot && member.id !== interaction.member.id) {
             mentions += `<@${member.id}> `
-            interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)], components: []})
+            followUp.edit({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)], components: []})
             description += `\n\n <@${member.id}>: `;
             total_event_attendes++;
             let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});
@@ -203,33 +217,35 @@ module.exports = {
             if (dbUser.rank_id === null) {
                 dbUser.destroy()
             }
-            if (updateRankResponse) {
-                if (updateRankResponse.includes("highest rank")) {
+            if (updateRankResponse.message) {
+                if (updateRankResponse.message.includes("highest rank")) {
                 description += "Thanks for attending (can not get promoted by attending events!)";
                 } else {
-                description += updateRankResponse
+                description += updateRankResponse.message;
                 }
-                if (updateRankResponse.includes("Error")) {
+                if (updateRankResponse.error) {
                 continue;
                 }
             }
             dbUser.total_events_attended += 1
-            const addPromoPointResponce = await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, 1)
-            if (addPromoPointResponce && updateRankResponse) { description += "\n" }
-            description += addPromoPointResponce
+            const robloxUser = updateRankResponse.robloxUser
+            const addPromoPointResponce = await dbUser.addPromoPoints(noblox, groupId, member, guild_ranks, 1, robloxUser)
+            if (addPromoPointResponce && updateRankResponse.message) { description += "\n" }
+            description += addPromoPointResponce.message
             dbUser.save()
             }
         }
         if (total_event_attendes === 0) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
+            return await followUp({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
         }
 
         event_log_embed.setDescription(description)
         event_log_embed.setFooter({ text: `Total attendees: ${total_event_attendes}`})
         if (promologsChannel) {
             await promologsChannel.send({content: mentions, embeds: [event_log_embed]})
+            followUp.edit({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`All attendees have been rewarded their promo points!`)], })
         } else {
-            await interaction.followUp({content: mentions, embeds: [event_log_embed]})
+            followUp.edit({content: mentions, embeds: [event_log_embed]})
         }
 
     }
