@@ -32,6 +32,8 @@ module.exports = {
                     option.setName('hours')
                         .setDescription('Please input the hours diffirence between GMT and your timezone!')
                         .setRequired(true)
+                        .setMaxValue(24)
+                        .setMinValue(-24)
                 )
         )
         .addSubcommand(subcommand =>

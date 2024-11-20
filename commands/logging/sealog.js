@@ -4,6 +4,9 @@ const noblox = require("noblox.js")
 const config = require('../../config.json')
 noblox.setCookie(config.sessionCookie)
 
+const sealog = require('../../functions/sealog.js')
+const validateMessageLink = require('../../functions/validateMessageLink.js')
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('sealog')
@@ -17,7 +20,21 @@ module.exports = {
             option.setName('wedge_picture')
                 .setDescription('Paste in the wedge picture!')
                 .setRequired(true)
+        )
+        .addStringOption(option =>
+            option.setName('event_type')
+                .setDescription('What type of event was this?')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'training', value: 'training'},
+                    { name: 'patrol', value: 'patrol'},
+                    { name: 'tryout', value: 'tryout'},
+                )
         ),
+
+    /**
+     *  @param {import('discord.js').CommandInteraction} interaction
+     */
 
 	async execute(interaction) {
         await interaction.deferReply()
@@ -50,48 +67,33 @@ module.exports = {
 		
 		if (!is_officer/*!(await user.getRank()).is_officer*/ && !interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
             embeded_error.setDescription("Insuficent permissions! You need to have an officer rank to use this command! Tip for admins: link a role that all the officers have with </addrank:1255492216202461256> and put officer to true!")
-            await interaction.editReply({ embeds: [embeded_error]});
-		} else {
-        const announcmentMessageLink = interaction.options.getString('announcemnt_link')
-        const regex = /^https:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+\/\d+$/;
-        if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!' });
-        let announcmentChannel;
-        try {
-            announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
-        } catch (error) {
-            return await interaction.editReply({ content: 'The link you provided looks to refer to a message in anouther discord server and will there for not work.' });
+            return await interaction.editReply({ embeds: [embeded_error]});
+		}
+        
+        const announcmentmessage = await validateMessageLink(interaction, interaction.options.getString('announcemnt_link'))
+        if (!announcmentmessage) return 
+
+        let numberOfAttendees;
+        if (interaction.options.getString('event_type') != 'patrol' ) {
+            const collectorFilter = response => { return response.author.id === interaction.member.id};
+            await interaction.followUp({ content: "How many attendees did you get? DONT COUNT YOURSELF. awnser below.", fetchReply: true })
+            
+            try {
+                const collected = await interaction.channel.awaitMessages({ filter: collectorFilter, max: 1, time: 300_000, errors: ['time'] });
+                numberOfAttendees = parseInt(collected.first().content);
+                collected.first().delete()
+            } catch (error) {
+                return interaction.followUp('The number of attendees was not provided, aborting!');
+            }
         }
-        let announcmentMessage;
-        try {
-            announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
-        } catch (error) {
-            return await interaction.editReply({ content: 'could not locate the message please dubble check your message link!' });
-        }
-        
-        const time = announcmentMessage.createdAt
-        const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })).config : "DD/MM/YYYY"
-        const date = dateFormat.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear())
-        
-        
-        const wedge_picture = interaction.options.getAttachment('wedge_picture').url
-        const dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
 
-        const sea_format_channel = dbChannel ? await interaction.guild.channels.fetch(dbChannel.channel_id) : interaction.channel
-        const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-        const division_name = server ? server.name : interaction.guild.name
+        const responce = await sealog(interaction, db, interaction.options.getAttachment('wedge_picture'), announcmentmessage, interaction.options.getString('event_type'), numberOfAttendees)
 
-
-        const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock" } })
-
-        const codeblock =  codeblockSetting ? ( codeblockSetting.config === "codeblock" ? "```" : "" ) : "" 
-
-        await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot:` + codeblock, files: [{ attachment: wedge_picture, name: 'wedge.png'}]});
-        if (!dbChannel) {
-            return await interaction.editReply({ content: 'you can make the format always get posted in a specific channel with </linkchannel:1246002135204626454>', ephemeral: true });
+        if (!responce) {
+            return interaction.editReply({ embeds:  [embeded_error.setDescription('failed to generate the sea logging format!')] });
         }
         const embedReply = new EmbedBuilder()
         .setColor([0,255,0])
         .setDescription("format succesfully logged!")
-        interaction.editReply({ embeds: [embedReply]})
-            .then(() => { setTimeout(() => { interaction.deleteReply() }, 5000)})
-}}}
+        return interaction.editReply({ embeds: [embedReply], content: ""})
+}}

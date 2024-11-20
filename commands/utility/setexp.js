@@ -12,6 +12,7 @@ module.exports = {
             option.setName('amount')
                 .setDescription('the exp that the division has!')
                 .setRequired(true) 
+                .setMaxValue(1000000)
         ),
 
     botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages],

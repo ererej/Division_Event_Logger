@@ -11,6 +11,7 @@ module.exports = {
             option.setName('exp_to_add')
                 .setDescription('the exp that the division has earned!')
                 .setRequired(true)
+                .setMaxValue(100000)
         ),
     botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages],
 	async execute(interaction) {

@@ -28,6 +28,7 @@ module.exports = {
                 .setDescription('How many promotions/promopoints to give')
                 .setRequired(false)
                 .setMinValue(1)
+                .setMaxValue(100000)
         ),
         
     testerLock: true,

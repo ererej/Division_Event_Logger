@@ -24,6 +24,8 @@ module.exports = {
                         option.setName('current_exp')
                                 .setDescription('please input the current total exp of your division!')
                                 .setRequired(false)
+                                .setMinValue(0)
+                                .setMaxValue(1000000)
                 ),
 
         async execute(interaction) {

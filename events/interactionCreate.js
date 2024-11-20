@@ -24,7 +24,7 @@ module.exports = {
 				try {
 					subcommand = interaction.options.getSubcommand()
 				} catch (error) {}
-				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + "guild name: " + interaction.guild.name +  " inputs: \n"
+				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + " guild name: " + interaction.guild.name +  " inputs: \n"
 				interaction.options._hoistedOptions.forEach(option => {
 					if ((logMessage + "**" + option.name + "** = " + option.value + " \n").length > 1900) {
 						channel.send(logMessage);

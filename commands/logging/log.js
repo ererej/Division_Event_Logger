@@ -4,6 +4,9 @@ const noblox = require("noblox.js")
 const config = require('../../config.json')
 noblox.setCookie(config.sessionCookie)
 
+const sealog = require('../../functions/sealog.js')
+const validateMessageLink = require('../../functions/validateMessageLink.js')
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('log')
@@ -35,9 +38,13 @@ module.exports = {
                 )
         ),
     testerLock: true,
+
+    /**
+     * @param {import('discord.js').CommandInteraction} interaction
+    */
 	async execute(interaction) {
         await interaction.deferReply()
-        
+
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
 
         const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
@@ -56,7 +63,7 @@ module.exports = {
             return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
         }
         
-        if (updateResponce) {
+        if (updateResponce.message) {
             interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + updateResponce)]})
         }
 
@@ -73,7 +80,6 @@ module.exports = {
             attendees = voice_channel.members.values()
         }
         
-        let manualEventTypeInput;
 
         //check if the user has permission to host events
         if ( !(await dbHost.getRank()).is_officer ) {
@@ -97,33 +103,6 @@ module.exports = {
                     attendees.push(member)
                 })
                 
-                if (!interaction.options.getString('event_type')) {
-                    const selectEventType = new StringSelectMenuBuilder()
-                    .setCustomId('select_event_type')
-                    .setPlaceholder('Select the event type')
-                    .addOptions([
-                        { label: 'Training', value: 'training'},
-                        { label: 'Patrol', value: 'patrol'},
-                        { label: 'Gamenight', value: 'gamenight'},
-                        { label: 'tryout', value: 'tryout'},
-                        { label: 'Rallybeforeraid', value: 'rallybeforeraid'},
-                        { label: 'Rallyafterraid', value: 'rallyafterraid'},
-                        { label: 'Other', value: 'other'}
-                    ])
-                    const row = new ActionRowBuilder().addComponents(selectEventType)
-                    const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please select the event type`)], components: [row]})
-                    const collectorFilter = i => i.customId === 'select_event_type' && i.user.id === interaction.user.id
-                    try {
-                        const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
-                        manualEventTypeInput = confirmation.values[0]
-                    } catch (error) {
-                        if (error.message === "Collector received no interactions before ending with reason: time") {
-                            return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 300 secounds, cancelling!")], components: []})
-                        } else {
-                            throw error
-                        }
-                    }
-                }
 
             } catch (error) {
                 if (error.message === "Collector received no interactions before ending with reason: time") {
@@ -141,29 +120,11 @@ module.exports = {
 
         const wedge_picture = interaction.options.getAttachment('wedge_picture')
         
-        const division_name = server ? server.name : interaction.guild.name
-        const announcmentMessageLink = interaction.options.getString('announcemnt_link')
-        const regex = /^https:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+\/\d+$/;
-        if (!regex.test(announcmentMessageLink)) return await interaction.editReply({ content: 'The link you provided is not a valid discord message link!', components: [] });
-        let announcmentChannel;
-        try {
-            announcmentChannel = await interaction.guild.channels.cache.find(i => i.id === announcmentMessageLink.split("/")[5])
-        } catch (error) {
-            return await interaction.editReply({ content: 'The link you provided looks to refer to a message in anouther discord server and will there for not work.', components: [] });
-        }
-        let announcmentMessage;
-        try {
-            announcmentMessage = await announcmentChannel.messages.fetch(announcmentMessageLink.split("/")[6])
-        } catch (error) {
-            return await interaction.editReply({ content: 'could not locate the announcment message please dubble check your message link!', components: [] });
-        }
 
-        //fetching the sea logs channel and validating it
-        let dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
-        if (!dbChannel) {
-            return await interaction.editReply({ embeds: embeded_error.setDescription('There is no sealog channel linked in this server! Please ask an admin to link one using </linkchannel:1246002135204626454>'), components: [] });
-        }
-        const sea_format_channel = await interaction.guild.channels.fetch(dbChannel.channel_id)
+        const announcmentMessage = await validateMessageLink(interaction, interaction.options.getString('announcemnt_link'))
+        if (!announcmentMessage) return
+
+
 
         //fetching the promologs channel and validating it
         dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" } })
@@ -176,9 +137,49 @@ module.exports = {
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
-        let logChannelLink = ""
+
         let eventType = ""
-        const event_log_embed = new EmbedBuilder().setColor([254, 1, 177])
+
+        if (interaction.options.getString('event_type')) {
+            eventType = interaction.options.getString('event_type')
+        } else { 
+            if (voice_channel.id !== undefined ) {
+                const VCdbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, channel_id: voice_channel.id}})
+                if (VCdbChannel) {
+                eventType = VCdbChannel.type
+                }
+            }
+        }
+        
+        if (!eventType) {
+            const selectEventType = new StringSelectMenuBuilder()
+            .setCustomId('select_event_type')
+            .setPlaceholder('Select the event type')
+            .addOptions([
+                { label: 'Training', value: 'training'},
+                { label: 'Patrol', value: 'patrol'},
+                { label: 'Gamenight', value: 'gamenight'},
+                { label: 'tryout', value: 'tryout'},
+                { label: 'Rallybeforeraid', value: 'rallybeforeraid'},
+                { label: 'Rallyafterraid', value: 'rallyafterraid'},
+                { label: 'Other', value: 'other'}
+            ])
+            const row = new ActionRowBuilder().addComponents(selectEventType)
+            const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please select the event type`)], components: [row]})
+            const collectorFilter = i => i.customId === 'select_event_type' && i.user.id === interaction.user.id
+            try {
+                const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                eventType = confirmation.values[0]
+            } catch (error) {
+                if (error.message === "Collector received no interactions before ending with reason: time") {
+                    return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 300 secounds, cancelling!")], components: []})
+                } else {
+                    throw error
+                }
+            }
+        }
+
+
         if (interaction.options.getString('event_type')) {
             eventType = interaction.options.getString('event_type')
         } else if (voice_channel.id !== undefined) {    
@@ -186,21 +187,9 @@ module.exports = {
             if (dbChannel) {
                 eventType = dbChannel.type
             }
-        } else if (manualEventTypeInput) {
-            eventType = manualEventTypeInput
-        }
+        } 
 
-        switch (eventType) {
-            case "training":
-                logChannelLink = "<#1085337363359731782>"
-                break;
-            case "patrol":
-                logChannelLink = "<#1085337383618236457>"
-                break;
-            case "tryout":
-                logChannelLink = "<#1085337402329022574>"
-                break;
-        }
+        const event_log_embed = new EmbedBuilder().setColor([254, 1, 177])
         event_log_embed.setTitle(eventType ? eventType : "Event").setThumbnail(wedge_picture.url)
         let description = `**Host:** <@${host.id}>\n`
         if (cohost) {
@@ -210,11 +199,11 @@ module.exports = {
         let total_event_attendes = 0
         let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
         guild_ranks = guild_ranks.sort((a, b) => {a.rank_index - b.rank_index})
-        let mentions = `<@${host.id}> ${cohost ? `<@${cohost.id}> ` : ""}`
+        let mentions = `<@${host.id}> `
 
 
         for (const member of attendees) {
-            if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
+            if (!member.user.bot && host.id != member.user.id ) {
             mentions += `<@${member.id}> `
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)], components: []})
             description += `\n\n <@${member.id}>: `;
@@ -246,6 +235,9 @@ module.exports = {
             dbUser.save()
             }
         }
+
+        interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Event has been logged to database").setColor([255, 255, 0])], components: []})
+
         if (total_event_attendes === 0) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
         }
@@ -258,21 +250,20 @@ module.exports = {
         string += `\nPing: <@&${promoter_role_id}>`
         */
         //place rank up function here!
-        //SEA Format
-
-        //send the sea format to the sea logs channel
-        if (logChannelLink) {
-            await sea_format_channel.send(`VVV${logChannelLink}VVV`)
-        }
-
-        const codeblockSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock" } })
-        const codeblock =  codeblockSetting ? ( codeblockSetting.config === "codeblock" ? "```" : "" ) : "" 
-
-        if (!["rallybeforeraid", "rallyafterraid", "gamenight"].includes(eventType)) {
-            await sea_format_channel.send({content: codeblock + `Division: ${division_name}\nLink: ${announcmentMessageLink} \nDate: ${date}\nScreenshot: \n` + codeblock, files: [{attachment: wedge_picture.url}] });
-        }
+        
         //event/promo logs
         await promologsChannel.send({content: mentions, embeds: [event_log_embed]})
+    
+        
+        //SEA Format
+        let responce;
+        if (["training", "patrol", "tryout"].includes(eventType)) {
+            responce = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_event_attendes)
+        }
+        if (!responce) {
+            return 
+        }
+        
         
         const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged")
         await interaction.editReply({embeds: [success_embed], components: []});
