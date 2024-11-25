@@ -208,6 +208,10 @@ module.exports = {
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)], components: []})
             description += `\n\n <@${member.id}>: `;
             total_event_attendes++;
+            if (eventType === "gamenight") {
+                description += "Thanks for attending (can not get promoted by attending Gamenights!)"
+                continue;
+            }
             let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});
             if (!dbUser) {
                 dbUser = await db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null});
