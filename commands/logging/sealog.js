@@ -75,7 +75,7 @@ module.exports = {
 
         let numberOfAttendees;
         if (interaction.options.getString('event_type') != 'patrol' ) {
-            const collectorFilter = response => { return response.author.id === interaction.member.id};
+            const collectorFilter = response => { return response.author.id === interaction.member.id && isNum(responce};
             await interaction.followUp({ content: "How many attendees did you get? DONT COUNT YOURSELF. awnser below.", fetchReply: true })
             
             try {
