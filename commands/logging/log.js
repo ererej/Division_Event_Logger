@@ -208,10 +208,6 @@ module.exports = {
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)], components: []})
             description += `\n\n <@${member.id}>: `;
             total_event_attendes++;
-            if (eventType === "gamenight") {
-                description += "Thanks for attending (can not get promoted by attending Gamenights!)"
-                continue;
-            }
             let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});
             if (!dbUser) {
                 dbUser = await db.Users.create({user_id: member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null});
@@ -233,7 +229,7 @@ module.exports = {
             }
             dbUser.total_events_attended += 1
             const robloxUser = updateRankResponse.robloxUser
-            const addPromoPointResponce = await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, 1, robloxUser)
+            const addPromoPointResponce = (eventType !== 'gamenight') ? await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, 1, robloxUser) : {message: "Thanks for attending! Gamenights do not give promo points sorry!"}
             if (addPromoPointResponce && updateRankResponse.message) { description += "\n" }
             description += addPromoPointResponce.message
             dbUser.save()
