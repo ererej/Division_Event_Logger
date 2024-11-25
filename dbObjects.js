@@ -221,10 +221,15 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			}
 			robloxUser = await robloxUser.json()
 		}
-
+		let smallError;
 		await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
+			if (err.code === 403) {
+				console.log("missing permissions in roblox group")
+				smallError = `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${member.id}>`
+			} else {
 			console.log(err)
 			return { message: `Error: An error occured while trying to update the users's roblox rank! Error: ${err}`, error: true, robloxUser: robloxUser }
+			}
 		})
 		const oldRank = this.rank_id
 		//add a check to see if the bot has perms to change the rank
@@ -235,7 +240,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 		}
 		this.rank_id = rank.id
 		this.save()
-		return { message: `Promoted from <@&${oldRank}> to <@&${rank.id}>`, robloxUser: robloxUser }
+		return { message: `Promoted from <@&${oldRank}> to <@&${rank.id}> ` + (smallError ? smallError : ""), robloxUser: robloxUser }
 	}
 });
 
