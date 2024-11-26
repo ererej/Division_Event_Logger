@@ -1,3 +1,4 @@
+const { EmbedBuilder } = require('@discordjs/builders');
 const cheerio = require('cheerio');
 module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eventType, numberOfAttendees) => {
     const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock"}})) ? "```" : ""
@@ -10,8 +11,18 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     format += `Link to Event: https://discord.com/channels/${interaction.guild.id}/${announcemntMessage.channelId}/${announcemntMessage.id} \n`
     //time of event
     
-    const time = announcemntMessage.createdAt
-    format += "Date: DD/MM/YYYY \n".replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear())
+    let eventStartTime 
+    if (announcemntMessage.content.toLowerCase().includes(" minutes ") || announcemntMessage.content.toLowerCase().includes(" min ")) {
+        let words = announcemntMessage.content.toLowerCase().split(/( |\n)/)
+        const indexOfTime = words.findIndex(word => word.includes("minutes") || word.includes("min")) - 1
+        if (!indexOfTime < 0) {
+            eventStartTime = new Date(announcemntMessage.createdTimestamp - parseInt(words[indexOfTime]) * 60 * 1000)
+        }
+    } else {
+        eventStartTime = new Date(announcemntMessage.createdTimestamp)
+    } // add support for time stamps
+
+    format += "Date: DD/MM/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
     
     if (eventType === "training" || eventType === "tryout") {
         let mapName;
@@ -84,14 +95,14 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         //const base = await db.bases.findOne({ where: { guild_id: announcemntMessage.guild.id, name: mapName } })
         
         const now = new Date()
-        let durationInMinutes = Math.ceil((now - time) / 1000 / 60)
+        let durationInMinutes = Math.ceil((now - eventStartTime) / 1000 / 60)
 
         if (durationInMinutes > 120) {
             const collectorFilter = response => {
                 return response.author.id === interaction.member.id && !isNaN(response.content.replace(/(minutes|min)/, "")) && parseInt(response.content.replace(/(minutes|min)/, "")) > 0;
             };
             
-            const followUpAskingForTime = await interaction.followUp({ content: "I suspect that this event was not logged right as the event ended. Please type an estimation of how long the event was in minutes below.", fetchReply: true })
+            const followUpAskingForTime = await interaction.followUp({ embeds: [new EmbedBuilder("I suspect that this event was not logged right as the event ended. Please type an estimation of how long the event was in minutes below.").setColor([255,255,0])], fetchReply: true })
             
             try {
                 const collected = await interaction.channel.awaitMessages({ filter: collectorFilter, max: 1, time: 300_000, errors: ['time'] });
@@ -99,7 +110,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
                 collected.first().delete()
                 followUpAskingForTime.delete()
             } catch (error) {
-                interaction.followUp('The duration of the event was not provided, aborting the SEA log!');
+                interaction.followUp( { embeds: [new EmbedBuilder().setDescription('The duration of the event was not provided, aborting the SEA log!').setColor([255,0,0])] });
                 return false
             }
         }
