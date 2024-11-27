@@ -14,10 +14,16 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     let eventStartTime 
     if (announcemntMessage.content.toLowerCase().includes("minutes ") || announcemntMessage.content.toLowerCase().includes("minutes\n") || announcemntMessage.content.toLowerCase().includes("minutes") || announcemntMessage.content.toLowerCase().includes("min ") || announcemntMessage.content.toLowerCase().includes("min\n") || announcemntMessage.content.toLowerCase().includes("min")) {
         let words = announcemntMessage.content.toLowerCase().split(/( |\n)/)
-        const regex = /\b\d+(min|minutes)\b/
-        const indexOfTime = words.findIndex(word => regex.test(word)) - 1
+        const indexOfTime = words.findIndex(word => /\b(min|minutes)\b/.test(word)) - 1
         if (indexOfTime >= 0) {
-            eventStartTime = new Date(announcemntMessage.createdTimestamp.getTime() - parseInt(words[indexOfTime]) * 60 * 1000)
+            eventStartTime = new Date(announcemntMessage.createdTimestamp - parseInt(words[indexOfTime]) * 60 * 1000, 10)
+        } else if (words.filter(word => /\b\d+(min|minutes)/.test(word)).length > 0) {
+            const timeSubString = words.filter(word => /\b\d+(min|minutes)/.test(word))[0]
+            const time = parseInt(timeSubString.match(/\d+/)[0], 10)
+            eventStartTime = new Date(announcemntMessage.createdTimestamp + time * 60 * 1000)
+
+        } else {
+            eventStartTime = new Date(announcemntMessage.createdTimestamp)
         }
     } else if (/^.*<t:\d+:(t|T|d|D|f|F|R)>.*$/.test(announcemntMessage.content)) { // adds support for time stamps
         console.log("time stammmmmmp")
@@ -102,10 +108,6 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         
         const now = new Date()
         let durationInMinutes = Math.ceil((now.getTime() - eventStartTime.getTime()) / 1000 / 60)
-        console.log(now.getTime())
-        console.log(eventStartTime.getTime())
-        console.log(now - eventStartTime)
-        console.log(durationInMinutes)
         if (durationInMinutes > 120) {
             const collectorFilter = response => {
                 return response.author.id === interaction.member.id && !isNaN(response.content.replace(/(minutes|min)/, "")) && parseInt(response.content.replace(/(minutes|min)/, "")) > 0;
