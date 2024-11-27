@@ -12,15 +12,21 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     //time of event
     
     let eventStartTime 
-    if (announcemntMessage.content.toLowerCase().includes(" minutes ") || announcemntMessage.content.toLowerCase().includes(" min ")) {
+    if (announcemntMessage.content.toLowerCase().includes("minutes ") || announcemntMessage.content.toLowerCase().includes("minutes\n") || announcemntMessage.content.toLowerCase().includes("minutes") || announcemntMessage.content.toLowerCase().includes("min ") || announcemntMessage.content.toLowerCase().includes("min\n") || announcemntMessage.content.toLowerCase().includes("min")) {
         let words = announcemntMessage.content.toLowerCase().split(/( |\n)/)
-        const indexOfTime = words.findIndex(word => word.includes("minutes") || word.includes("min")) - 1
-        if (!indexOfTime < 0) {
-            eventStartTime = new Date(announcemntMessage.createdTimestamp - parseInt(words[indexOfTime]) * 60 * 1000)
+        const regex = /\b\d+(min|minutes)\b/
+        const indexOfTime = words.findIndex(word => regex.test(word)) - 1
+        if (indexOfTime >= 0) {
+            eventStartTime = new Date(announcemntMessage.createdTimestamp.getTime() - parseInt(words[indexOfTime]) * 60 * 1000)
         }
+    } else if (/^.*<t:\d+:(t|T|d|D|f|F|R)>.*$/.test(announcemntMessage.content)) { // adds support for time stamps
+        console.log("time stammmmmmp")
+        const timeString = announcemntMessage.content.match(/^.*<t:\d+:(t|T|d|D|f|F|R)>.*$/)[0]
+        const time = timeString.match(/<t:\d+:(t|T|d|D|f|F|R)>$/)[0]
+        eventStartTime = new Date(parseInt(time.slice(3, -3)) * 1000)
     } else {
         eventStartTime = new Date(announcemntMessage.createdTimestamp)
-    } // add support for time stamps
+    } 
 
     format += "Date: DD/MM/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
     
@@ -95,14 +101,17 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         //const base = await db.bases.findOne({ where: { guild_id: announcemntMessage.guild.id, name: mapName } })
         
         const now = new Date()
-        let durationInMinutes = Math.ceil((now - eventStartTime) / 1000 / 60)
-
+        let durationInMinutes = Math.ceil((now.getTime() - eventStartTime.getTime()) / 1000 / 60)
+        console.log(now.getTime())
+        console.log(eventStartTime.getTime())
+        console.log(now - eventStartTime)
+        console.log(durationInMinutes)
         if (durationInMinutes > 120) {
             const collectorFilter = response => {
                 return response.author.id === interaction.member.id && !isNaN(response.content.replace(/(minutes|min)/, "")) && parseInt(response.content.replace(/(minutes|min)/, "")) > 0;
             };
             
-            const followUpAskingForTime = await interaction.followUp({ embeds: [new EmbedBuilder("I suspect that this event was not logged right as the event ended. Please type an estimation of how long the event was in minutes below.").setColor([255,255,0])], fetchReply: true })
+            const followUpAskingForTime = await interaction.followUp({ embeds: [new EmbedBuilder().setDescription("I suspect that this event was not logged right as the event ended. Please type an estimation of how long the event was in minutes below.").setColor([255,255,0])], fetchReply: true })
             
             try {
                 const collected = await interaction.channel.awaitMessages({ filter: collectorFilter, max: 1, time: 300_000, errors: ['time'] });

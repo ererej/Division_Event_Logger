@@ -75,13 +75,14 @@ module.exports = {
 
         let numberOfAttendees;
         if (interaction.options.getString('event_type') != 'patrol' ) {
-            const collectorFilter = response => { return response.author.id === interaction.member.id && isNum(responce)};
+            const collectorFilter = response => { return response.author.id === interaction.member.id && !isNaN(response.content)};
             await interaction.followUp({ content: "How many attendees did you get? DONT COUNT YOURSELF. awnser below.", fetchReply: true })
             
             try {
                 const collected = await interaction.channel.awaitMessages({ filter: collectorFilter, max: 1, time: 300_000, errors: ['time'] });
                 numberOfAttendees = parseInt(collected.first().content);
                 collected.first().delete()
+                interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Attendees successfully set to ${numberOfAttendees}!`).setColor([0,0,255])], content: ""})
             } catch (error) {
                 return interaction.followUp('The number of attendees was not provided, aborting!');
             }
