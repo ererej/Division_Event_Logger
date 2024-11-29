@@ -221,7 +221,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			}
 			robloxUser = await robloxUser.json()
 		}
-		let smallError;
+		let smallError = ""
 
 		await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
 			switch (err.code) {
@@ -230,7 +230,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 					break
 				case 403:	//the bot does not have permissions to change the rank
 					console.log("missing permissions in roblox group")
-					smallError = `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${member.id}>`
+					smallError += `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${member.id}> and the roblox rank will be fixed!`
 					break;
 				default:
 					console.log(err)
@@ -240,8 +240,22 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 		
 		const oldRank = this.rank_id
 		//add a check to see if the bot has perms to change the rank
-		MEMBER.roles.remove(oldRank)
-		MEMBER.roles.add(rank.id)
+		MEMBER.roles.remove(oldRank).catch(err => {
+			if (err.message === "Unknown Role") {
+				smallError += `Error: Missing role. ${MEMBER} got promoted from a rank whos role seems to have been deleted! The missing role might lead to a lot of problems, please contact Ererej(The developer of this bot) for help!`
+			} else {
+			console.log(err)
+			return { message: `Error: An error occured while trying to update the users's discord rank! (The Roblox rank was still updated) Error: ${err}`, error: true, robloxUser: robloxUser }
+			}
+		})
+		MEMBER.roles.add(rank.id).catch(err => {
+            if (err.message === "Unknown Role") {
+                smallError += `Error: Missing role. ${MEMBER} got promoted to a rank whos role seems to have been deleted! The missing role might lead to a lot of problems(the roblox rank and database was still updated), please contact Ererej(The developer of this bot) for help!`
+            } else {
+			console.log(err)
+			return { message: `Error: An error occured while trying to update the users's discord rank! (The Roblox rank was still updated) Error: ${err}`, error: true, robloxUser: robloxUser }
+			}
+		})
 		if (rank.tag) {
 			MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 		}

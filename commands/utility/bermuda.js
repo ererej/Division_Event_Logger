@@ -15,7 +15,17 @@ module.exports = {
      */
     async execute(interaction) {
         await interaction.deferReply();
-        
+
+        interaction.member.roles.remove("404").catch(err => {
+            console.log(err)
+            if (err.message === "Unknown Role") {
+                console.log("Role not found")
+            }
+        })
+
+
+
+        /*
         let rateLimitRemaining = 99;
         let robloxUser;
         let i = 0;
@@ -47,7 +57,7 @@ module.exports = {
         robloxUser = await robloxUser.json()
         console.log(robloxUser)
         interaction.editReply({content: `Your roblox user is ${robloxUser.cachedUsername}`})
-
+*/
 
         
         // const gameInstants = await noblox.getGameInstances(12983079028)
