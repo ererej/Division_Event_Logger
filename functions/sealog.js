@@ -13,10 +13,19 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     
     let eventStartTime 
     if (announcemntMessage.content.toLowerCase().includes("minutes ") || announcemntMessage.content.toLowerCase().includes("minutes\n") || announcemntMessage.content.toLowerCase().includes("minutes") || announcemntMessage.content.toLowerCase().includes("min ") || announcemntMessage.content.toLowerCase().includes("min\n") || announcemntMessage.content.toLowerCase().includes("min")) {
-        let words = announcemntMessage.content.toLowerCase().split(/( |\n)/)
+        let words = announcemntMessage.content.toLowerCase().replace("\n", " ").split(" ")
+
         const indexOfTime = words.findIndex(word => /\b(min|minutes)\b/.test(word)) - 1
         if (indexOfTime >= 0) {
-            eventStartTime = new Date(announcemntMessage.createdTimestamp - parseInt(words[indexOfTime]) * 60 * 1000, 10)
+            const timeofset = parseInt(words[indexOfTime])
+            if (!isNaN(timeofset)) {
+                eventStartTime = new Date(announcemntMessage.createdTimestamp + parseInt(words[indexOfTime], 10) * 60 * 1000)
+            } else {
+                eventStartTime = new Date(announcemntMessage.createdTimestamp)
+            }
+            if (timeofset < 0) {
+                interaction.followUp("<@386838167506124800> Time traveler detected!")
+            }
         } else if (words.filter(word => /\b\d+(min|minutes)/.test(word)).length > 0) {
             const timeSubString = words.filter(word => /\b\d+(min|minutes)/.test(word))[0]
             const time = parseInt(timeSubString.match(/\d+/)[0], 10)
