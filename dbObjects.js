@@ -1,7 +1,5 @@
 const Sequelize = require('sequelize');
 const config = require('./config.json');
-const { MembershipScreeningFieldType } = require('discord.js');
-const { message } = require('noblox.js');
 const dbcredentoiols = process.argv.includes("--productiondb") ? config.productionDb : config.db;
 
 console.log("Connecting to database: " + dbcredentoiols.database)
