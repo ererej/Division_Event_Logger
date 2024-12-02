@@ -2,7 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Op } = require('sequelize');
 const { Client, codeBlock, Collection, Events, GatewayIntentBits, ActivityType } = require('discord.js');
-const { token } = require('./config.json');
+const config = require('./config.json');
+const token = config.token;
 
 async function setCookieWithTimeout(cookie, timeout = 10000) {
     return new Promise((resolve, reject) => {
