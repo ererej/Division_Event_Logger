@@ -69,7 +69,16 @@ for (const file of eventFiles) {
 	if (event.once) {
 		client.once(event.name, (...args) => event.execute(...args));
 	} else {
-		client.on(event.name, (...args) => event.execute(...args));
+		client.on(event.name, async (...args) => {
+            const testServer = client.guilds.cache.find(guild => guild.id === "831851819457052692");
+            if (testServer) {
+                const logsChannel = testServer.channels.cache.get("1285158576448344064");
+                if (logsChannel) {
+                    await logsChannel.send(`${event.name} got triggered. This was the first arg:\n${args[0]}`);
+                }
+            }
+            event.execute(...args);
+        });
 	}
 }
 
