@@ -4,6 +4,7 @@ const { Op } = require('sequelize');
 const { Client, codeBlock, Collection, Events, GatewayIntentBits, ActivityType } = require('discord.js');
 const config = require('./config.json');
 const token = config.token;
+const noblox = require('noblox.js');
 
 async function setCookieWithTimeout(cookie, timeout = 10000) {
     return new Promise((resolve, reject) => {
