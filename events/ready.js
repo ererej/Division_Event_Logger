@@ -42,7 +42,7 @@ module.exports = {
 			console.log(`Ready! Logged in as ${client.user.tag}`);
 			if (testServer) {
 				let time = new Date();
-				time = new Date( time.getTime +  1 * 3600000)
+				time = new Date( time.getTime() +  1 * 3600000)
                 const commandLogs = await testServer.channels.fetch("1285158576448344064");
 				commandLogs.send("[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Bot started <@386838167506124800>")
 				const eventLogs = await testServer.channels.fetch("1313126303775457320");
