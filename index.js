@@ -75,7 +75,7 @@ for (const file of eventFiles) {
                 const logsChannel = testServer.channels.cache.get("1313126303775457320");
                 if (logsChannel) {
                     let time = new Date();
-                    time = new Date(time + (config.host === "Laptop" ? 0 : 1) * 3600000)
+                    time = new Date(time.getTime() + (config.host === "Laptop" ? 0 : 1) * 3600000)
                     const timestamp = "# [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] "; 
 
                     await logsChannel.send(timestamp + `${event.name} got triggered. Args:\n${args.join(", ")}`);

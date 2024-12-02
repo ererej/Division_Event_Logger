@@ -19,7 +19,7 @@ module.exports = {
 			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
                 const channel = await testServer.channels.fetch("1285158576448344064");
-				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 2) * 3600000)
+				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 1) * 3600000)
 				let subcommand = "";
 				try {
 					subcommand = interaction.options.getSubcommand()
