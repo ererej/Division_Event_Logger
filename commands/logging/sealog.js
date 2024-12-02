@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('disc
 const db = require("../../dbObjects")
 const noblox = require("noblox.js")
 const config = require('../../config.json')
-noblox.setCookie(config.sessionCookie)
+
 
 const sealog = require('../../functions/sealog.js')
 const validateMessageLink = require('../../functions/validateMessageLink.js')

@@ -4,10 +4,39 @@ const { Op } = require('sequelize');
 const { Client, codeBlock, Collection, Events, GatewayIntentBits, ActivityType } = require('discord.js');
 const { token } = require('./config.json');
 
+async function setCookieWithTimeout(cookie, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject(new Error('ETIMEDOUT'));
+        }, timeout);
+
+        noblox.setCookie(cookie)
+            .then((result) => {
+                clearTimeout(timer);
+                resolve(result);
+            })
+            .catch((error) => {
+                clearTimeout(timer);
+                reject(error);
+            });
+    });
+}
+
+async function initializeNoblox() {
+    try {
+        await setCookieWithTimeout(config.sessionCookie, 30000); // Set timeout to 30 seconds
+        console.log('Successfully set cookie');
+    } catch (error) {
+        console.error('Failed to set cookie:', error);
+        process.exit(1); // Exit the process if setting the cookie fails
+    }
+}
+
+await initializeNoblox();
+
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
  
-
 
 
 client.commands = new Collection();
