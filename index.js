@@ -71,10 +71,10 @@ for (const file of eventFiles) {
 	} else {
 		client.on(event.name, async (...args) => {
             const testServer = client.guilds.cache.find(guild => guild.id === "831851819457052692");
-            if (testServer) {
+            if (testServer && event.name != "interactionCreate") {
                 const logsChannel = testServer.channels.cache.get("1285158576448344064");
                 if (logsChannel) {
-                    await logsChannel.send(`${event.name} got triggered. This was the first arg:\n${args[0]}`);
+                    await logsChannel.send(`${event.name} got triggered. Args:\n${args.join(", ")}`);
                 }
             }
             event.execute(...args);
