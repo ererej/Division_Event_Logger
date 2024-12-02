@@ -2,7 +2,6 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors } = requi
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
-noblox.setCookie(config.sessionCookie)
 
 module.exports = {
 	data: new SlashCommandBuilder()
