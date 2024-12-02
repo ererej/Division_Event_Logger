@@ -32,7 +32,7 @@ async function initializeNoblox() {
     }
 }
 
-await initializeNoblox();
+initializeNoblox().then(() => {
 
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
@@ -72,3 +72,4 @@ for (const file of eventFiles) {
 }
 
 client.login(token);
+})
