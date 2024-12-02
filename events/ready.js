@@ -9,9 +9,11 @@ module.exports = {
 		if (config.host === "Laptop") {
 			console.log(`Ready! Logged in as ${client.user.tag}`);
 			if (testServer) {
-				const time = new Date(new Date() + (config.host === "Laptop" ? 0 : 2) * 3600000)
-                const channel = await testServer.channels.fetch("1285158576448344064");
-				channel.send("**[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Testing session started**")
+				const time = new Date()
+                const commandLogs = await testServer.channels.fetch("1285158576448344064");
+				commandLogs.send("**[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Testing session started**")
+				const eventLogs = await testServer.channels.fetch("1313126303775457320");
+				eventLogs.send("# [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Testing session started")
 			}
 
 			if (!process.argv.includes("--test")) {
@@ -40,9 +42,11 @@ module.exports = {
 			console.log(`Ready! Logged in as ${client.user.tag}`);
 			if (testServer) {
 				let time = new Date()
-				 time = new Date( time + (config.host === "Laptop" ? 0 : 2) * 3600000)
-                const channel = await testServer.channels.fetch("1285158576448344064");
-				channel.send("[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Bot started <@386838167506124800>")
+				time = new Date( time +  2 * 3600000)
+                const commandLogs = await testServer.channels.fetch("1285158576448344064");
+				commandLogs.send("[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Bot started <@386838167506124800>")
+				const eventLogs = await testServer.channels.fetch("1313126303775457320");
+				eventLogs.send("# [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]")
 			}
 			client.guilds.cache.forEach(guild => {
 				console.log(`[READY] ${guild.name} has ${guild.memberCount} members!`)

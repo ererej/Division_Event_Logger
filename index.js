@@ -72,9 +72,13 @@ for (const file of eventFiles) {
 		client.on(event.name, async (...args) => {
             const testServer = client.guilds.cache.find(guild => guild.id === "831851819457052692");
             if (testServer && event.name != "interactionCreate") {
-                const logsChannel = testServer.channels.cache.get("1285158576448344064");
+                const logsChannel = testServer.channels.cache.get("1313126303775457320");
                 if (logsChannel) {
-                    await logsChannel.send(`${event.name} got triggered. Args:\n${args.join(", ")}`);
+                    let time = new Date();
+                    time = new Date(time + (config.host === "Laptop" ? 0 : 1) * 3600000)
+                    const timestamp = "# [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] "; 
+
+                    await logsChannel.send(timestamp + `${event.name} got triggered. Args:\n${args.join(", ")}`);
                 }
             }
             event.execute(...args);
