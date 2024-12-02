@@ -46,7 +46,7 @@ module.exports = {
                 const commandLogs = await testServer.channels.fetch("1285158576448344064");
 				commandLogs.send("[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Bot started <@386838167506124800>")
 				const eventLogs = await testServer.channels.fetch("1313126303775457320");
-				eventLogs.send("# [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]")
+				eventLogs.send("# [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "]" + " Bot started ")
 			}
 			client.guilds.cache.forEach(guild => {
 				console.log(`[READY] ${guild.name} has ${guild.memberCount} members!`)
