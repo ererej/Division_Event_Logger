@@ -16,7 +16,6 @@ module.exports = {
 	data: new SlashCommandBuilder()
         .setName('linkchannel')
         .setDescription('link a voice channel to an event type or function, like logs or expdisplay.')
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageChannels || PermissionsBitField.Flags.ManageGuild || PermissionsBitField.Flags.Administrator)
         .addChannelOption(option =>
             option.setName('channel')
                 .setDescription('the channel that will be linked to something.')
@@ -27,9 +26,10 @@ module.exports = {
                 .setDescription('Please input the event type / funktion you want to link this channel to (select "none" to remove)!')
                 .setRequired(true)
                 .addChoices(
-                    { name: 'training', value: "training" },
-                    { name: 'patrol', value: "patrol" },
-                    { name: "gamenight", value: "gamenight" },
+                    { name: 'training vc', value: "training" },
+                    { name: 'patrol vc', value: "patrol" },
+                    { name: 'tryout vc', value: "tryout" },
+                    { name: "gamenight vc", value: "gamenight" },
                     { name: 'raid', value: "raid" },
                     { name: 'expdisplay', value: "expdisplay" },
                     { name: 'robloxGroupCountDisplay', value: "robloxGroupCount" },
@@ -45,6 +45,10 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])
+
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator || PermissionsBitField.Flags.ManageChannels || PermissionsBitField.Flags.ManageGuild)) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`You do not have the required permissions to use this command!`)] })
+        }
         if (interaction.options.getString('linktype') === "none") {
             const channel = await db.Channels.findAll({ where: { guild_id: interaction.guild.id, channel_id: interaction.options.getChannel('channel').id } })
             channel.forEach(channel => {
@@ -53,7 +57,7 @@ module.exports = {
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(`Successfully removed all links <#${interaction.options.getChannel('channel').id}> had!`)] })
         }
         const channel = interaction.options.getChannel('channel')
-        const vcChannels = ["training", "patrol", "raid", "gamenight"]
+        const vcChannels = ["training", "patrol", "raid", "gamenight", "tryout"]
         const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs"]
         const VcDisplays = ["robloxGroupCount", "guildMemberCount"]

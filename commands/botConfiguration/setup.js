@@ -2,7 +2,6 @@ const { ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, S
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
-noblox.setCookie(config.sessionCookie)
 const testers = require('../../tester_servers.json');
 const updateGuildMemberCount = require('../../functions/updateGuildMemberCount.js');
 const updateGroupMemberCount = require('../../functions/updateGroupMemberCount.js');
@@ -10,24 +9,26 @@ const updateExp = require('../../functions/updateExp.js');
 const getExp = require('../../functions/getExp.js');
 
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('setup')
-        .setDescription('links the server to the roblox group and configures the divisions exp!')
-        .addIntegerOption(option =>
-            option.setName('roblox_group_id')
-                .setDescription('Please input the roblox group id of your roblox group')
-                .setRequired(true)
-        )
-        .addStringOption(option =>
-            option.setName('division_name')
-                .setDescription('This is a manual overwrite if the DAs has misstyped the division name in the officer tracker!')
-                .setRequired(false)
-        )
-        .addIntegerOption(option =>
-            option.setName('current_exp')
-                .setDescription('please input the current total exp of your division!')
-                .setRequired(false)
-        ),
+	data: new SlashCommandBuilder()
+                .setName('setup')
+                .setDescription('links the server to the roblox group and configures the divisions exp!')
+                .addIntegerOption(option =>
+                        option.setName('roblox_group_id')
+                                .setDescription('Please input the roblox group id of your roblox group')
+                                .setRequired(true)
+                )
+                .addStringOption(option =>
+                        option.setName('division_name')
+                                .setDescription('This is a manual overwrite if the DAs has misstyped the division name in the officer tracker!')
+                                .setRequired(false)
+                )
+                .addIntegerOption(option => 
+                        option.setName('current_exp')
+                                .setDescription('please input the current total exp of your division!')
+                                .setRequired(false)
+                                .setMinValue(0)
+                                .setMaxValue(1000000)
+                ),
 
     botPermissions: [PermissionsBitField.Flags.ManageChannels],
 

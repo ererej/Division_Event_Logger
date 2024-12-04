@@ -2,13 +2,43 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Op } = require('sequelize');
 const { Client, codeBlock, Collection, Events, GatewayIntentBits, ActivityType } = require('discord.js');
-const { token } = require('./config.json');
-const { Users, CurrencyShop } = require('./dbObjects.js');
+const config = require('./config.json');
+const token = config.token;
+const noblox = require('noblox.js');
+
+async function setCookieWithTimeout(cookie, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject(new Error('ETIMEDOUT'));
+        }, timeout);
+
+        noblox.setCookie(cookie)
+            .then((result) => {
+                clearTimeout(timer);
+                resolve(result);
+            })
+            .catch((error) => {
+                clearTimeout(timer);
+                reject(error);
+            });
+    });
+}
+
+async function initializeNoblox() {
+    try {
+        await setCookieWithTimeout(config.sessionCookie, 30000); // Set timeout to 30 seconds
+        console.log('Successfully set cookie');
+    } catch (error) {
+        console.error('Failed to set cookie:', error);
+        process.exit(1); // Exit the process if setting the cookie fails
+    }
+}
+
+initializeNoblox().then(() => {
 
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates ] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
  
-
 
 
 client.commands = new Collection();
@@ -39,8 +69,22 @@ for (const file of eventFiles) {
 	if (event.once) {
 		client.once(event.name, (...args) => event.execute(...args));
 	} else {
-		client.on(event.name, (...args) => event.execute(...args));
+		client.on(event.name, async (...args) => {
+            const testServer = client.guilds.cache.find(guild => guild.id === "831851819457052692");
+            if (testServer && event.name != "interactionCreate") {
+                const logsChannel = testServer.channels.cache.get("1313126303775457320");
+                if (logsChannel) {
+                    let time = new Date();
+                    time = new Date(time.getTime() + (config.host === "Laptop" ? 0 : 1) * 3600000)
+                    const timestamp = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] "; 
+
+                    await logsChannel.send(timestamp + `${event.name} got triggered. Args:\n${args.join(", ")}`);
+                }
+            }
+            event.execute(...args);
+        });
 	}
 }
 
 client.login(token);
+})

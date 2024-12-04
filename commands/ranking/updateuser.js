@@ -3,7 +3,6 @@ const db = require("../../dbObjects.js");
 const testers = require("../../tester_servers.json");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
-noblox.setCookie(config.sessionCookie)
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -38,7 +37,7 @@ module.exports = {
         if (!user) {
             user = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
-        const responce = await user.updateRank(noblox, groupId, member)
+        const responce = ( await user.updateRank(noblox, groupId, member) ).message
         if (user.rank_id === null) {
             user.destroy()
         }

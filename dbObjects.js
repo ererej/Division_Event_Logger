@@ -81,10 +81,10 @@ Reflect.defineProperty(Users.prototype, 'getRank', {
 });
 
 Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
-	value: async function(noblox, groupId, MEMBER, ranks, promotions ) {
+	value: async function(noblox, groupId, MEMBER, ranks, promotions, robloxUser) {
 		let rank = await this.getRank()
 		if (!rank) {
-			return "Error: User's rank was not found in the database!"
+			return { message: "Error: User's rank was not found in the database!", error: true}
 		}
 		ranks = ranks.sort((a, b) => a.rank_index - b.rank_index)
 
@@ -92,34 +92,41 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		let responce = "";
 		let showPromoPoints = true;
 		let nextRank;
-		while (promotions > 0) {
+
+		ranks.some(function(tempRank, i) {
+			if (tempRank.id == rank.id) {
+				rankIndexInRanks = i;
+				return true;
+			}
+		});
+		const RankIndexInRanksBefore = rankIndexInRanks
+
+		this.promo_points += promotions
+
+		while (true) {
 			rank = await this.getRank()
-			this.promo_points += 1
-			promotions -= 1
+
 			showPromoPoints = true
-			let rankIndexInRanks;
-			ranks.some(function(tempRank, i) {
-				if (tempRank.id == rank.id) {
-					rankIndexInRanks = i;
-					return true;
-				}
-			});
+			
 			nextRank = ranks[rankIndexInRanks + 1]
 			if (nextRank) {
 				if (nextRank.obtainable === false) {
-					return responce + "Can not be promoted with promo points!"
+					return { message: responce + "Can not be promoted with promo points!", error: true, robloxUser: robloxUser }
 				}
 				if (this.promo_points >=  nextRank.promo_points) {
 
-					responce += await this.setRank(noblox, groupId, MEMBER, nextRank ).catch((err) => {
+					const setRankResult = await this.setRank(noblox, groupId, MEMBER, nextRank, robloxUser).catch((err) => {
 						console.log(err)
-						return `Error: An error occured while trying to promote the user!	The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`
-					})
+						return { message: `Error: An error occured while trying to promote the user! The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`, error: true, robloxUser: robloxUser }
+					});
+					robloxUser = setRankResult.robloxUser
+					responce += setRankResult.message;
 					this.promo_points -= nextRank.promo_points
 					responce += "\n"
 					showPromoPoints = false
 				} else {
-					continue
+					showPromoPoints = true
+					break
 				}
 			} else {
 				responce += "Has reached the highest rank!\n"
@@ -128,9 +135,10 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		}
 		this.save()
 		if (showPromoPoints) {
-			responce += `promo points increased from ***${promo_points_before}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}*!`
+			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
+			responce += `promo points went from ***${promo_points_before}**/${rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? nextRank.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}*!`
 		}
-		return responce
+		return { message: responce, robloxUser: robloxUser }
 	}
 });
 
@@ -156,71 +164,109 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 		});
 		const RankIndexInRanksBefore = rankIndexInRanks
 
+
 		while (demotions > 0) {
 			rank = await this.getRank()
-			this.promo_points -= 1
-			demotions -= 1
-			showPromoPoints = true
-			if (this.promo_points === -1) {
 
+			showPromoPoints = true
+			if (demotions > this.promo_points) {
+				demotions -= this.promo_points + 1
 				nextRank = ranks[rankIndexInRanks - 1]
 				if (nextRank) {
 					if (nextRank.obtainable === false) {
-						return responce + "Can not be demoted with promo points!"
+						return { message: responce + "Can not be demoted with promo points!", error: true }
 					}
 					if (rank.promo_points > 0) {
 						this.promo_points = rank.promo_points - 1
 					} else {
 						this.promo_points = 0
 					}
-					responce += await this.setRank(noblox, groupId, MEMBER, nextRank ).catch((err) => {
+					const setRankResult = await this.setRank(noblox, groupId, MEMBER, nextRank ).catch((err) => {
 						console.log(err)
-						return `Error: An error occured while trying to demote the user!	The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`
+						return { message: `Error: An error occured while trying to demote the user!	The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`, error: true }
 					})
+					robloxUser = setRankResult.robloxUser
+					responce += setRankResult.message + (this.promo_points != 0 ? ` and (**${this.promo_points}**/${rank.promo_points}) promo points` : "")
 					showPromoPoints = false
 					rankIndexInRanks -= 1
 					responce += "\n"
 				} else {
 					responce += "Has reached the lowest rank!"
+					this.promo_points = 0
+					demotions = 0
 					break
 				}
+			} else {
+				console.log(this.promo_points)
+				this.promo_points -= demotions
+				showPromoPoints = true
+				demotions = 0
 			}
 		}
 		this.save()
 		if (showPromoPoints) {
 			const rankAbove = ranks[rankIndexInRanks + 1]
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
-			responce += (responce ?? "\n") + `promo points decreased from ***${promo_points_before}**/${!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞"}* to ***${this.promo_points}**/${!rankAbove.is_officer ? rankAbove.promo_points: "∞"}*!`
+			responce += (responce ? "\n" : "") + `promo points went from ***${promo_points_before}**/${rankAboveBefore != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${rankAbove != "∞" ? (!rankAbove.is_officer ? rankAbove.promo_points: "∞") : "∞"}*!`
 		}
-		return responce	
+		return { message: responce, robloxUser: robloxUser }
 	}
 });
 
 
 Reflect.defineProperty(Users.prototype, 'setRank', {
-	value: async function(noblox, groupId, MEMBER, rank) {
-		let robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
-			headers: {
-			'Authorization': `Bearer ${config.roverkey}`
+	value: async function(noblox, groupId, MEMBER, rank, robloxUser) {
+		if (!robloxUser) {
+			robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
+				headers: {
+				'Authorization': `Bearer ${config.roverkey}`
+				}
+			})
+		
+			if (!(robloxUser.status + "").startsWith("2")) {
+				if (robloxUser.status === 404) {
+					return { message: `<@${this.user_id}> needs to verify using rover!`, error: true}
+				}
+				console.log(robloxUser)
+				return { message: `Error: An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`, error: true}
 			}
-		})
-		if (!(robloxUser.status + "").startsWith("2")) {
-			if (robloxUser.status === 404) {
-				return `<@${this.user_id}> needs to verify using rover!`;
-			}
-			console.log(robloxUser)
-			return `Error: An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`;
+			robloxUser = await robloxUser.json()
 		}
-		robloxUser = await robloxUser.json()
+		let smallError = ""
 
 		await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
-			console.log(err)
-			return `Error: An error occured while trying to update the users's roblox rank! Error: ${err}`
+			switch (err.code) {
+				case 400: //the user already had the target rank in the roblox group
+					console.log("invalid roblox rank")
+					break
+				case 403:	//the bot does not have permissions to change the rank
+					console.log("missing permissions in roblox group")
+					smallError += `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${member.id}> and the roblox rank will be fixed!`
+					break;
+				default:
+					console.log(err)
+					return { message: `Error: An error occured while trying to update the users's roblox rank! Error: ${err}`, error: true, robloxUser: robloxUser }
+			}
 		})
+		
 		const oldRank = this.rank_id
 		//add a check to see if the bot has perms to change the rank
-		MEMBER.roles.remove(oldRank)
-		MEMBER.roles.add(rank.id)
+		MEMBER.roles.remove(oldRank).catch(err => {
+			if (err.message === "Unknown Role") {
+				smallError += `Error: Missing role. ${MEMBER} got promoted from a rank whos role seems to have been deleted! The missing role might lead to a lot of problems, please contact Ererej(The developer of this bot) for help!`
+			} else {
+			console.log(err)
+			return { message: `Error: An error occured while trying to update the users's discord rank! (The Roblox rank was still updated) Error: ${err}`, error: true, robloxUser: robloxUser }
+			}
+		})
+		MEMBER.roles.add(rank.id).catch(err => {
+            if (err.message === "Unknown Role") {
+                smallError += `Error: Missing role. ${MEMBER} got promoted to a rank whos role seems to have been deleted! The missing role might lead to a lot of problems(the roblox rank and database was still updated), please contact Ererej(The developer of this bot) for help!`
+            } else {
+			console.log(err)
+			return { message: `Error: An error occured while trying to update the users's discord rank! (The Roblox rank was still updated) Error: ${err}`, error: true, robloxUser: robloxUser }
+			}
+		})
 		if (rank.tag) {
 			MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 		}
@@ -233,7 +279,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			Officers.update({ retired: new Date() }, { where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })
 		}
 		this.save()
-		return `Promoted from <@&${oldRank}> to <@&${rank.id}>`
+		return { message: `Promoted from <@&${oldRank}> to <@&${rank.id}> ` + (smallError ? smallError : ""), robloxUser: robloxUser }
 	}
 });
 
@@ -245,19 +291,21 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 	 * @param {object} MEMBER 
 	 * @returns 
 	 */
-	value: async function(noblox, groupId, MEMBER /* guildmember */ ) {
+	value: async function(noblox, groupId, MEMBER /* guildmember */, robloxUser ) {
 		//find the users roblox account
-		let robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
-			headers: {
-			'Authorization': `Bearer ${config.roverkey}`
-			}
-		})
+		if (!robloxUser) {
+			robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
+				headers: {
+				'Authorization': `Bearer ${config.roverkey}`
+				}
+			})
+		}
 		if (!(robloxUser.status + "").startsWith("2")) {
 			if (robloxUser.status === 404) {
 				return `Error: needs to verify using rover!`;
 			}
 			console.log(robloxUser)
-			return `Error: An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`;
+			return { message: `Error: An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`, error: true}
 		}
 		robloxUser = await robloxUser.json()
 		// find rank from database
@@ -265,11 +313,11 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		const ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
 		const robloxGroup = (await noblox.getGroups(robloxUser.robloxId)).find(group => group.Id === groupId)
 		if (!robloxGroup) {
-			return `Error: is not in the group!`
+			return { message:`Error: is not in the group!`, error: true, robloxUser: robloxUser }
 		}
 		const rankFromRoblox = ranks.find(rank => rank.roblox_id == robloxGroup.RoleId)
 		if (!rankFromRoblox) {
-			return `Error: The roblox rank ${robloxGroup.Role} is not linked! please get a admin to link it using /addrank!`
+			return { message: `Error: The roblox rank ${robloxGroup.Role} is not linked! please get a admin to link it using /addrank!`, error: true, robloxUser: robloxUser }
 		}
 
 		if (!dbRank) {
@@ -290,17 +338,17 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				this.promo_points = 0
 				this.save()
 				MEMBER.roles.add(this.rank_id)
-				return `added to the database with the rank <@&${this.rank_id}> (taken from roblox group rank)`
+				return { message: `added to the database with the rank <@&${this.rank_id}> (taken from roblox group rank)`, robloxUser: robloxUser }
 			}
 			this.rank_id = highestRank.id
 			this.save()
 			if (highestRank.roblox_id != rankFromRoblox.roblox_id) {
 				await noblox.setRank(groupId, robloxUser.robloxId, Number(highestRank.roblox_id)).catch((err) => {
 					console.log(err)
-					return `Error: An error occured while trying to update the users's roblox rank! try again later!`
+					return { message: `Error: An error occured while trying to update the users's roblox rank! try again later!`, error: true, robloxUser: robloxUser }
 				})
 			}
-			return `added to the database with the rank <@&${this.rank_id}> (taken from discord roles)>`
+			return { message: `added to the database with the rank <@&${this.rank_id}> (taken from discord roles)>`, robloxUser: robloxUser }
 		}
 		//if the roblox rank is incorrect
 		if (dbRank.roblox_id != rankFromRoblox.roblox_id) {
@@ -321,14 +369,14 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				if (rank.roblox_id != rankFromRoblox.roblox_id) {
 					await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
 						console.log(err)
-						return `Error: An error occured while trying to update the users's roblox rank! try again later!`
+						return { message: `Error: An error occured while trying to update the users's roblox rank! try again later!`, error: true, robloxUser: robloxUser }
 					})
-					return `Updated roblox and database rank to <@&${rank.id}> (taken from discord roles)`
+					return { message: `Updated roblox and database rank to <@&${rank.id}> (taken from discord roles)`, robloxUser: robloxUser }
 				}
-				return `Updated database rank to <@&${rank.id}> (taken from discord roles)`
+				return { message: `Updated database rank to <@&${rank.id}> (taken from discord roles)`, robloxUser: robloxUser }
 			}
 			
-			return `Updated roblox rank to <@&${dbRank.id}> (taken from database)`
+			return { message: `Updated roblox rank to <@&${dbRank.id}> (taken from database)`, robloxUser: robloxUser }
 		} 
 
 		if (!MEMBER.roles.cache.some(role => role.id === dbRank.id)) {
@@ -348,17 +396,17 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				const rank = await this.getRank()
 				await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
 					console.log(err)
-					return `Error: An error occured while trying to update the users's roblox rank! try again later!`
+					return { message: `Error: An error occured while trying to update the users's roblox rank! try again later!`, error: true, robloxUser: robloxUser }
 				})
 				if (rank.tag) {
 					MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 				}
-				return `Updated database and roblox rank to <@&${highestRank.id}> (taken from discord roles)`
+				return { message: `Updated database and roblox rank to <@&${highestRank.id}> (taken from discord roles)`, robloxUser: robloxUser }
 			}
 			if (dbRank.tag) {
 				MEMBER.setNickname(dbRank.tag + " " + robloxUser.cachedUsername)
 			}
-			return `Updated discord rank to <@&${this.rank_id}> (taken from database)`
+			return { message: `Updated discord rank to <@&${this.rank_id}> (taken from database)`, robloxUser: robloxUser }
 		}
 
 		//TEMPORARY REMOVE WHEN function uses User.prototype.setRank()
@@ -370,7 +418,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 			Officers.update({ retired: new Date() }, { where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })
 		}
 
-		return 
+		return { robloxUser: robloxUser }
 	}
 });
 

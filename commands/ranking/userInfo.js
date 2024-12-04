@@ -27,19 +27,21 @@ module.exports = {
             }
             
             const embeded = new EmbedBuilder().setColor([0,255,0])
-            embeded.setTitle(`${user.username}'s information`)
-            embeded.addFields({name: "User id", value: `${user.id}`})
-            embeded.addFields({name: "User rank", value: `<@&${user_info.rank_id}>`})
-            embeded.addFields({name: "Promotion points", value: `${user_info.promo_points}`})
-            embeded.addFields({name: "Total events attended", value: `${user_info.total_events_attended}`})
+            let description = ""
+            description += `${user}'s information\n`
+            description += `**User id**\n${user.id}\n`
+            description += `**User rank**\n<@&${user_info.rank_id}>\n`
+            description += `**Promotion points**\n${user_info.promo_points}\n`
+            description += `**Total events attended**\n${user_info.total_events_attended}\n`
             if (user_info.recruted_by) {
-                embeded.addFields({name: "Recruited by", value: `<@${user_info.recruted_by}>`})
+                description += "**Recruited by**\n" +`<@${user_info.recruted_by}>\n`
             } else {
-                embeded.addFields({name: "Recruited by", value: "<@386838167506124800> trust me bro!"})
+                description += "**Recruited by**\n" + "<@386838167506124800> trust me bro!\n"
             }
-            embeded.addFields({name: "Officer", value: `${(await user_info.getRank()).is_officer}`})
+            description += "**Officer**\n" + `${(await user_info.getRank()).is_officer}\n`
             //when the officer table is added make it dispay info about officers if the user is an officer
 
+            embeded.setDescription(description)
             interaction.editReply({ embeds: [embeded]})
         } catch (error) {
             console.error(error)
