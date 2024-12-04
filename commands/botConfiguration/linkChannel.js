@@ -4,8 +4,13 @@ const PublicGoogleSheetsParser = require('public-google-sheets-parser')
 const spreadsheetId = '1sQIT3aOs1dWB9-f8cbsYe7MnSRfCfLRgMDSuE5b3w1I'
 const options = { useFormat: true }
 const parser = new PublicGoogleSheetsParser(spreadsheetId, options)
-const updateExp = require('../../updateExp.js')
 const noblox = require("noblox.js");
+
+const getExp = require('../../functions/getExp.js');
+const updateExp = require('../../functions/updateExp.js');
+const updateGroupMemberCount = require('../../functions/updateGroupMemberCount.js');
+const updateGuildMemberCount = require('../../functions/updateGuildMemberCount.js');
+
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -100,42 +105,26 @@ module.exports = {
             }
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString)] })
         } else if (interaction.options.getString('linktype') == "expdisplay") {
-            const dbChannel = await db.Channels.create({ channel_id: interaction.options.getChannel('channel').id, guild_id: interaction.guild.id, type: 'expdisplay' })
+            const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: 'expdisplay' })
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-            const division_name = server ? server.name : interaction.guild.name
-            const sheetData = await parser.parse()
-
-            const firstColumnName = Object.keys(sheetData[0])[0]
-            const row = sheetData.find(row => row[firstColumnName] === division_name)
-            if (!row) {
-                if (sheetData[0][firstColumnName]) {
-                    return await interaction.editReply({ content: `could not locate the division: ${division_name} in the officer tracker!`, ephemeral: true})
-                } 
-            }
-            const exp = row.EXP.slice(10).trim()
-            if (!exp) return await interaction.editReply({ content: `<#${dbChannel.channel_id}> was made the EXP DISPLAY channel but there was an error while fetching the exp! This is mostlikely due to your divisions name not being the same as your discord servers name. But it can also be due to your division needing to be in the officer tracker for this to work.`, ephemeral: true })
-            if (!server) return await interaction.editReply({ content: 'This server is not registered in the database! Please ask an admin to register it using </setup:1217778156300275772>'});
+            const exp = await getExp(interaction, server)
+            if (typeof exp === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  exp).setColor([255, 0, 0])] })
             server.exp = exp
-            server.save()
-            updateExp(db, server, interaction)
+            const responce = await updateExp(db, server, interaction)
+            if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  responce).setColor([255, 0, 0])]})
+
+                
             return await interaction.editReply(replyString + `EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
         } else if (interaction.options.getString('linktype') == "guildMemberCount") {
-            const guild = interaction.guild
-            const rounding = await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ? parseInt( (await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } })).config) : 1
-            console.log(rounding)
-            interaction.guild.channels.cache.get(channel.id).setName(`Member Count: ${Math.floor(interaction.guild.memberCount / rounding) * rounding}`)
+            await updateGuildMemberCount({guild: interaction.guild, db: db, channel: channel})
+
+
         } else if (interaction.options.getString('linktype') == "robloxGroupCount") {
-            const guild = interaction.guild
-            const rounding = db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ? parseInt( await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }).config) : 1
-            db.Servers.findOne({where: {guild_id: guild.id}}).then(server => {
-                if (server) {
-                    replyString += "fetching the group member count might take a copule of seconds be patient! but "
-                    noblox.getGroup(server.group_id).then(group => {
-                        guild.channels.cache.get(channel.id).setName(`Members in group: ${Math.floor(group.memberCount / rounding) * rounding}`)
-                    })
-                } else {
-                    guild.channels.cache.get(channel.id).setName(`group not linked. please link a group with /setup`)
-                }
+            await updateGroupMemberCount({noblox: noblox, guild: interaction.guild, db: db, channel: channel}).then((success) => {
+                if (success === false) return interaction.editReply({ embeds: [embeded_error.setDescription("Failed to make the roblox group count display!")] })
+            }).catch(err => {
+                console.error(err)
+                return interaction.editReply({ embeds: [embeded_error.setDescription("Failed to make the roblox group count display!")] })
             })
         }
         db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })

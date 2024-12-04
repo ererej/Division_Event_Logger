@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField } = require('discord.js');
 const db = require('../../dbObjects.js')
-const updateExp = require('../../updateExp.js');
+const updateExp = require('../../functions/updateExp.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -25,7 +25,10 @@ module.exports = {
         
         server.exp += interaction.options.getInteger('exp_to_add')
         server.save()
-        updateExp(db, server, interaction)
+        const responce = updateExp(db, server, interaction)
+        if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor([255, 0, 0])] })
+
+        
         interaction.editReply({ embeds: [ new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully added ${interaction.options.getInteger('exp_to_add')} to the exp!`)]})
     }
 }

@@ -15,7 +15,20 @@ const Ranks = require('./models/Ranks.js')(sequelize, Sequelize.DataTypes);
 const Channels = require('./models/Channels.js')(sequelize, Sequelize.DataTypes);
 const Settings = require('./models/Settings.js')(sequelize, Sequelize.DataTypes);
 const Events = require('./models/Events.js')(sequelize, Sequelize.DataTypes);
+const Officers = require('./models/Officers.js')(sequelize, Sequelize.DataTypes);
 
+// Assign models to sequelize.models
+const models = { sequelize, Users, Officers, Servers, Ranks, Channels, Settings, Events };
+
+// Manually call associate for each model (in case of circular dependencies)
+Object.values(models).forEach((model) => {
+    if (typeof model.associate === 'function') {
+        model.associate(models);
+    }
+});
+
+// Users.hasMany(Officers, { foreignKey: 'user_id', sourceKey: 'user_id', as: 'officers' });
+// Officers.belongsTo(Users, { foreignKey: 'user_id', targetKey: 'user_id', as: 'user', include: [{ model: Users, where: { guild_id: Sequelize.col('Officers.guild_id') } }] });
 
 
 //Ranks.belongsTo(Servers, {foreignKey: 'guild_id', as: 'ranks'});
@@ -212,8 +225,12 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 		}
 		this.rank_id = rank.id
-		if (rank.is_officer && !this.became_officer) {
-			this.became_officer = new Date()
+		if (rank.is_officer ) {
+			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
+				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
+			}
+		} else if (await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } })) {
+			Officers.update({ retired: new Date() }, { where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })
 		}
 		this.save()
 		return `Promoted from <@&${oldRank}> to <@&${rank.id}>`
@@ -344,9 +361,18 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 			return `Updated discord rank to <@&${this.rank_id}> (taken from database)`
 		}
 
+		//TEMPORARY REMOVE WHEN function uses User.prototype.setRank()
+		if (dbRank.is_officer === true) {
+			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
+				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
+			}
+		} else if (await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } })) {
+			Officers.update({ retired: new Date() }, { where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })
+		}
+
 		return 
 	}
 });
 
 
-module.exports = { Users, Channels, Servers, Ranks, Settings, Events};
+module.exports = models;

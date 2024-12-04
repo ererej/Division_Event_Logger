@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField } = require('discord.js');
 const db = require('../../dbObjects.js')
-const updateExp = require('../../updateExp.js');
-const { col } = require('sequelize');
+const updateExp = require('../../functions/updateExp.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -28,7 +27,11 @@ module.exports = {
         
         server.exp = interaction.options.getInteger('amount')
         server.save()
-        updateExp(db, server, interaction)
+        const responce = updateExp(db, server, interaction)
+        if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor([255, 0, 0])] })
+
+
+            
         interaction.editReply({ embeds: [ new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully updated the exp in the database and expdisplay to be: ${interaction.options.getInteger('amount')}EXP!`)]})
     }
 }

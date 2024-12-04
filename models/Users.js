@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-	const User = sequelize.define('users', {
+	const Users = sequelize.define('users', {
 		user_id: {
 			type: DataTypes.STRING,
 		},
@@ -23,10 +23,28 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.STRING,
 			defaultValue: '',
 		},
-		became_officer: {
-			type: DataTypes.DATE,
-			allowNull: true
+		Cohosts: {
+			type: DataTypes.INTEGER,
+			defaultValue: 0,
+		},
+		recruits: {
+			type: DataTypes.INTEGER,
+			defaultValue: 0,
+		},
+		officer: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false,
 		},
 	});
-	return User
+	Users.associate = (models) => {
+        // Define one-to-many relationship (a user can have multiple officers)
+        Users.hasMany(models.Officers, {
+            foreignKey: 'user_id', // Key in `Officers` table that references `Users`
+            sourceKey: 'user_id',
+            as: 'officers', // Alias to access related officers
+        });
+    };
+	
+
+	return Users
 };

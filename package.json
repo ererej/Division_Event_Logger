@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.7.5",
+    "chartjs-node-canvas": "^4.1.6",
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
     "mysql2": "^3.11.0",
@@ -22,4 +23,3 @@
     "sequelize-cli": "^6.6.2"
   }
 }
-

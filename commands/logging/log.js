@@ -156,12 +156,12 @@ module.exports = {
 
         let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
         guild_ranks = guild_ranks.sort((a, b) => {a.rank_index - b.rank_index})
-        let mentions = `<@${host.id}> ${cohost ? `<@${cohost.id}> ` : ""}`
+        let mentions = `<@${host.id}> `
 
         let dbAttendees = []
 
         for (const member of voice_channel.members.values()) {
-            if (!member.user.bot && host.id != member.user.id && ((cohost ? cohost : null) != member.user.id)) {
+            if (!member.user.bot && host.id != member.user.id) {
             mentions += `<@${member.id}> `
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)]})
             description += `\n\n <@${member.id}>: `;
