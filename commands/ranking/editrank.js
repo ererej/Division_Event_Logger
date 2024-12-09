@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors } = requi
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
+const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -89,7 +90,9 @@ module.exports = {
             dbRank.obtainable = interaction.options.getBoolean('obtainable')
         }
         dbRank.save()
+        
+        const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
 
-        return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription(`The rank <@&${dbRank.id}> has been updated! ${robloxRank ? `\nThe rank was linked to the roblox rank: ${robloxRank.name}` : ''} ${interaction.options.getInteger('promo_points') ? `\nThe promo points required got updated to: ${dbRank.promo_points}` : ''} ${interaction.options.getBoolean('officer') != undefined ? `\nIf the rank is an officer rank was updated to: ${dbRank.is_officer}` : ''} ${interaction.options.getBoolean("obtainable") != undefined ? `\nObtainable was updated to: ${interaction.options.getBoolean("obtainable")}` : ""} ${interaction.options.getString("tag") ? "The tag was updated to: " + interaction.options.getString("tag") : ""}`)] } )
+        return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription(`The rank <@&${dbRank.id}> has been updated! ${robloxRank ? `\nThe rank was linked to the roblox rank: ${robloxRank.name}` : ''} ${interaction.options.getInteger('promo_points') ? `\nThe ${nameOfPromoPoints} required got updated to: ${dbRank.promo_points}` : ''} ${interaction.options.getBoolean('officer') != undefined ? `\nIf the rank is an officer rank was updated to: ${dbRank.is_officer}` : ''} ${interaction.options.getBoolean("obtainable") != undefined ? `\nObtainable was updated to: ${interaction.options.getBoolean("obtainable")}` : ""} ${interaction.options.getString("tag") ? "The tag was updated to: " + interaction.options.getString("tag") : ""}`)] } )
     }
 };

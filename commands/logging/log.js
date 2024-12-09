@@ -6,6 +6,7 @@ const config = require('../../config.json')
 
 const sealog = require('../../functions/sealog.js')
 const validateMessageLink = require('../../functions/validateMessageLink.js')
+const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -43,6 +44,7 @@ module.exports = {
      * @param {import('discord.js').CommandInteraction} interaction
     */
 	async execute(interaction) {
+        const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
         await interaction.deferReply()
 
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
@@ -137,8 +139,7 @@ module.exports = {
         const time = announcmentMessage.createdAt
         const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
-        let event_type = "event"
-        let logChannelLink = ""
+        let eventType = "event"
 
 
         if (interaction.options.getString('event_type')) {
@@ -181,14 +182,6 @@ module.exports = {
         }
 
 
-        if (interaction.options.getString('event_type')) {
-            eventType = interaction.options.getString('event_type')
-        } else if (voice_channel.id !== undefined) {    
-            dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, id: voice_channel.id}})
-            if (dbChannel) {
-                eventType = dbChannel.type
-            }
-        } 
 
         const event_log_embed = new EmbedBuilder().setColor([254, 1, 177])
         event_log_embed.setTitle(eventType.charAt(0).toUpperCase() + eventType.slice(1)).setThumbnail(wedge_picture.url)
@@ -197,7 +190,7 @@ module.exports = {
             description+=`*Cohost:* <@${cohost.id}>\n`
         }
         description+=`**Attendees:** `
-        let attendees = [], officers = []
+        let officers = []
         let total_attendes = 0, total_officers = 0
 
         let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
@@ -207,7 +200,8 @@ module.exports = {
         let dbAttendees = []
 
         for (const member of attendees) {
-            if (!member.user.bot && host.id != member.user.id ) {
+            if (member.user.bot || host.id === member.user.id ) continue;
+            total_attendes++
             mentions += `<@${member.id}> `
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("prossesing " + member.displayName)], components: []})
             description += `\n\n <@${member.id}>: `;
@@ -221,14 +215,13 @@ module.exports = {
             const updateRankResponse = await dbUser.updateRank(noblox, server.group_id, member);
             if (dbUser.rank_id === null) {
                 dbUser.destroy()
-                description += updateRankResponse
+                description += updateRankResponse.message
                 continue;
             }
 
             dbAttendees.push(dbUser)
 
             attendees.push(member.id)
-            total_attendes++
             const rank = await dbUser.getRank()
             if (rank.is_officer) {
                 officers.push(member.id)
@@ -246,18 +239,28 @@ module.exports = {
             }
             dbUser.total_events_attended += 1
             const robloxUser = updateRankResponse.robloxUser
-            const addPromoPointResponce = (eventType !== 'gamenight') ? await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, 1, robloxUser) : {message: "Thanks for attending! Gamenights do not give promo points sorry!"}
+            const addPromoPointResponce = (eventType !== 'gamenight') ? await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, 1, robloxUser) : {message: `Thanks for attending! Gamenights do not give ${nameOfPromoPoints} sorry!`}
             if (addPromoPointResponce && updateRankResponse.message) { description += "\n" }
             description += addPromoPointResponce.message
             dbUser.save()
-            }
+            
         }
+
+        if (total_attendes === 0) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
+        }
+
+        const dbEvent = await db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendees.toString(), amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers})
+
+        dbAttendees.forEach(async dbUser => {
+            dbUser.events = dbUser.events ? dbUser.events + "," + dbEvent.id : "" + dbEvent.id
+            dbUser.save()
+        })
+
 
         interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Event has been logged to database").setColor([255, 255, 0])], components: []})
 
-        if (total_event_attendes === 0) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
-        }
+
 
         event_log_embed.setDescription(description)
         event_log_embed.setFooter({ text: `Total attendees: ${total_attendes}`})
@@ -275,7 +278,7 @@ module.exports = {
         //SEA Format
         let responce;
         if (["training", "patrol", "tryout"].includes(eventType)) {
-            responce = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_event_attendes)
+            responce = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes)
         }
         if (!responce) {
             return 

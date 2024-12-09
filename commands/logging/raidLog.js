@@ -2,7 +2,8 @@ const { Colors, ActionRowBuilder, UserSelectMenuBuilder, ButtonBuilder, ButtonSt
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
-const testers = require("../../tester_servers.json")
+const testers = require("../../tester_servers.json");
+const getNameOfPromoPoints = require('../../functions/getNameOfPromoPoints.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -126,8 +127,8 @@ module.exports = {
             embedReply.setDescription(`format succesfully logged! https://discord.com/channels/${logMessage.guild.id}/${logMessage.channel.id}/${logMessage.id}`)
             return interaction.editReply({embeds: [embedReply]})
         }
-
-        embedReply.setDescription(`format succesfully logged! https://discord.com/channels/${logMessage.guild.id}/${logMessage.channel.id}/${logMessage.id} \n\n do you want to give the attendees promo points?`)
+        const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
+        embedReply.setDescription(`format succesfully logged! https://discord.com/channels/${logMessage.guild.id}/${logMessage.channel.id}/${logMessage.id} \n\n do you want to give the attendees ${nameOfPromoPoints}?`)
         
 
         const promoteAttendeesButton = new ButtonBuilder()

@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const db = require("../../dbObjects.js")
 const noblox = require("noblox.js")
 const config = require('../../config.json')
+const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -9,6 +10,7 @@ module.exports = {
         .setDescription('lists all the linked ranks!'),
 
     async execute(interaction) {
+        const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
         await interaction.deferReply()
         const rankList = new EmbedBuilder()
         .setTitle('Linked ranks:')
@@ -32,7 +34,7 @@ module.exports = {
             const discordRole = interaction.guild.roles.cache.get(rank.id)
             const robloxRank = await noblox.getRole(server.group_id, parseInt(rank.roblox_id)).catch(() => { return { name: "not found" } })
             const userCount = await db.Users.count({ where: { rank_id: rank.id } })
-            const rankInfo = `# <@&${discordRole.id}> \n*Users with rank: ${userCount} (${Math.round(userCount/totalUsers*100)}%)* \npromo points required:  ${rank.promo_points} \nindex:  ${rank.rank_index}\nID: ${rank.id}\nLinked Roblox rank: ${robloxRank.name}\nRoblox ID: ${rank.roblox_id}\nTag: ${rank.tag ? rank.tag : "none"}\nOfficer: ${rank.is_officer}\nObtainable: ${rank.obtainable}\n\n`
+            const rankInfo = `# <@&${discordRole.id}> \n*Users with rank: ${userCount} (${Math.round(userCount/totalUsers*100)}%)* \n${nameOfPromoPoints} required:  ${rank.promo_points} \nindex:  ${rank.rank_index}\nID: ${rank.id}\nLinked Roblox rank: ${robloxRank.name}\nRoblox ID: ${rank.roblox_id}\nTag: ${rank.tag ? rank.tag : "none"}\nOfficer: ${rank.is_officer}\nObtainable: ${rank.obtainable}\n\n`
             if (description.length + rankInfo.length > 4096) {
                 rankList.setDescription(description)
                 if (!oneEmbedSent) {

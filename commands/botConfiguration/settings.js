@@ -93,6 +93,17 @@ module.exports = {
                             { name: 'normal', value: 'normal'}
                         )
                 )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('nameofpromopoints')
+                .setDescription('determens the name of promo points so that you can name them stuff like "exp" or "points"')
+                .addStringOption(option =>
+                    option.setName('name')
+                        .setDescription('enter what you want the promo points to be called')
+                        .setRequired(true)
+                        .setMaxLength(50)
+                )
         ),
         botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages, PermissionsBitField.Flags.ManageChannels],
         async execute(interaction) {
@@ -201,6 +212,15 @@ module.exports = {
                     } else {
                         return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the sea log to be normal`) ] })
                     }
+                case 'nameofpromopoints':
+                    const name = interaction.options.getString('name')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "nameofpromopoints" } })
+                    if (setting) {
+                        await setting.update({ config: name })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: "nameofpromopoints", config: name })
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the name of the promo points to **${name}**`) ] })
             }
         }
 

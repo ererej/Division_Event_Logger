@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
+const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,6 +15,7 @@ module.exports = {
     testerLock: true,
 
     async execute(interaction) {
+        const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
         try {
             await interaction.deferReply()
             const user = interaction.options.getUser('user')
@@ -31,7 +33,7 @@ module.exports = {
             description += `${user}'s information\n`
             description += `**User id**\n${user.id}\n`
             description += `**User rank**\n<@&${user_info.rank_id}>\n`
-            description += `**Promotion points**\n${user_info.promo_points}\n`
+            description += `**${nameOfPromoPoints}**\n${user_info.promo_points}\n`
             description += `**Total events attended**\n${user_info.total_events_attended}\n`
             if (user_info.recruted_by) {
                 description += "**Recruited by**\n" +`<@${user_info.recruted_by}>\n`

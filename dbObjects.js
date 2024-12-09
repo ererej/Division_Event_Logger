@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize');
 const config = require('./config.json');
 const dbcredentoiols = process.argv.includes("--productiondb") ? config.productionDb : config.db;
+const getNameOfPromoPoints = require("./functions/getNameOfPromoPoints.js")
 
 console.log("Connecting to database: " + dbcredentoiols.database)
 const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
@@ -82,6 +83,7 @@ Reflect.defineProperty(Users.prototype, 'getRank', {
 
 Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 	value: async function(noblox, groupId, MEMBER, ranks, promotions, robloxUser) {
+		const nameOfPromoPoints = await getNameOfPromoPoints(undefined, MEMBER.guild.id, Settings)
 		let rank = await this.getRank()
 		if (!rank) {
 			return { message: "Error: User's rank was not found in the database!", error: true}
@@ -111,13 +113,13 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 			nextRank = ranks[rankIndexInRanks + 1]
 			if (nextRank) {
 				if (nextRank.obtainable === false) {
-					return { message: responce + "Can not be promoted with promo points!", error: true, robloxUser: robloxUser }
+					return { message: responce + "Can not be promoted with " + nameOfPromoPoints + "!", error: true, robloxUser: robloxUser }
 				}
 				if (this.promo_points >=  nextRank.promo_points) {
 
 					const setRankResult = await this.setRank(noblox, groupId, MEMBER, nextRank, robloxUser).catch((err) => {
 						console.log(err)
-						return { message: `Error: An error occured while trying to promote the user! The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`, error: true, robloxUser: robloxUser }
+						return { message: `Error: An error occured while trying to promote the user! The user ended up with ${this.promo_points} ${nameOfPromoPoints} and the rank <@&${rank.id}>!`, error: true, robloxUser: robloxUser }
 					});
 					robloxUser = setRankResult.robloxUser
 					responce += setRankResult.message;
@@ -136,7 +138,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		this.save()
 		if (showPromoPoints) {
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
-			responce += `promo points went from ***${promo_points_before}**/${rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? nextRank.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}*!`
+			responce += `${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? nextRank.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}*!`
 		}
 		return { message: responce, robloxUser: robloxUser }
 	}
@@ -144,6 +146,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 
 Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 	value: async function(noblox, groupId, MEMBER, ranks, demotions) {
+		const nameOfPromoPoints = await getNameOfPromoPoints(undefined, MEMBER.guild.id, Settings)
 		let rank = await this.getRank()
 		if (!rank) {
 			return "Error: User's rank was not found in the database!"
@@ -174,7 +177,7 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 				nextRank = ranks[rankIndexInRanks - 1]
 				if (nextRank) {
 					if (nextRank.obtainable === false) {
-						return { message: responce + "Can not be demoted with promo points!", error: true }
+						return { message: responce + "Can not be demoted with " + nameOfPromoPoints + "!", error: true }
 					}
 					if (rank.promo_points > 0) {
 						this.promo_points = rank.promo_points - 1
@@ -183,10 +186,10 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 					}
 					const setRankResult = await this.setRank(noblox, groupId, MEMBER, nextRank ).catch((err) => {
 						console.log(err)
-						return { message: `Error: An error occured while trying to demote the user!	The user ended up with ${this.promo_points} promo points and the rank <@&${rank.id}>!`, error: true }
+						return { message: `Error: An error occured while trying to demote the user!	The user ended up with ${this.promo_points} ${nameOfPromoPoints} and the rank <@&${rank.id}>!`, error: true }
 					})
 					robloxUser = setRankResult.robloxUser
-					responce += setRankResult.message + (this.promo_points != 0 ? ` and (**${this.promo_points}**/${rank.promo_points}) promo points` : "")
+					responce += setRankResult.message + (this.promo_points != 0 ? ` and (**${this.promo_points}**/${rank.promo_points}) ${nameOfPromoPoints}` : "")
 					showPromoPoints = false
 					rankIndexInRanks -= 1
 					responce += "\n"
@@ -207,7 +210,7 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 		if (showPromoPoints) {
 			const rankAbove = ranks[rankIndexInRanks + 1]
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
-			responce += (responce ? "\n" : "") + `promo points went from ***${promo_points_before}**/${rankAboveBefore != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${rankAbove != "∞" ? (!rankAbove.is_officer ? rankAbove.promo_points: "∞") : "∞"}*!`
+			responce += (responce ? "\n" : "") + `${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${rankAbove != "∞" ? (!rankAbove.is_officer ? rankAbove.promo_points: "∞") : "∞"}*!`
 		}
 		return { message: responce, robloxUser: robloxUser }
 	}

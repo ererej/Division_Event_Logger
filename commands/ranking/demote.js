@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('disc
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json');
+const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -111,7 +112,7 @@ module.exports = {
 
             if (promologs && !setRankResult.error) {
                 const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
-                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> demoted <@${member.id}>\n${reply}`)], content: `<@${member.id}>`})
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> demoted <@${member.id}> ${demotions}times!\n${reply}`)], content: `<@${member.id}>`})
             }
 
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(reply)]})
@@ -121,9 +122,11 @@ module.exports = {
             reply += removePromoPointsResponce.message
             user.save()
 
+            const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
+
             if (promologs && !removePromoPointsResponce.error ) {
                 const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
-                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> has demoted <@${member.id}> by ${demotions} promopoints! \n${reply}`)], content: `<@${member.id}>`})
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> has demoted <@${member.id}> by ${demotions} ${nameOfPromoPoints}! \n${reply}`)], content: `<@${member.id}>`})
             }
 
             return interaction.editReply({embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(reply)]})
