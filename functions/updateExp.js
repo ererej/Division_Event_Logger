@@ -1,18 +1,26 @@
+const getLinkedChannel = require('./getLinkedChannel.js')
 module.exports = async (db, server, interaction) => {
-    const dbVCExpDisplayChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "vcexpdisplay" } })
-    const dbExpDisplayChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplay" } })
-    const dbLevelDisplayChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "vcleveldisplay" } })
-    
-    if (!dbExpDisplayChannel && !dbVCExpDisplayChannel && !dbLevelDisplayChannel) {
-        return 'There is no expdisplay channel linked! Please ask an admin to link one using </linkchannel:1246002135204626454>'
+    const errorMessage = ""
+    const vCExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcexpdisplay" })
+    if (vCExpDisplayChannel.error) {
+        errorMessage += vCExpDisplayChannel.message + "\n"
+    }
+    const expDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "expdisplay" })
+    if (expDisplayChannel.error) {
+        errorMessage += expDisplayChannel.message + "\n"
+    }
+    const levelDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcleveldisplay" })
+    if (levelDisplayChannel && levelDisplayChannel.error) {
+        errorMessage += levelDisplayChannel.message + "\n"
     }
 
-    const channel = await interaction.guild.channels.fetch(dbExpDisplayChannel.channel_id)
-    const messages = await channel.messages.fetch({ limit: 10, })
-    let message = messages.find(m => m.author.id === interaction.client.user.id && m.embeds.length === 0)
-    if (!message) {
-        message = await channel.send("setting up exp display...")
+
+    if (!expDisplayChannel && !vCExpDisplayChannel && !levelDisplayChannel) {
+        return errorMessage + 'There is no expdisplay channel linked! Please ask an admin to link one using </linkchannel:1246002135204626454>'
     }
+
+
+    
     
     let divisions = await db.Servers.findAll();
     divisions = divisions.sort((a, b) => b.exp - a.exp)
@@ -29,7 +37,7 @@ module.exports = async (db, server, interaction) => {
     const exp_needed = levels[level]
     const past_level_exp = levels[level-1]
 
-    if (dbExpDisplayChannel) {
+    if (expDisplayChannel) {
         const procentage = Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)
         let new_message = `# __Level ${level}__\n`
         new_message += `**Possition compared to other divs:** #${guildsPosission + 1}\n`
@@ -59,18 +67,20 @@ module.exports = async (db, server, interaction) => {
         const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })).config : "DD/MM/YYYY"
         const date = dateFormat.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear()) + " " + time.getHours() + ":" + time.getMinutes()
         new_message += `\n-# Last updated: ${date}`
+        const messages = await expDisplayChannel.messages.fetch({ limit: 10, })
+        let message = messages.find(m => m.author.id === interaction.client.user.id && m.embeds.length === 0)
+        if (!message) {
+            message = await channel.send("setting up exp display...")
+        }
         message.edit({ content: new_message, embeds: [] }) 
     }
 
 
-    if (dbVCExpDisplayChannel) {
-        const vc = await interaction.guild.channels.fetch(dbVCExpDisplayChannel.channel_id)
-        vc.setName(`EXP: ${server.exp}`)
+    if (vCExpDisplayChannel) {
+        vCExpDisplayChannel.setName(`EXP: ${server.exp}`)
     }
 
-    if (dbLevelDisplayChannel) {
-        const vc = await interaction.guild.channels.fetch(dbLevelDisplayChannel.channel_id)
-        vc.setName(`Level: ${level}`)
+    if (levelDisplayChannel) {
+        levelDisplayChannel.setName(`Level: ${level}`)
     }
-
 }

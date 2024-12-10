@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js")
 const getExp = require('../../functions/getExp.js');
-const setExp = require('../../functions/updateExp.js');
+const updateExp = require('../../functions/updateExp.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,7 +17,7 @@ module.exports = {
         const exp = await getExp(interaction, server)
         if (typeof exp === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription(exp).setColor([255, 0, 0])] })
         server.exp = exp
-        const responce = await setExp(db, server, interaction)
+        const responce = await updateExp(db, server, interaction)
         if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor([255, 0, 0])] })
 
             

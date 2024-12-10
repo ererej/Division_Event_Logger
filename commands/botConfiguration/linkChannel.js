@@ -32,6 +32,8 @@ module.exports = {
                     { name: "gamenight vc", value: "gamenight" },
                     { name: 'raid', value: "raid" },
                     { name: 'expdisplay', value: "expdisplay" },
+                    { name: 'vcexpdisplay', value: "vcexpdisplay" },
+                    { name: 'vcleveldisplay', value: "vcleveldisplay" },
                     { name: 'robloxGroupCountDisplay', value: "robloxGroupCount" },
                     { name: 'guildMemberCountDisplay', value: "guildMemberCount" },
                     { name: 'logs (short hand for all the logging types)', value: "logs"},
@@ -60,7 +62,7 @@ module.exports = {
         const vcChannels = ["training", "patrol", "raid", "gamenight", "tryout"]
         const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs"]
-        const VcDisplays = ["robloxGroupCount", "guildMemberCount"]
+        const VcDisplays = ["robloxGroupCount", "guildMemberCount", "vcexpdisplay", "vcleveldisplay"]
         if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(interaction.options.getString('linktype')) || VcDisplays.includes(interaction.options.getString('linktype')))) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Text Channel to link **${interaction.options.getString('linktype')}** to!`)] })
         } else if (channel.type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') != "logs") {
@@ -111,14 +113,46 @@ module.exports = {
         } else if (interaction.options.getString('linktype') == "expdisplay") {
             const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: 'expdisplay' })
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-            const exp = await getExp(interaction, server)
-            if (typeof exp === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  exp).setColor([255, 0, 0])] })
+            const exp = (server.exp ? server.exp : await getExp(interaction, server))
+            if (typeof exp === "string") {
+                dbChannel.destroy()
+                return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel linking failed please try again or contact Ererej. the exp was saved to:  " +  exp + "EXP!").setColor([255, 0, 0])] })
+            }
             server.exp = exp
             const responce = await updateExp(db, server, interaction)
             if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  responce).setColor([255, 0, 0])]})
 
                 
             return await interaction.editReply(replyString + `EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
+        } else if (interaction.options.getString('linktype') == "vcexpdisplay") {
+            const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: 'vcexpdisplay' })
+            const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+            const exp = (server.exp ? server.exp : await getExp(interaction, server))
+            if (typeof exp === "string") {
+                dbChannel.destroy()
+                return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Linking failed please retry or contact Ererej. exp was saved to: " +  exp + "EXP!").setColor([255, 0, 0])] })
+            }
+            server.exp = exp
+            const responce = await updateExp(db, server, interaction)
+            if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  responce).setColor([255, 0, 0])]})
+
+                
+            return await interaction.editReply(replyString + `VC EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
+        } else if (interaction.options.getString('linktype') == "vcleveldisplay") {
+            const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: 'vcleveldisplay' })
+            const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+            const exp = (server.exp ? server.exp : await getExp(interaction, server))
+            if (typeof exp === "string") {
+                dbChannel.destroy()
+                return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Linking failed please retry or contact Ererej. exp was saved to: " +  exp + "EXP").setColor([255, 0, 0])] })
+            }
+            server.exp = exp
+            const responce = await updateExp(db, server, interaction)
+            if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  responce).setColor([255, 0, 0])]})
+
+                
+            return await interaction.editReply(replyString + `VC LEVEL DISPLAY successfully created in <#${dbChannel.channel_id}>!`)
+
         } else if (interaction.options.getString('linktype') == "guildMemberCount") {
             await updateGuildMemberCount({guild: interaction.guild, db: db, channel: channel})
 
