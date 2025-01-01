@@ -139,6 +139,8 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         format += `Attendee Count: ${numberOfAttendees} \n`
         format += `Map Name: ${mapName} \n`
         format += `Base: ${/*base ? "Yes" :*/ "No"} \n`
+    } else {
+        format += `Attendee Count: ${numberOfAttendees} \n`
     }
 
 
@@ -200,6 +202,7 @@ Screenshot of Event: (In-Game with all attendees visible)
 Division: (Name)
 Link to Event: (Message link leading to the host message in the division)
 Date: (MM/DD/YY)
+Attendee Count: (Exclude Host)
 Screenshot of Event: (In-Game with all attendees visible)
 */
 
