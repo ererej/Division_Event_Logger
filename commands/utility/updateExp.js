@@ -22,7 +22,7 @@ module.exports = {
         if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor([255, 0, 0])] })
 
             
-        const reply = awaitinteraction.editReply({ embeds: [new EmbedBuilder().setDescription(`**Updated the exp to: ${server.exp}!**`).setColor([0,255,0])] })
+        const reply = await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`**Updated the exp to: ${server.exp}!**`).setColor([0,255,0])] })
         const expdisplayChannel = getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "expdisplay" })
         if (interaction.channel.id === expdisplayChannel.channel_id) {
             setTimeout(() => {
