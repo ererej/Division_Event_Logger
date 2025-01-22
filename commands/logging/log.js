@@ -37,15 +37,25 @@ module.exports = {
                     { name: 'rallybeforeraid', value: 'rallybeforeraid'},
                     { name: 'rallyafterraid', value: 'rallyafterraid'},
                 )
+        )
+        .addBooleanOption(option =>
+            option.setName('manual_attendence')
+            .setDescription('If you want to manually select the attendees')
+        )
+        .addUserOption(option =>
+            option.setName('host')
+            .setDescription('If you are logging for someone else then you can select them here')
+            .setRequired(false)   
         ),
     testerLock: true,
+    premiumLock: true,
 
     /**
      * @param {import('discord.js').CommandInteraction} interaction
     */
 	async execute(interaction) {
-        const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
         await interaction.deferReply()
+        const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
 
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
 
@@ -53,12 +63,19 @@ module.exports = {
         if (!server) { //!!!!!!!! make the reply link to the /setup command.
             return await interaction.editReply({ Embeds: [embeded_error.setDescription("Server not found in the database! Please contact an admin to link the server!")]})
         }
-
-        const host = await interaction.guild.members.fetch(interaction.member.user.id)
+        
+        const host = interaction.options.getUser('host') ?? interaction.member
         let dbHost = await db.Users.findOne({ where: { user_id: host.id, guild_id: interaction.guild.id }})
         if (!dbHost) {
             dbHost = await db.Users.create({ user_id: host.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
+
+        const voice_channel = await interaction.guild.channels.fetch(host.voice.channelId)
+        let attendees = []
+        if (voice_channel.members) {
+            attendees = voice_channel.members.values()
+        }
+
         const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
         if (dbHost.rank_id === null) {
             dbHost.destroy()
@@ -72,22 +89,18 @@ module.exports = {
         let cohost;
         if (interaction.options.getUser('cohost')) {
             cohost = await interaction.guild.members.fetch(interaction.options.getUser('cohost').id).catch(() => {
-                return interaction.editReply({embeds: [embeded_error.setDescription('The cohost you are trying to link to does not exist!')]})
+                return interaction.editReply({embeds: [embeded_error.setDescription('The cohost you have inputed does not exist???')]})
             })
             const dbCohost = await db.Users.findOne({ where: { user_id: cohost.id, guild_id: interaction.guild.id }})
         }
-        const voice_channel = await interaction.guild.channels.fetch(host.voice.channelId)
-        let attendees = []
-        if (voice_channel.members) {
-            attendees = voice_channel.members.values()
-        }
+        
         
 
         //check if the user has permission to host events
         if ( !(await dbHost.getRank()).is_officer ) {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error]});
-        } else if (voice_channel.id === undefined) { //check if the host is in a voice channel
+        } else if (voice_channel.id === undefined || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
             const selectAttendees = new UserSelectMenuBuilder()
             .setCustomId('select_attendees')
             .setPlaceholder('Select the attendees')
@@ -276,12 +289,12 @@ module.exports = {
     
         
         //SEA Format
-        let responce;
         if (["training", "patrol", "tryout"].includes(eventType)) {
-            responce = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes)
-        }
-        if (!responce) {
-            return 
+            const responce = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes)
+            if (!responce) {
+                return
+            }
+            dbEvent.message_link = responce.url
         }
         
         

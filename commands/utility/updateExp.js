@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('disc
 const db = require("../../dbObjects.js")
 const getExp = require('../../functions/getExp.js');
 const updateExp = require('../../functions/updateExp.js');
+const getLinkedChannel = require('../../functions/getLinkedChannel.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -21,6 +22,12 @@ module.exports = {
         if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor([255, 0, 0])] })
 
             
-        interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`**Updated the exp to: ${server.exp}!**`).setColor([0,255,0])] })
+        const reply = awaitinteraction.editReply({ embeds: [new EmbedBuilder().setDescription(`**Updated the exp to: ${server.exp}!**`).setColor([0,255,0])] })
+        const expdisplayChannel = getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "expdisplay" })
+        if (interaction.channel.id === expdisplayChannel.channel_id) {
+            setTimeout(() => {
+                reply.delete()
+            }, 15_000);
+        }
     }
 };

@@ -17,9 +17,10 @@ const Channels = require('./models/Channels.js')(sequelize, Sequelize.DataTypes)
 const Settings = require('./models/Settings.js')(sequelize, Sequelize.DataTypes);
 const Events = require('./models/Events.js')(sequelize, Sequelize.DataTypes);
 const Officers = require('./models/Officers.js')(sequelize, Sequelize.DataTypes);
+const PremiumCodes = require('./models/PremiumCodes.js')(sequelize, Sequelize.DataTypes);
 
 // Assign models to sequelize.models
-const models = { sequelize, Users, Officers, Servers, Ranks, Channels, Settings, Events };
+const models = { sequelize, Users, Officers, Servers, Ranks, Channels, Settings, Events, PremiumCodes };
 
 // Manually call associate for each model (in case of circular dependencies)
 Object.values(models).forEach((model) => {

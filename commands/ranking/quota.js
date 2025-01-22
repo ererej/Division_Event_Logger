@@ -6,7 +6,8 @@ const config = require('../../config.json');
 noblox.setCookie(config.sessionCookie)
 const { Op } = require("sequelize");
 const generateGraph = require('../../functions/generateGraph.js')
-const fs = require('fs')
+const fs = require('fs');
+const { premiumLock } = require('../logging/log.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -25,6 +26,7 @@ module.exports = {
         ,
     
     testerLock: true,
+    premiumLock: true,
 
     async execute(interaction) {
         await interaction.reply("Processing...")

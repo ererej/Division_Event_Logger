@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField, ButtonBuilder, ActionRowBuilder } = require('discord.js');
 const db = require("../../dbObjects.js")
 const updateExp = require('../../functions/updateExp.js');
 const noblox = require("noblox.js");
@@ -97,7 +97,7 @@ module.exports = {
         .addSubcommand(subcommand =>
             subcommand
                 .setName('nameofpromopoints')
-                .setDescription('determens the name of promo points so that you can name them stuff like "exp" or "points"')
+                .setDescription('[Premium] determens the name of promo points so that you can name them stuff like "exp" or "points"')
                 .addStringOption(option =>
                     option.setName('name')
                         .setDescription('enter what you want the promo points to be called')
@@ -109,12 +109,26 @@ module.exports = {
         async execute(interaction) {
             await interaction.deferReply()
             const embeded_error = new EmbedBuilder().setColor([255,0,0])
+
+            const premiumSettings = ["nameofpromopoints"]
+
+            const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
+
+            if (premiumSettings.includes(interaction.options.getSubcommand())) {
+                if (!server || !server.premium_end_date || server.premium_end_date < new Date()) {
+                    const premiumButton = new ButtonBuilder()
+                        .setStyle(6)
+                        .setSKUId('1298023132027944980')
+                    const row = new ActionRowBuilder().addComponents(premiumButton)
+                    return await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription("This Setting is locked to **premium servers only!** You can get premium by visiting the bots store! Most of the profits goes twords fuling Ererejs candy and pastery addiction :D")], components: [row] })
+                }
+            }
+
             if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator) && !interaction.member.user.id === "386838167506124800") {
                 embeded_error.setDescription("Insuficent permissions!")
                 return await interaction.editReply({ embeds: [embeded_error]});
             } 
             let setting
-            let server
             switch (interaction.options.getSubcommand()) {
                 case 'dateformat':
                     const format = interaction.options.getString('format')
@@ -124,7 +138,6 @@ module.exports = {
                     } else {
                         db.Settings.create({ guild_id: interaction.guild.id, type: "dateformat", config: format })
                     }
-                    server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
                     if (server) {
                         updateExp(db, server, interaction)
                     }
@@ -138,7 +151,6 @@ module.exports = {
                     } else {
                         db.Settings.create({ guild_id: interaction.guild.id, type: "timezone", config: hours })
                     }
-                    server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
                     if (server) {
                         updateExp(db, server, interaction)
                     }
@@ -149,7 +161,6 @@ module.exports = {
                     } else {
                         return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the timezone to GMT`) ] })
                     }
-                
                     case 'membercountrounding':
                     const rounding = interaction.options.getInteger('rounding')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "membercountrounding" } })
@@ -165,7 +176,6 @@ module.exports = {
                     }
                     channel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "robloxGroupCount" } })
                     if (channel) {
-                        server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
                         if (server) {
                             const group = await noblox.getGroup(server.group_id)
                             const guildChannel = await interaction.guild.channels.fetch(channel.channel_id)
@@ -184,7 +194,6 @@ module.exports = {
                     } else {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: "expdisplayshowotherdivs", config: showOrHide })
                     }
-                    server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
                     if (server) {
                         updateExp(db, server, interaction)
                     } 

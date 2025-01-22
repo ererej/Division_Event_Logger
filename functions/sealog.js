@@ -167,9 +167,9 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         }
     }
     
-    interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] })
+    const log = interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] })
     interaction.channel.send({ content: "You can make the format be sent to a specific channel by running the /linkchannel command and setting the type to sealog!", ephemeral: true })
-    return
+    return log
     
 }
 

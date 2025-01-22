@@ -16,8 +16,7 @@
     "mysql2": "^3.11.0",
     "node-fetch": "^3.3.2",
     "public-google-sheets-parser": "^1.5.4",
-    "sequelize": "^6.37.3",
-    "sqlite3": "^5.1.7"
+    "sequelize": "^6.37.3"
   },
   "devDependencies": {
     "noblox.js": "^6.0.2",

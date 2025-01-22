@@ -6,8 +6,8 @@ const updateGuildMemberCount = require('../functions/updateGuildMemberCount.js')
 
 
 module.exports = {
-    name: Events.GuildMemberAdd,
-    async execute(member) {
+	name: Events.GuildMemberRemove,
+	async execute(member) {
         updateGroupMemberCount({noblox, guild: member.guild, db})
         updateGuildMemberCount({guild: member.guild, db})
     }

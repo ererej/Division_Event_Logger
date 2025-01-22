@@ -1,17 +1,25 @@
 const getLinkedChannel = require('./getLinkedChannel.js')
 module.exports = async (db, server, interaction) => {
     const errorMessage = ""
-    const vCExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcexpdisplay" })
+    let vCExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcexpdisplay" })
     if (vCExpDisplayChannel.error) {
         errorMessage += vCExpDisplayChannel.message + "\n"
+    } else { 
+        vCExpDisplayChannel = vCExpDisplayChannel.channel
     }
-    const expDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "expdisplay" })
+
+    let expDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "expdisplay" })
     if (expDisplayChannel.error) {
         errorMessage += expDisplayChannel.message + "\n"
+    } else {
+        expDisplayChannel = expDisplayChannel.channel
     }
-    const levelDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcleveldisplay" })
+
+    let levelDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcleveldisplay" })
     if (levelDisplayChannel && levelDisplayChannel.error) {
         errorMessage += levelDisplayChannel.message + "\n"
+    } else {
+        levelDisplayChannel = levelDisplayChannel.channel
     }
 
 
@@ -67,17 +75,18 @@ module.exports = async (db, server, interaction) => {
         const dateFormat = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } }) ? (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })).config : "DD/MM/YYYY"
         const date = dateFormat.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear()) + " " + time.getHours() + ":" + time.getMinutes()
         new_message += `\n-# Last updated: ${date}`
+         
         const messages = await expDisplayChannel.messages.fetch({ limit: 10, })
         let message = messages.find(m => m.author.id === interaction.client.user.id && m.embeds.length === 0)
         if (!message) {
-            message = await channel.send("setting up exp display...")
+            message = await expDisplayChannel.send("setting up exp display...")
         }
         message.edit({ content: new_message, embeds: [] }) 
     }
 
 
     if (vCExpDisplayChannel) {
-        vCExpDisplayChannel.setName(`EXP: ${server.exp}`)
+        vCExpDisplayChannel.setName(`Exp: ${server.exp}`)
     }
 
     if (levelDisplayChannel) {

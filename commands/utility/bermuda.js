@@ -1,6 +1,7 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField  } = require('discord.js');
+const { SlashCommandBuilder, UserEntitlements, EmbedBuilder, PermissionsBitField, Client, User  } = require('discord.js');
 const noblox = require("noblox.js")
 const config = require('../../config.json');
+const db = require('../../dbObjects');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -14,13 +15,15 @@ module.exports = {
      */
     async execute(interaction) {
         await interaction.deferReply();
-
-        interaction.member.roles.remove("404").catch(err => {
-            console.log(err)
-            if (err.message === "Unknown Role") {
-                console.log("Role not found")
-            }
-        })
+        if (interaction.guild.id == "831851819457052692") {
+        
+        
+        //console.log(interaction.entitlements)
+        
+        interaction.client.emit('guildMemberAdd', interaction.member);
+       //eventEmitter.emit('guildMemberAdd', interaction.member);
+        return interaction.editReply({content: "event emitted!"})
+        
 
 
 
@@ -56,18 +59,19 @@ module.exports = {
         robloxUser = await robloxUser.json()
         console.log(robloxUser)
         interaction.editReply({content: `Your roblox user is ${robloxUser.cachedUsername}`})
-*/
+        */
 
-        
-        // const gameInstants = await noblox.getGameInstances(12983079028)
-        // const placeInfo = await noblox.getPlaceInfo(12983079028)
-        // const gameInfo = await noblox.getUniverseInfo(placeInfo[0].universeId)
-        // const totalPlayers = gameInfo[0].playing
-        // let playersInPublicGames = 0;
-        // for (const game of gameInstants) {
-        //     playersInPublicGames += game.playing
-        // }
-        
-        //  interaction.editReply({content: "it looks like there are " + totalPlayers + " players in Bermuda Air Base, and " + playersInPublicGames + " of them are in public servers!"})
+        } else {
+            const gameInstants = await noblox.getGameInstances(12983079028)
+            const placeInfo = await noblox.getPlaceInfo(12983079028)
+            const gameInfo = await noblox.getUniverseInfo(placeInfo[0].universeId)
+            const totalPlayers = gameInfo[0].playing
+            let playersInPublicGames = 0;
+            for (const game of gameInstants) {
+                playersInPublicGames += game.playing
+            }
+            
+            interaction.editReply({content: "it looks like there are " + totalPlayers + " players in Bermuda Air Base, and " + playersInPublicGames + " of them are in public servers!"})
+        }
     }
 };

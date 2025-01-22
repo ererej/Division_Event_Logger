@@ -16,5 +16,9 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             default: 0,
         },
+        premium_end_date: {
+            type: DataTypes.DATE,
+            default: null,
+        },
     });
 }

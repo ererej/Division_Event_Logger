@@ -1,4 +1,4 @@
-const { ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors } = require('discord.js');
+const { ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors, channelLink } = require('discord.js');
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
@@ -7,6 +7,7 @@ const updateGuildMemberCount = require('../../functions/updateGuildMemberCount.j
 const updateGroupMemberCount = require('../../functions/updateGroupMemberCount.js');
 const updateExp = require('../../functions/updateExp.js');
 const getExp = require('../../functions/getExp.js');
+const getLinkedChannel = require('../../functions/getLinkedChannel.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -88,143 +89,184 @@ module.exports = {
         }
 
         //auto Display setup
-        if (!(await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplay" } })) && !(await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "guildMemberCount" } })) && !(await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "robloxGroupCount" } }))) {
-            const confirmButton = new ButtonBuilder()
-                .setCustomId('run_auto_display_setup')
-                .setLabel('Run auto display setup')
-                .setStyle(ButtonStyle.Primary)
-            const cancelButton = new ButtonBuilder()
-                .setCustomId('no')
-                .setLabel('No')
-                .setStyle(ButtonStyle.Secondary)
+        let channelLinks = await db.Channels.findAll({ where: { guild_id: interaction.guild.id } })
+        const vcDisplays = ["guildMemberCount", "robloxGroupCount", "vcleveldisplay", "vcexpdisplay"]
+        const textDisplays = ["expdisplay"]
+        const displays = [... vcDisplays, ... textDisplays]
+        const displayNames = ["Guild Member Count Display", "Roblox Group Member Count display", "VC Level Display", "VC Exp Display",/*start of text displays */ "Exp Display"]
+        channelLinks = channelLinks.map(channel => channel.type).filter(channel => displays.includes(channel))
+    
+        const confirmButton = new ButtonBuilder()
+            .setCustomId('run_auto_display_setup')
+            .setLabel('Run auto display setup')
+            .setStyle(ButtonStyle.Primary)
+        const cancelButton = new ButtonBuilder()
+            .setCustomId('no')
+            .setLabel('No')
+            .setStyle(ButtonStyle.Secondary)
 
-            const row = new ActionRowBuilder().addComponents(confirmButton, cancelButton)
+        const row = new ActionRowBuilder().addComponents(confirmButton, cancelButton)
 
-            const response = await interaction.followUp({ embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(reply + `\nDo you want to run auto display setup? this will let you pick what displays you want and then it will add them`)], components: [row] })
+        const autoDisplayPrompt = await interaction.followUp({ embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Do you want to run auto display setup? this will let you pick what displays you want and then it will add them`)], components: [row] })
 
-            const collectorFilter = i => i.customId === 'run_auto_display_setup' && i.user.id === interaction.user.id
-            try {
-                const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
+        const collectorFilter = i => i.customId === 'run_auto_display_setup' && i.user.id === interaction.user.id
+        try {
+            const confirmation = await autoDisplayPrompt.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
 
-                if (confirmation.customId === 'run_auto_display_setup') {
+            if (confirmation.customId === 'run_auto_display_setup') {
+                
+                const selectMenu = new StringSelectMenuBuilder()
+                    .setCustomId('auto_display_setup')
+                    .setPlaceholder('Select the displays you want to add')
                     
-                    const selectMenu = new StringSelectMenuBuilder()
-                        .setCustomId('auto_display_setup')
-                        .setPlaceholder('Select the displays you want to add')
-                        .addOption('Exp display', 'expdisplay')
-                        .addOption('Guild member count', 'guildMemberCount')
-                        .addOption('Roblox group member count', 'robloxGroupCount')
-                        .setMinValues(1)
-                    
-                    const selectDisplaysRow = new ActionRowBuilder().addComponents(selectMenu)
-                    const selectDisplaysResponce = await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription("Please select the displays you want to add!")], components: [selectDisplaysRow] })
+                    .setMinValues(1)
+                    .setMaxValues(displays.length)
+                
+                displays.forEach(display => {
+                    const index = displays.indexOf(display)
+                    selectMenu.addOptions([{label: displayNames[index], value: display}])
+                })
 
-                    const collectorFilter = i => i.customId === 'auto_display_setup' && i.user.id === interaction.user.id
+                const selectDisplaysRow = new ActionRowBuilder().addComponents(selectMenu)
+                const selectDisplaysResponce = await autoDisplayPrompt.edit({ embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription("Please select the displays you want to add!")], components: [selectDisplaysRow] })
 
-                    try {
-                        const displays = await selectDisplaysResponce.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
+                const collectorFilter = i => i.customId === 'auto_display_setup' && i.user.id === interaction.user.id
 
-                        const VcDisplays = ["guildMemberCount", "robloxGroupCount"]
-                        const TextDisplays = ["expdisplay"]
+                try {
+                    const displays = await selectDisplaysResponce.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
+                    reply = ""
+                    const selectedDisplays = displays.values
 
-                        const selectedDisplays = displays.values
-
-                        for (const display of selectedDisplays) { // fix everthing make it create teh channels if they dont exist
-                            let dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: display } })
-                            let channel;
-                            if (dbChannel) {
-                                if (await interaction.guild.channels.fetch(dbChannel.channel_id)) {
-                                    reply += `\n\n*${display}* display already exists!`
-                                    continue
-                                } else {
-                                    if (VcDisplays.includes(display)) {
-                                        channel = await interaction.guild.channels.create(display, { type: "GUILD_VOICE" }) // add the permission to the channel
-                                    } else if (TextDisplays.includes(display)) {
-                                        channel = await interaction.guild.channels.create(display, { type: "GUILD_TEXT" } ) // add the permission to the channel
+                    for (const display of selectedDisplays) { // fix everthing make it create teh channels if they dont exist
+                        let dbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: display } })
+                        let channel;
+                        if (dbChannel) {
+                            if (dbChannel.channel_id) {
+                                channel = await interaction.guild.channels.fetch(dbChannel.channel_id).catch(async (error) => {
+                                    if (error.code === 10003) {
+                                        await dbChannel.destroy() 
+                                        dbChannel = null
+                                        reply += `\n\nA ${display} display had a link but the channel had been removed so the link was removed!`
+                                        channel = null
                                     } else {
-                                        throw new Error(display + " is not configured to be an VC or text display!!!!")
+                                        console.log(error)
+                                        reply += `\n\nfailed to fetch the channel for the ${display} display! deleting the link!`
+                                        await dbChannel.destroy()
+                                        dbChannel = null
+                                        channel = null
                                     }
-                                    dbChannel.channel_id = channel.id
-                                    dbChannel.save()
-                                    reply += `\n\n*${display}* had a link but the channel had been removed so a new channel was created!`
+                                
+                                })
+                            } else {
+                                await dbChannel.destroy()
+                                reply += `\n\nA ${display} display had a broken link so the link was removed!`
+                            }
+
+                            if (channel) {
+                                reply += `\n\n*${display}* display already exists! but it will be updated!`
+                            } else {
+                                if (vcDisplays.includes(display)) {
+                                    channel = await interaction.guild.channels.create({ name: display, type: 2 }) // 2 is the type for GUILD_VOICE
+                                } else {
+                                    channel = await interaction.guild.channels.create({ name: display, type: 0 }) // 0 is the type for GUILD_TEXT
+                                } 
+                                if (!dbChannel) {
+                                    console.log("channel link created")
+                                    dbChannel = await db.Channels.create({ guild_id: interaction.guild.id, channel_id: null, type: display })
                                 }
+                                dbChannel.channel_id = channel.id
+                                await dbChannel.save()
+                                console.log(display + " channel link saved")
+                                reply += `\n\n*${display}* had a link but the channel had been removed so a new channel was created!`
+                            }
+                        } 
+
+                        if (!dbChannel) {
+                            if (channel) {
+                                dbChannel = await db.Channels.create({ guild_id: interaction.guild.id, channel_id: channel.id, type: display })
                             } else {
                                 dbChannel = await db.Channels.create({ guild_id: interaction.guild.id, channel_id: null, type: display })
                             }
+                        }
 
 
-                            if (!channel) {
-                                if (VcDisplays.includes(display)) {
-                                    channel = await interaction.guild.channels.create(display, { type: "GUILD_VOICE", name: display + "!", reason: `${interaction.user} ran automatic display setup in /setup` }) // add the permission to the channel
-                                } else if (TextDisplays.includes(display)) {
-                                    channel = await interaction.guild.channels.create(display, { type: "GUILD_TEXT", name: "Exp Display 😎", reason: `${interaction.user} ran automatic display setup in /setup` }) // add the permission to the channel
-                                } else {
-                                    throw new Error(display + " is not configured to be an VC or text display!!!!")
-                                }
-                                dbChannel.channel_id = channel.id
-                                dbChannel.save()
+                        if (!channel) {
+                            if (vcDisplays.includes(display)) {
+                                channel = await interaction.guild.channels.create({ name: display, type: 2 }) // 2 is the type for GUILD_VOICE// add the permission to the channel
+                            } else if (textDisplays.includes(display)) {
+                                channel = await interaction.guild.channels.create({ name: display, type: 0 }) // 0 is the type for GUILD_TEXT// add the permission to the channel
+                            } else {
+                                throw new Error(display + " is not configured to be an VC or text display!!!!")
                             }
+                            dbChannel.channel_id = channel.id
+                            await dbChannel.save()
+                        }
 
+                        await channel.permissionOverwrites.create(channel.guild.roles.everyone, { ViewChannel: true, Connect: false, SendMessages: false, ReadMessageHistory: true});
+                                
 
-                            switch (display) {
-                                case "guildMemberCount":
-                                    updateGuildMemberCount({ guild: interaction.guild, channel: channel, dbChannel: dbChannel}).then(() => {
-                                        reply += `\n\nGuild member count display added!`
-                                    }).catch((err) => {
-                                        reply += `\n\nGuild member count display failed to add!`
-                                        console.error(err)
-                                    })
-                                    break;
-                                case "robloxGroupCount":
-                                    updateGroupMemberCount({ guild: interaction.guild, channel: channel, dbChannel: dbChannel, group: group, noblox: noblox}).then((success) => {
-                                        if (success !== false) {
-                                            reply += `\n\nRoblox group member count display added!`
-                                        } else {
-                                            reply += `\n\nRoblox group member count display failed to add look at the channel name for the reason!`
-                                        }
-                                    }).catch((err) => {
-                                        reply += `\n\nRoblox group member count display failed to add!`
-                                        console.error(err)
-                                    })
-                                    break;
-                                case "expdisplay":
-                                    if (server.exp === 0) {
-                                        const exp = await getExp(interaction, server)
-                                        if (typeof exp === "string") {
-                                            reply += `\n\nEXP display failed due to: ${exp}`
-                                            break;
-                                        }
-                                        server.exp = exp
-                                        server.save()
-                                        const responce = await updateExp(db, server, interaction)
-                                        if (typeof responce === "string") {
-                                            reply += `\n\nEXP display failed due to: ${responce}`
-                                            break;
-                                        }
-                                        reply += `\n\nEXP display added in <#${channel.id}>!`
+                        let failed = false
+                        switch (display) {
+                            case "guildMemberCount":
+                                await updateGuildMemberCount({ guild: interaction.guild, channel: channel, dbChannel: dbChannel, db: db}).catch((err) => {
+                                    reply += `\n\nGuild member count display failed to add!`
+                                    console.error(err)
+                                    failed = true
+                                })
+                                break;
+                            case "robloxGroupCount":
+                                updateGroupMemberCount({ guild: interaction.guild, channel: channel, dbChannel: dbChannel, group: group, noblox: noblox, db: db}).then((success) => {
+                                    if (success !== true) {
+                                        failed = true
+                                        reply += `\n\nRoblox group member count display failed to add look at the channel name for the reason!`
                                     }
+                                })
+                                break;
+                            case "vcexpdisplay":
+                            case "vcleveldisplay":
+                            case "expdisplay":
+                                if (server.exp === 0) {
+                                    const exp = await getExp(interaction, server)
+                                    if (typeof exp === "string") {
+                                        reply += `\n\n**${display}** failed due to: ${exp}`
+                                        failed = true
+                                        break;
+                                    } 
+                                    server.exp = exp
+                                    server.save()
+                                }
+                                const expdisplayupdateResponce = await updateExp(db, server, interaction)
+                                if (typeof expdisplayupdateResponce === "string") {
+                                    reply += `\n\n**${display}** failed due to: ${expdisplayupdateResponce}`
+                                    failed = true
                                     break;
-                                default:
-                                    throw new Error(display + " is not configured to be an VC or text display!!!!")
-                            }
-                            
+                                }
+                                break;
+                            default:
+                                throw new Error(display + " is not configured to be an VC or text display!!!!")
                         }
-
-                        return response.edit({ embeds: [new EmbedBuilder().setColor(Colors.DarkPurple).setDescription(`# auto dispaly setup: \n\n` + reply)], components: [] })
-                    } catch (error) {
-                        if (error.message === "Collector received no interactions before ending with reason: time") {
-                            return interaction.editReply({ embeds: [embeded_error.setDescription("No responce was given in within 10 minutes, cancelling!")], components: [] })
+                        if (failed) {
+                            continue
                         } else {
-                            throw error
+                            reply += `\n\n${display} display added in <#${channel.id}>!`
                         }
+                        
+                    }
+
+                    await autoDisplayPrompt.edit({ embeds: [new EmbedBuilder().setColor(Colors.DarkPurple).setDescription(`# auto dispaly setup: \n\n` + reply)], components: [] })
+                } catch (error) {
+                    if (error.message === "Collector received no interactions before ending with reason: time") {
+                        return autoDisplayPrompt.editReply({ embeds: [embeded_error.setDescription("No responce was given in within 10 minutes, cancelling!")], components: [] })
+                    } else {
+                        throw error
                     }
                 }
-            } catch(error) {
-                if (error.message === "Collector received no interactions before ending with reason: time") {
-                    return interaction.editReply({ embeds: [embeded_error.setDescription("No responce was given in within 10 minutes, cancelling!")], components: [] })
-                } else {
-                    throw error
-                }
+            }
+        } catch(error) {
+            if (error.message === "Collector received no interactions before ending with reason: time") {
+                return autoDisplayPrompt.editReply({ embeds: [embeded_error.setDescription("No responce was given in within 10 minutes, cancelling!")], components: [] })
+            } else {
+                throw error
             }
         }
 

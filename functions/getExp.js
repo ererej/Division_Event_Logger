@@ -9,7 +9,13 @@ module.exports = async (interaction, server, interactionIsAMessage/* not happy e
     const sheetData = await parser.parse()
 
     const firstColumnName = Object.keys(sheetData[0])[0]
-    const row = sheetData.find(row => row[firstColumnName] === division_name)
+    
+    // console.log(sheetData)
+    
+    // sheetData.forEach(row => {
+    //     console.log(row[firstColumnName])
+    // });
+    const row = sheetData.find(row => row[firstColumnName].toLowerCase() === division_name.toLowerCase())
     if (!row) {
         if (sheetData[0][firstColumnName]) {
             return `could not locate the division: ${division_name} in the officer tracker!`

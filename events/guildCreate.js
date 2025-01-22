@@ -4,8 +4,8 @@ module.exports = {
 	name: Events.GuildCreate,
 	async execute(guild) {
 
-        const owner = await guild.members.cache.find(member => member.id === guild.ownerId)
-        owner.send("Thank you for adding me to your server! If you need any help with the bot, feel free to join the support server: https://discord.gg/5Wj4ujSpzb")
+        // const owner = await guild.members.cache.find(member => member.id === guild.ownerId)
+        // owner.send("Thank you for adding me to your server! If you need any help with the bot, feel free to join the support server: https://discord.gg/5Wj4ujSpzb")
 
         //console.log(typeof client)
         //const guild = client.guilds.cache.find(guild => guild.id === arguments[0].id)

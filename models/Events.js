@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         type: {
             type: DataTypes.STRING,
         },
+        message_link: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         host : {
             type: DataTypes.STRING,
             allowNull: false,
