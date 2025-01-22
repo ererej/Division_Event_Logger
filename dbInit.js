@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
-const dbcredentoiols = require('./config.json').db;
+const config = require('./config.json');
+const dbcredentoiols = config.host == "server" ? config.productionDb : config.db;
 
 const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
 	host: dbcredentoiols.host,
