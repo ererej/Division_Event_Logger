@@ -2,7 +2,6 @@ const { ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, S
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
-const testers = require('../../tester_servers.json');
 const updateGuildMemberCount = require('../../functions/updateGuildMemberCount.js');
 const updateGroupMemberCount = require('../../functions/updateGroupMemberCount.js');
 const updateExp = require('../../functions/updateExp.js');
@@ -84,16 +83,13 @@ module.exports = {
             await interaction.editReply({ embeds: [embeded_reply] });
         }
 
-        if (!testers.servers.some(server => server.id == interaction.guild.id) && !interaction.member.user.id === "386838167506124800") {
-            return
-        }
 
         //auto Display setup
         let channelLinks = await db.Channels.findAll({ where: { guild_id: interaction.guild.id } })
-        const vcDisplays = ["guildMemberCount", "robloxGroupCount", "vcleveldisplay", "vcexpdisplay"]
+        const vcDisplays = ["guildMemberCount", "robloxGroupCount", "vcleveldisplay", "vcexpdisplay", "vcsmallexpdisplay"]
         const textDisplays = ["expdisplay"]
         const displays = [... vcDisplays, ... textDisplays]
-        const displayNames = ["Guild Member Count Display", "Roblox Group Member Count display", "VC Level Display", "VC Exp Display",/*start of text displays */ "Exp Display"]
+        const displayNames = ["Guild Member Count Display", "Roblox Group Member Count display", "VC Level Display", "VC Exp Display", "VC Small Exp Display",/*start of text displays */ "Exp Display"]
         channelLinks = channelLinks.map(channel => channel.type).filter(channel => displays.includes(channel))
     
         const confirmButton = new ButtonBuilder()
@@ -166,7 +162,7 @@ module.exports = {
                                 reply += `\n\n*${display}* display already exists! but it will be updated!`
                             } else {
                                 if (vcDisplays.includes(display)) {
-                                    channel = await interaction.guild.channels.create({ name: display, type: 2 }) // 2 is the type for GUILD_VOICE
+                                    channel = await interaction.guild.channels.create({ name: (display == 'expdisplay') ? 'Current exp' : display, type: 2 }) // 2 is the type for GUILD_VOICE
                                 } else {
                                     channel = await interaction.guild.channels.create({ name: display, type: 0 }) // 0 is the type for GUILD_TEXT
                                 } 
@@ -223,6 +219,7 @@ module.exports = {
                                 })
                                 break;
                             case "vcexpdisplay":
+                            case "vcsmallexpdisplay":
                             case "vcleveldisplay":
                             case "expdisplay":
                                 if (server.exp === 0) {

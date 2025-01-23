@@ -33,6 +33,7 @@ module.exports = {
                     { name: 'raid', value: "raid" },
                     { name: 'expdisplay', value: "expdisplay" },
                     { name: 'vcexpdisplay', value: "vcexpdisplay" },
+                    { name: 'vcexpdisplay', value: "vcsmallexpdisplay" },
                     { name: 'vcleveldisplay', value: "vcleveldisplay" },
                     { name: 'robloxGroupCountDisplay', value: "robloxGroupCount" },
                     { name: 'guildMemberCountDisplay', value: "guildMemberCount" },
@@ -47,32 +48,36 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
 		const embeded_error = new EmbedBuilder().setColor([255,0,50])
+        const linkType = interaction.options.getString('linktype')
 
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator || PermissionsBitField.Flags.ManageChannels || PermissionsBitField.Flags.ManageGuild)) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`You do not have the required permissions to use this command!`)] })
         }
-        if (interaction.options.getString('linktype') === "none") {
+        if (linkType === "none") {
             const channel = await db.Channels.findAll({ where: { guild_id: interaction.guild.id, channel_id: interaction.options.getChannel('channel').id } })
             channel.forEach(channel => {
                 channel.destroy()
             })
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(`Successfully removed all links <#${interaction.options.getChannel('channel').id}> had!`)] })
         }
+
+        
+
         const channel = interaction.options.getChannel('channel')
         const vcChannels = ["training", "patrol", "raid", "gamenight", "tryout"]
         const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs"]
-        const VcDisplays = ["robloxGroupCount", "guildMemberCount", "vcexpdisplay", "vcleveldisplay"]
-        if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(interaction.options.getString('linktype')) || VcDisplays.includes(interaction.options.getString('linktype')))) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Text Channel to link **${interaction.options.getString('linktype')}** to!`)] })
-        } else if (channel.type === ChannelType.GuildText && !textChannels.includes(interaction.options.getString('linktype')) && interaction.options.getString('linktype') != "logs") {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Voice Channel to *${interaction.options.getString('linktype')}** to!`)] })
+        const VcDisplays = ["robloxGroupCount", "guildMemberCount", "vcexpdisplay", "vcleveldisplay", "vcsmallexpdisplay"]
+        if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(linkType) || VcDisplays.includes(linkType))) {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Text Channel to link **${linkType}** to!`)] })
+        } else if (channel.type === ChannelType.GuildText && !textChannels.includes(linkType) && linkType != "logs") {
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Voice Channel to *${linkType}** to!`)] })
         }
         let replyString = ""
 
         // removes all the outdated db entrys
 
-        const duplicateLinks = await db.Channels.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype'), channel_id: channel.id}})
+        const duplicateLinks = await db.Channels.findAll({ where: {guild_id: interaction.guild.id, type: linkType, channel_id: channel.id}})
         if (duplicateLinks.length === 1) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`This channelLink already exists!`)] })
         } else if (duplicateLinks.length > 1) {
@@ -83,18 +88,15 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`This channelLink already exists! (removed ${duplicateCount - 1 } extra links)`)] })
         }
 
-        if (textChannels.includes(interaction.options.getString('linktype'))) {
-            const oldLinks = await db.Channels.findAll({ where: {guild_id: interaction.guild.id, type: interaction.options.getString('linktype')}})
+        if (textChannels.includes(linkType)) {
+            const oldLinks = await db.Channels.findAll({ where: {guild_id: interaction.guild.id, type: linkType}})
             oldLinks.forEach(link => {
                 replyString += `Successfully unlinked <#${link.channel_id}> from being the **${link.type}** channel! \nAnd `
                 link.destroy()
             })
-        } else {
+        } 
 
-            
-        }
-
-        if (interaction.options.getString('linktype') == "logs") {
+        if (linkType == "logs") {
             for (let i = 0; i < logChannels.length; i++) {
                 const channels = await db.Channels.findAll({ where: { guild_id: interaction.guild.id, type: logChannels[i] } }) //just in case there are some how multiple channels linked to the same type
                 if (channels.length > 0) {
@@ -110,8 +112,8 @@ module.exports = {
                 replyString += `Successfully made <#${channel.id}> the **${logChannels[i]}** channel! \n`
             }
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString)] })
-        } else if (interaction.options.getString('linktype') == "expdisplay") {
-            const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: 'expdisplay' })
+        } else if (["expdisplay", "vcexpdisplay", "vcsmallexpdisplay", "vcleveldisplay"].includes(linkType)) {
+            const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: linkType })
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
             const exp = (server.exp ? server.exp : await getExp(interaction, server))
             if (typeof exp === "string") {
@@ -123,41 +125,12 @@ module.exports = {
             if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  responce).setColor([255, 0, 0])]})
 
                 
-            return await interaction.editReply(replyString + `EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
-        } else if (interaction.options.getString('linktype') == "vcexpdisplay") {
-            const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: 'vcexpdisplay' })
-            const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-            const exp = (server.exp ? server.exp : await getExp(interaction, server))
-            if (typeof exp === "string") {
-                dbChannel.destroy()
-                return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Linking failed please retry or contact Ererej. exp was saved to: " +  exp + "EXP!").setColor([255, 0, 0])] })
-            }
-            server.exp = exp
-            const responce = await updateExp(db, server, interaction)
-            if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  responce).setColor([255, 0, 0])]})
-
-                
-            return await interaction.editReply(replyString + `VC EXP DISPLAY successfully created in <#${dbChannel.channel_id}>!`) 
-        } else if (interaction.options.getString('linktype') == "vcleveldisplay") {
-            const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: 'vcleveldisplay' })
-            const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-            const exp = (server.exp ? server.exp : await getExp(interaction, server))
-            if (typeof exp === "string") {
-                dbChannel.destroy()
-                return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Linking failed please retry or contact Ererej. exp was saved to: " +  exp + "EXP").setColor([255, 0, 0])] })
-            }
-            server.exp = exp
-            const responce = await updateExp(db, server, interaction)
-            if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The Channel Link was created and saved to the database but: " +  responce).setColor([255, 0, 0])]})
-
-                
-            return await interaction.editReply(replyString + `VC LEVEL DISPLAY successfully created in <#${dbChannel.channel_id}>!`)
-
-        } else if (interaction.options.getString('linktype') == "guildMemberCount") {
+            return await interaction.editReply(replyString + "**" + linkType + `** successfully created in <#${dbChannel.channel_id}>!`) 
+        } else if (linkType == "guildMemberCount") {
             await updateGuildMemberCount({guild: interaction.guild, db: db, channel: channel})
 
 
-        } else if (interaction.options.getString('linktype') == "robloxGroupCount") {
+        } else if (linkType == "robloxGroupCount") {
             await updateGroupMemberCount({noblox: noblox, guild: interaction.guild, db: db, channel: channel}).then((success) => {
                 if (success === false) return interaction.editReply({ embeds: [embeded_error.setDescription("Failed to make the roblox group count display!")] })
             }).catch(err => {
@@ -165,7 +138,7 @@ module.exports = {
                 return interaction.editReply({ embeds: [embeded_error.setDescription("Failed to make the roblox group count display!")] })
             })
         }
-        db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: interaction.options.getString('linktype') })
-        return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${channel.id}> the **${interaction.options.getString('linktype')}** channel!`)] })
+        db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: linkType })
+        return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString + `Successfully made <#${channel.id}> the **${linkType}** channel!`)] })
     }
 }

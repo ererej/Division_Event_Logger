@@ -1,11 +1,11 @@
 const getLinkedChannel = require('./getLinkedChannel.js')
 module.exports = async (db, server, interaction) => {
     const errorMessage = ""
-    let vCExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcexpdisplay" })
-    if (vCExpDisplayChannel.error) {
-        errorMessage += vCExpDisplayChannel.message + "\n"
+    let vcExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcexpdisplay" })
+    if (vcExpDisplayChannel.error) {
+        errorMessage += vcExpDisplayChannel.message + "\n"
     } else { 
-        vCExpDisplayChannel = vCExpDisplayChannel.channel
+        vcExpDisplayChannel = vcExpDisplayChannel.channel
     }
 
     let expDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "expdisplay" })
@@ -22,8 +22,15 @@ module.exports = async (db, server, interaction) => {
         levelDisplayChannel = levelDisplayChannel.channel
     }
 
+    let vcSmallExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "vcsmallexpdisplay" })
+    if (vcSmallExpDisplayChannel && vcSmallExpDisplayChannel.error) {
+        errorMessage += vcSmallExpDisplayChannel.message + "\n"
+    } else {
+        vcSmallExpDisplayChannel = vcSmallExpDisplayChannel.channel
+    }
 
-    if (!expDisplayChannel && !vCExpDisplayChannel && !levelDisplayChannel) {
+
+    if (!expDisplayChannel && !vcExpDisplayChannel && !levelDisplayChannel && !vcSmallExpDisplayChannel) {
         return errorMessage + 'There is no expdisplay channel linked! Please ask an admin to link one using </linkchannel:1246002135204626454>'
     }
 
@@ -85,11 +92,15 @@ module.exports = async (db, server, interaction) => {
     }
 
 
-    if (vCExpDisplayChannel) {
-        vCExpDisplayChannel.setName(`Exp: ${server.exp}`)
+    if (vcExpDisplayChannel) {
+        vcExpDisplayChannel.setName(`Exp: ${server.exp}/${exp_needed}`)
     }
 
     if (levelDisplayChannel) {
         levelDisplayChannel.setName(`Level: ${level}`)
+    }
+
+    if (vcSmallExpDisplayChannel) {
+        vcSmallExpDisplayChannel.setName(`Current Exp: ${server.exp}`)
     }
 }
