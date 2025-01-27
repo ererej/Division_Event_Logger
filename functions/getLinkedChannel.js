@@ -1,7 +1,6 @@
 module.exports = async (interaction, db, query) => {
     const channelLink = await db.Channels.findOne({ where: query })
     if (!channelLink) {
-        console.log("channelLink not found: " + query.type)
         return {channel: null}
     }
     

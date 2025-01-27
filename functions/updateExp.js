@@ -34,6 +34,10 @@ module.exports = async (db, server, interaction) => {
         return errorMessage + 'There is no expdisplay channel linked! Please ask an admin to link one using </linkchannel:1246002135204626454>'
     }
 
+    if (errorMessage) {
+        return errorMessage
+    }
+
 
     
     

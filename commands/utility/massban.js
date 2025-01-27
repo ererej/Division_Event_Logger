@@ -36,31 +36,30 @@ module.exports = {
         guildBans.forEach(ban => {
             bannedUsers.push(ban.user.id)
         })
-        UserIDs.forEach(async userId => {
+        let index = 0
+        for (const userId of UserIDs) {
             try {
+                replyString += `[${index + 1}/${UserIDs.length}]`
+                index++
                 if (!bannedUsers.includes(userId)) {
-                    const user = await interaction.guild.members.fetch(userId).catch(err => {
-                        replyString += `**failed to find a user with the id: ${userId}!**\n`
+                    let failed = false
+                    interaction.guild.bans.create(userId, {reason: `SEA bans updated by ${interaction.user.tag} (${interaction.user.id})!`}).catch(err => {
+                        replyString += ` ❌ **failed to ban <@${userId}>! Error recived: ${err.name}  ${err.message}**\n`
                         failedBans++
-                        return
+                        failed = true
                     })
-                    if (user.bannable === false) {
-                        replyString += `**unable to ban <@${userId}> due to missing permissions.\n`
-                        failedBans++
-                        return
-                    }
-                    user.ban({reason: `massban by ${interaction.user.tag} (${interaction.user.id})! reason: ` + interaction.options.getString('reason')})
-                    replyString += `*banned <@${userId}>!!!!*\n`
+                    if (failed) continue
+                    replyString += ` ✅ **banned <@${userId}>!!!!**\n`
                     bancount++
-                    return
+                    continue
                     
                 }
-                replyString += `*<@${userId}> is already banned :D*\n`
+                replyString += ` :ballot_box_with_check: *<@${userId}> is already banned :D*\n`
             } catch(err)  {
-                replyString += `**failed to ban <@${userId}>! Error recived: ${err.name}  ${err.message}**\n`
+                replyString += `❌**failed to ban <@${userId}>! Error recived: ${err.name}  ${err.message}**\n`
                 failedBans++
             }
-        })
+        }
         replyString += `**banned ${bancount} users!**\n`
         if (failedBans > 0) {
             replyString += `***failed to ban ${failedBans} users!***\n`
