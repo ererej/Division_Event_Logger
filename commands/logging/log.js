@@ -61,10 +61,10 @@ module.exports = {
 
         const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
         if (!server) { //!!!!!!!! make the reply link to the /setup command.
-            return await interaction.editReply({ Embeds: [embeded_error.setDescription("Server not found in the database! Please contact an admin to link the server!")]})
+            return await interaction.editReply({ Embeds: [embeded_error.setDescription("Server not found in the database! Please contact an admin to link the server with /setup!")]})
         }
         
-        const host = interaction.options.getUser('host') ?? interaction.member
+        const host = interaction.options.getUser('host') ? await interaction.guild.members.fetch(interaction.options.getUser('host')) : interaction.member
         let dbHost = await db.Users.findOne({ where: { user_id: host.id, guild_id: interaction.guild.id }})
         if (!dbHost) {
             dbHost = await db.Users.create({ user_id: host.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
