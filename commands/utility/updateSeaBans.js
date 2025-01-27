@@ -16,8 +16,6 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
         
-
-        
         const responce = await readSheetData(spreadsheetId, 'Individuals List!A1:c300')
         const rows = responce.data.values;
         let UserIDs = []
@@ -79,29 +77,6 @@ module.exports = {
 
             interaction.channel.send(tempstring)
         }
-
-        return
-        await interaction.reply(`**Fetching SEA banned users...**`)
-        const sheetData = await parser.parse()
-        console.log(sheetData)
-        
-        //let replyString = ""
-        let discordIDColum = Object.keys(sheetData["0"])[0] + ""
-        discordIDColum = [...discordIDColum.split(" ")] //returns an object for no fucking reason
-        let userIDs = []
-
-        for (const key in discordIDColum) if (parseInt(discordIDColum[key])) userIDs.push(discordIDColum[key].split("ㅤ")[0])
-        interaction.channel.send(`**banning ${userIDs.length} Perm SEA banned users!**`)
-        userIDs.forEach(userID => {
-            interaction.guild.members.ban(userID, {reason: `Perm banned from SEA`}) 
-            if (replyString.length + `**banned <@${userID}>!**\n`.length >= 2000) {
-                interaction.channel.send(replyString)
-                replyString = ""
-            } 
-            replyString += `**banned <@${userID}>!**\n`
-        })
-        await interaction.channel.send(replyString)
-        
     }
 }
 
