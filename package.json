@@ -13,6 +13,7 @@
     "chartjs-node-canvas": "^4.1.6",
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
+    "googleapis": "^144.0.0",
     "mysql2": "^3.11.0",
     "node-fetch": "^3.3.2",
     "public-google-sheets-parser": "^1.5.4",
