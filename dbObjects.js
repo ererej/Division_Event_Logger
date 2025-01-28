@@ -56,6 +56,18 @@ Reflect.defineProperty(Users.prototype, 'addItem', {
 Users.belongsTo(Ranks, { foreignKey: 'rank_id', as: 'rank' });
 Ranks.hasMany(Users, { foreignKey: 'rank_id', as: 'users' });
 
+Users.createUser = async function (member, noblox, groupId, robloxUser) {
+	let user = await Users.findOne({ where: { user_id: member.id, guild_id: member.guild.id } });
+	if (user) return user;
+	user = await Users.create({ user_id: member.id, guild_id: member.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruits: 0, recruted_by: null, events: "", CoHosts: 0, officer: false });
+	await user.updateRank(noblox, groupId, member, robloxUser)
+	if (user.rank_id == null) {
+		user.destroy()
+		user = null
+	} 
+	return user;
+}
+
 Reflect.defineProperty(Servers.prototype, "getRanks", {
 	value: () => {
 		return Ranks.findAll({

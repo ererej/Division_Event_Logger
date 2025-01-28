@@ -94,7 +94,11 @@ module.exports = {
             const dbCohost = await db.Users.findOne({ where: { user_id: cohost.id, guild_id: interaction.guild.id }})
         }
         
-        
+        let dbLogger;
+        if (interaction.options.getUser('host')) {
+            dbLogger = await db.Users.findOne({ where: { user_id: interaction.options.getUser('host').id, guild_id: interaction.guild.id }})
+            //add logic for updating dbloggers rank and then verifying that they are an officer
+        }
 
         //check if the user has permission to host events
         if ( !(await dbHost.getRank()).is_officer ) {
