@@ -9,15 +9,18 @@ module.exports = (sequelize, DataTypes) => {
 		},
 		promo_points: {
 			type: DataTypes.INTEGER,
+			defaultValue: 0,
 		},
 		rank_id: {
 			type: DataTypes.STRING
 		},
 		total_events_attended: {
-			type: DataTypes.INTEGER
+			type: DataTypes.INTEGER,
+			defaultValue: 0,
 		},
 		recruted_by: {
-			type: DataTypes.STRING
+			type: DataTypes.STRING,
+			defaultValue: null,
 		},
 		events: {
 			type: DataTypes.STRING,
