@@ -57,8 +57,7 @@ module.exports = {
                     .setSKUId('1298023132027944980')
                 const row = new ActionRowBuilder().addComponents(premiumButton)
 
-                embeded_error.setDescription({ embeds: [embeded_error.setDescription("You dont have any premium tickets. You can buy one here")], components: [row]}) //add a link to the store to buy tickets
-                return await interaction.editReply({ embeds: [embeded_error]});
+                return await interaction.editReply({ embeds: [embeded_error.setDescription("You dont have any premium tickets. You can buy one here")], components: [row]}) //add a link to the store to buy tickets
             }
             
 

@@ -29,7 +29,7 @@ module.exports = {
                     { name: 'raid', value: "raid" },
                     { name: 'expdisplay', value: "expdisplay" },
                     { name: 'vcexpdisplay', value: "vcexpdisplay" },
-                    { name: 'vcexpdisplay', value: "vcsmallexpdisplay" },
+                    { name: 'vcsmallexpdisplay', value: "vcsmallexpdisplay" },
                     { name: 'vcleveldisplay', value: "vcleveldisplay" },
                     { name: 'robloxGroupCountDisplay', value: "robloxGroupCount" },
                     { name: 'guildMemberCountDisplay', value: "guildMemberCount" },

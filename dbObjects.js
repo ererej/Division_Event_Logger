@@ -148,6 +148,16 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 				break
 			}
 		}
+		if (rank.is_officer ) {
+			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
+				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
+			}
+		} else {
+			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } }) 
+			if (officer) {
+				officer.update({ retired: new Date() })
+			}
+		}
 		this.save()
 		if (showPromoPoints) {
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
@@ -217,6 +227,16 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 				this.promo_points -= demotions
 				showPromoPoints = true
 				demotions = 0
+			}
+		}
+		if (rank.is_officer ) {
+			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
+				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
+			}
+		} else {
+			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } }) 
+			if (officer) {
+				officer.update({ retired: new Date() })
 			}
 		}
 		this.save()
@@ -291,8 +311,11 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
 				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
 			}
-		} else if (await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } })) {
-			Officers.update({ retired: new Date() }, { where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })
+		} else {
+			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } }) 
+			if (officer) {
+				officer.update({ retired: new Date() })
+			}
 		}
 		this.save()
 		return { message: `Promoted from <@&${oldRank}> to <@&${rank.id}> ` + (smallError ? smallError : ""), robloxUser: robloxUser }
@@ -426,12 +449,15 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		}
 
 		//TEMPORARY REMOVE WHEN function uses User.prototype.setRank()
-		if (dbRank.is_officer === true) {
+		if (dbRank.is_officer ) {
 			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
 				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
 			}
-		} else if (await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } })) {
-			Officers.update({ retired: new Date() }, { where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })
+		} else {
+			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } }) 
+			if (officer) {
+				officer.update({ retired: new Date() })
+			}
 		}
 
 		return { robloxUser: robloxUser }
