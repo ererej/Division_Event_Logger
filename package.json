@@ -16,11 +16,10 @@
     "googleapis": "^144.0.0",
     "mysql2": "^3.11.0",
     "node-fetch": "^3.3.2",
-    "public-google-sheets-parser": "^1.5.4",
-    "sequelize": "^6.37.3"
+    "sequelize": "^6.37.3",
+    "noblox.js": "^6.0.2"
   },
   "devDependencies": {
-    "noblox.js": "^6.0.2",
     "sequelize-cli": "^6.6.2"
   }
 }
