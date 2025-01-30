@@ -1,9 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType } = require('discord.js');
 const db = require("../../dbObjects.js");
-const PublicGoogleSheetsParser = require('public-google-sheets-parser')
-const spreadsheetId = '1sQIT3aOs1dWB9-f8cbsYe7MnSRfCfLRgMDSuE5b3w1I'
-const options = { useFormat: true }
-const parser = new PublicGoogleSheetsParser(spreadsheetId, options)
 const noblox = require("noblox.js");
 
 const getExp = require('../../functions/getExp.js');
