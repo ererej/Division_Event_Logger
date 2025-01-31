@@ -66,15 +66,15 @@ module.exports = {
                 where: { 
                     guild_id: interaction.guild.id, 
                     createdAt: { 
-                        [Op.lt]: new Date(new Date() - (start * index)), 
-                        [Op.gt]: new Date(new Date() - (start * (index-1))) 
+                        [Op.lt]: new Date(new Date() - (Math.abs(start - end) * (index))), 
+                        [Op.gt]: new Date(new Date() - (Math.abs(start - end) * (index + 1)))
                     } 
                 } 
             });
             return events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
         }));
 
-        
+        console.log(totalAttendesHistory)
 
         const divsEvents = await db.Events.findAll({ where: { guild_id: interaction.guild.id, createdAt: { [Op.lt]: new Date(new Date() - start), [Op.gt]: new Date(new Date() - end) } } } )
         const divsTrainings = divsEvents.filter(e => e.type === "training")
@@ -135,20 +135,28 @@ module.exports = {
 
         };
         
-        interaction.editReply("Done processing!")
+        interaction.editReply("Done processing data done! generating graphs...")
 
+        let graphs = []
+        graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
+        graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistory}, 'line', 300, 500 ))
+
+        interaction.editReply("Done generating graphs! sending data...")
 
         let embed = new EmbedBuilder()
             .setTitle("Quota")
             .setDescription(`Total events: ${divsEvents.length} \nTotal attendees: ${totalAttendes} average attendees: ${divsEvents && totalAttendes ? Math.round(totalAttendes*10 / divsEvents.length)/10 : 0} \nTotal trainings: ${divsTrainings.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Trainings with 5+ attending: *${divsTrainingsWith5PlusAttendees.length}* Biggest training: **${divsTrainingWithHighestAttendance ? divsTrainingWithHighestAttendance.amount_of_attendees + 1/*+ the host*/ : 0}** Total attendees: ${totalTrainingAttendes} \nTotal patrols: ${divsPatrols.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Patrols with 5+ attending: *${divsPatrolWith5PlusAttendees.length}* Biggest patrol: **${divsPatrolWithHighestAttendance ? divsPatrolWithHighestAttendance.amount_of_attendees + 1 /*+ the host*/ : 0}** Total attendees: ${totalPatrolAttendes} \nBiggest rally: **${rallyWithHighestAttendance ? rallyWithHighestAttendance.amount_of_attendees + 1/*+ the host */ : 0} **Average rally attendees: ${rallysbeforeraid.length ? totalAttendesAtRallys / rallysbeforeraid.length : 0} \nAverage amount of officers at rallys: ${rallysbeforeraid.length ? totalOfficersAtRallys / rallysbeforeraid.length : 0}`)
             .setColor([0, 255, 0])
             
-
-        let length = 5 + 115
+        let length = embed.data.title.length + embed.data.description.length
 
         for (let field of fields) {
             if (length + field.name.length + field.value.length > 6000) {
-                interaction.followUp({ embeds: [embed] })
+                await interaction.followUp({ embeds: [embed], files: graphs.map(g => g.attachment) })
+                for (let graph of graphs) {
+                    fs.unlinkSync(graph.filePath)
+                }
+                graphs = []
                 embed = new EmbedBuilder()
                 .setColor([0, 255, 0])
                 length = 0
@@ -157,9 +165,6 @@ module.exports = {
             embed.addFields(field)
         };
 
-        let graphs = []
-        graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
-        graphs.push(await generateGraph({ title: "attendees over time", labels: ['before last', 'last', 'current'], values: totalAttendesHistory}, 'line', 300, 500 ))
 
         await interaction.followUp({ embeds: [embed], files: graphs.map(g => g.attachment) })
 
