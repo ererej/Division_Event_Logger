@@ -68,13 +68,12 @@ module.exports = {
                     guild_id: interaction.guild.id, 
                     createdAt: { 
                         [Op.lt]: new Date(new Date() - (start * index)), 
-                        [Op.gt]: new Date(new Date() - (end * index)) 
+                        [Op.gt]: new Date(new Date() - (start * (index-1))) 
                     } 
                 } 
             });
             return events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
         }));
-        console.log(totalAttendesHistory)
 
         
 
@@ -121,10 +120,10 @@ module.exports = {
             const rallysAfterRaidAttended = rallyafterraid.filter(e => e.attendees.split(",").includes(officer.user_id) || e.host === officer.user_id)
 
 
-            description += `**${events.length}** events hosted (${divsEvents.length ? Math.round(events.length * 100 / divsEvents.length) : 0}%). Avrage attendees *${events.length != 0 ? Math.round(officersTotalAttendes/events.length) : 0}*\n`
-            description += `   - *${trainings.length}* trainings (${events.length != 0 ? Math.round(trainings.length * 100/events.length) : 0}%) Avrage attendance *${trainings.length != 0 ? Math.round(trainingAttendes/trainings.length * 10)/10 : 0}*\n\n` 
-            description += `   - *${patrols.length}* patrols (${events.length != 0 ? Math.round(patrols.length/events.length*100) : 0}%) Avrage attendance *${patrols.length != 0 ? Math.round(patrolAttendes/patrols.length*10)/10 : 0}*\n\n`
-            description += `   - *${events.length - trainings.length - patrols.length}* other events (${events.length ? Math.round((events.length - trainings.length - patrols.length)*100/events.length) : 0}%) Avrage attendance *${events.length - trainings.length - patrols.length != 0 ? Math.round(((officersTotalAttendes - trainingAttendes - patrolAttendes) * 10 / (events.length - trainings.length - patrols.length)) )/10 : 0}*\n\n`
+            description += `**${events.length}** events hosted (${divsEvents.length ? Math.round(events.length * 100 / divsEvents.length) : 0}%). Average attendees *${events.length != 0 ? Math.round(officersTotalAttendes/events.length) : 0}*\n`
+            description += `   - *${trainings.length}* trainings (${events.length != 0 ? Math.round(trainings.length * 100/events.length) : 0}%) Average attendance *${trainings.length != 0 ? Math.round(trainingAttendes/trainings.length * 10)/10 : 0}*\n\n` 
+            description += `   - *${patrols.length}* patrols (${events.length != 0 ? Math.round(patrols.length/events.length*100) : 0}%) Average attendance *${patrols.length != 0 ? Math.round(patrolAttendes/patrols.length*10)/10 : 0}*\n\n`
+            description += `   - *${events.length - trainings.length - patrols.length}* other events (${events.length ? Math.round((events.length - trainings.length - patrols.length)*100/events.length) : 0}%) Average attendance *${events.length - trainings.length - patrols.length != 0 ? Math.round(((officersTotalAttendes - trainingAttendes - patrolAttendes) * 10 / (events.length - trainings.length - patrols.length)) )/10 : 0}*\n\n`
             description += `   - *${rallysbeforeraid.filter(e => e.host === officer.user_id).length}* rallys hosted\n\n`
             description += `${officersTotalAttendes} total attendees\n`
             description += `**${events.length != 0 ? Math.round(officersTotalAttendes/events.length) : "0"}** average attendees per event\n`
@@ -142,7 +141,7 @@ module.exports = {
 
         let embed = new EmbedBuilder()
             .setTitle("Quota")
-            .setDescription(`Total events: ${divsEvents.length} \nTotal attendees: ${totalAttendes} avrage attendees: ${divsEvents && totalAttendes ? Math.round(totalAttendes*10 / divsEvents.length)/10 : 0} \nTotal trainings: ${divsTrainings.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Trainings with 5+ attending: *${divsTrainingsWith5PlusAttendees.length}* Biggest training: **${divsTrainingWithHighestAttendance ? divsTrainingWithHighestAttendance.amount_of_attendees + 1/*+ the host*/ : 0}** Total attendees: ${totalTrainingAttendes} \nTotal patrols: ${divsPatrols.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Patrols with 5+ attending: *${divsPatrolWith5PlusAttendees.length}* Biggest patrol: **${divsPatrolWithHighestAttendance ? divsPatrolWithHighestAttendance.amount_of_attendees + 1 /*+ the host*/ : 0}** Total attendees: ${totalPatrolAttendes} \nBiggest rally: **${rallyWithHighestAttendance ? rallyWithHighestAttendance.amount_of_attendees + 1/*+ the host */ : 0} **Avrage rally attendees: ${rallysbeforeraid.length ? totalAttendesAtRallys / rallysbeforeraid.length : 0} \nAvrage amount of officers at rallys: ${rallysbeforeraid.length ? totalOfficersAtRallys / rallysbeforeraid.length : 0}`)
+            .setDescription(`Total events: ${divsEvents.length} \nTotal attendees: ${totalAttendes} average attendees: ${divsEvents && totalAttendes ? Math.round(totalAttendes*10 / divsEvents.length)/10 : 0} \nTotal trainings: ${divsTrainings.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Trainings with 5+ attending: *${divsTrainingsWith5PlusAttendees.length}* Biggest training: **${divsTrainingWithHighestAttendance ? divsTrainingWithHighestAttendance.amount_of_attendees + 1/*+ the host*/ : 0}** Total attendees: ${totalTrainingAttendes} \nTotal patrols: ${divsPatrols.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Patrols with 5+ attending: *${divsPatrolWith5PlusAttendees.length}* Biggest patrol: **${divsPatrolWithHighestAttendance ? divsPatrolWithHighestAttendance.amount_of_attendees + 1 /*+ the host*/ : 0}** Total attendees: ${totalPatrolAttendes} \nBiggest rally: **${rallyWithHighestAttendance ? rallyWithHighestAttendance.amount_of_attendees + 1/*+ the host */ : 0} **Average rally attendees: ${rallysbeforeraid.length ? totalAttendesAtRallys / rallysbeforeraid.length : 0} \nAverage amount of officers at rallys: ${rallysbeforeraid.length ? totalOfficersAtRallys / rallysbeforeraid.length : 0}`)
             .setColor([0, 255, 0])
             
 

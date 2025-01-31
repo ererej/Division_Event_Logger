@@ -77,9 +77,9 @@ module.exports = {
 
             await server.save()
             await entitelments.first().consume()
-            await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`You have activated premium for ${Math.round(daysToAdd)} days! It will end in ${Math.round((server.premium_end_date - currentTime.getTime())/ (24 * 60 * 60 * 1000))} days. Price per mounth for your div is ${pricePerMounth}$ the price increses with 0.2$ for every 500 members you get\nYou have ${entitelments.size - 1} tickets left!\nThanks for supporting me and my bot!`).setColor([255, 105, 180])]})
+            await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`You have activated premium for ${Math.round(daysToAdd)} days! It will end in ${Math.round((server.premium_end_date - currentTime.getTime())/ (24 * 60 * 60 * 1000))} days. Price per month for your div is ${pricePerMounth}$ the price increses with 0.2$ for every 500 members you get\nYou have ${entitelments.size - 1} tickets left!\nThanks for supporting me and my bot!`).setColor([255, 105, 180])]})
 
-            await premiumRedeemLogsChannel.send(`User: ${interaction.user} id: ${interaction.user.id} has used a ticket to activate premium for ${daysToAdd} days! \nPrice per mounth: ${pricePerMounth}$ \nGuild: ${interaction.guild.name} id: ${interaction.guild.id}!`)
+            await premiumRedeemLogsChannel.send(`User: ${interaction.user} id: ${interaction.user.id} has used a ticket to activate premium for ${daysToAdd} days! \nPrice per month: ${pricePerMounth}$ \nGuild: ${interaction.guild.name} id: ${interaction.guild.id}!`)
 
         } else {
             const code = interaction.options.getString('code')
@@ -117,9 +117,9 @@ module.exports = {
                 premiumCode.uses -= 1
                 await premiumCode.save()
 
-                await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`You have a ${premiumCode.amount}$ code that activated premium for ${Math.round(daysToAdd)} days! It will end in ${Math.round((server.premium_end_date - currentTime.getTime())/ (24 * 60 * 60 * 1000))} days. Price per mounth for your div is ${pricePerMounth}$ the price increses with 0.2$ for every 500 members you get\nThanks for supporting me and my bot!`).setColor([255, 105, 180])]})
+                await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`You have a ${premiumCode.amount}$ code that activated premium for ${Math.round(daysToAdd)} days! It will end in ${Math.round((server.premium_end_date - currentTime.getTime())/ (24 * 60 * 60 * 1000))} days. Price per month for your div is ${pricePerMounth}$ the price increses with 0.2$ for every 500 members you get\nThanks for supporting me and my bot!`).setColor([255, 105, 180])]})
 
-                await premiumRedeemLogsChannel.send(`User: ${interaction.user} id: ${interaction.user.id} has used the code **${code}** worth ${premiumCode.amount}$ to activate premium for ${Math.round(daysToAdd)} days! \nPrice per mounth: ${pricePerMounth}$ \nGuild: ${interaction.guild.name} id: ${interaction.guild.id}!`)
+                await premiumRedeemLogsChannel.send(`User: ${interaction.user} id: ${interaction.user.id} has used the code **${code}** worth ${premiumCode.amount}$ to activate premium for ${Math.round(daysToAdd)} days! \nPrice per month: ${pricePerMounth}$ \nGuild: ${interaction.guild.name} id: ${interaction.guild.id}!`)
 
             } else {
                 const currentTime = new Date()

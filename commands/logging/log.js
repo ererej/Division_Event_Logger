@@ -238,7 +238,6 @@ module.exports = {
 
             dbAttendees.push(dbUser)
 
-            attendees.push(member.id)
             const rank = await dbUser.getRank()
             if (rank.is_officer) {
                 officers.push(member.id)
@@ -267,7 +266,12 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
         }
 
-        const dbEvent = await db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendees.toString(), amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers})
+        let attendeesIds = ""
+        dbAttendees.forEach(dbUser => {
+            attendeesIds += dbUser.id + ","
+        })
+
+        const dbEvent = await db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendeesIds, amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers})
 
         dbAttendees.forEach(async dbUser => {
             dbUser.events = dbUser.events ? dbUser.events + "," + dbEvent.id : "" + dbEvent.id
