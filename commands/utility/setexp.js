@@ -28,7 +28,7 @@ module.exports = {
         
         server.exp = interaction.options.getInteger('amount')
         server.save()
-        const responce = updateExp(db, server, interaction)
+        const responce = await updateExp(db, server, interaction)
         if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor([255, 0, 0])] })
 
 
