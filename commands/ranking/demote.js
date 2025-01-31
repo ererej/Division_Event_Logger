@@ -2,7 +2,8 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('disc
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json');
-const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
+const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js");
+const { premiumLock } = require('./quota.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -30,7 +31,7 @@ module.exports = {
                 .setMinValue(1)
         ),
         
-    testerLock: true,
+    premiumLock: true,
     botPermissions: [PermissionsBitField.Flags.ManageRoles],
     async execute(interaction) {
         await interaction.deferReply()

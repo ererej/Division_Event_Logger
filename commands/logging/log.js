@@ -47,7 +47,6 @@ module.exports = {
             .setDescription('If you are logging for someone else then you can select them here')
             .setRequired(false)   
         ),
-    testerLock: true,
     premiumLock: true,
 
     /**

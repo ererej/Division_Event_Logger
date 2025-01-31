@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
-const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
+const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js");
+const { premiumLock } = require('./quota.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,7 +13,6 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    testerLock: true,
 
     async execute(interaction) {
         const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)

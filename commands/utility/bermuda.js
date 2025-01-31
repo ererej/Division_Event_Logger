@@ -8,7 +8,6 @@ module.exports = {
         .setName('bermuda')
         .setDescription('A test command'),
 
-    testerLock: true,
 
     /**
      *  @param {import('discord.js').CommandInteraction} interaction

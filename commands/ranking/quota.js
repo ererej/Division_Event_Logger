@@ -25,7 +25,6 @@ module.exports = {
         )
         ,
     
-    testerLock: true,
     premiumLock: true,
 
     async execute(interaction) {

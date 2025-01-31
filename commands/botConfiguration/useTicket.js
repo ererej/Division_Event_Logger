@@ -12,7 +12,6 @@ module.exports = {
                 .setDescription('Have you gotten a premium code from Ererej? congrats you can use it here!')
                 .setRequired(false)),
 
-    testerLock: true,
 
     /**
      * @param {import('discord.js').CommandInteraction} interaction
