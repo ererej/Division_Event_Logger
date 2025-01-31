@@ -136,11 +136,15 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         }
 
         format += `Duration: ${durationInMinutes} Minutes \n`
-        format += `Attendee Count: ${numberOfAttendees} \n`
+        if (eventType === "tryout") {
+            format += `Attendee Count: ${numberOfAttendees} \n`
+        } else {
+            format += `5+ Attendees?: ${numberOfAttendees >= 5 ? "5+" : "No"} \n`
+        }
         format += `Map Name: ${mapName} \n`
         format += `Base: ${/*base ? "Yes" :*/ "No"} \n`
     } else {
-        format += `Attendee Count: ${numberOfAttendees} \n`
+        format += `5+ Attendees?: ${numberOfAttendees >= 5 ? "5+" : "No"} \n`
     }
 
 
@@ -185,6 +189,18 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
 
 
 /* TRAINING LOGGING TEMPLATE
+
+Division: (Name)
+Link to Event: (Message link leading to the host message in the division)
+Date: (MM/DD/YY)
+Duration: (Estimate)
+5+ Attendees?: ("5+" or "No" - Exclude host(s))
+Map Name: (HOLO, Division Map Name, etc.)
+Base: (Is it on one of your division's maps? Yes/No)
+Screenshot of Event: (In-Game with all attendees visible)
+
+
+// OLD TRAINING LOGGING TEMPLATE
 Division: (Name)
 Link to Event: (Message link leading to the host message in the division)
 Date: (MM/DD/YY)
@@ -202,11 +218,31 @@ Screenshot of Event: (In-Game with all attendees visible)
 Division: (Name)
 Link to Event: (Message link leading to the host message in the division)
 Date: (MM/DD/YY)
+5+ Attendees?: ("5+" or "No" - Exclude host(s))
+Screenshot of Event: (In-Game with all attendees visible)
+
+
+
+// OLD PATROL LOGGING TEMPLATE
+Division: (Name)
+Link to Event: (Message link leading to the host message in the division)
+Date: (MM/DD/YY)
 Attendee Count: (Exclude Host)
 Screenshot of Event: (In-Game with all attendees visible)
 */
 
 /* TRYOUT
+Division: (Name)
+Link to Event: (Message link leading to the host message in the division)
+Date: (MM/DD/YY)
+Duration: (Estimate)
+Attendee Count: (Exclude host(s))
+Map Name: (HOLO, Division Map Name, etc.)
+Base: (Is it on one of your division's maps? Yes/No)
+Screenshot of Event: (In-Game with all attendees visible)
+
+
+// OLD TRYOUT LOGGING TEMPLATE
 Division: (Name)
 Link to Event: (Message link leading to the host message in the division)
 Date: (MM/DD/YY)
