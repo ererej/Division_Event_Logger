@@ -51,7 +51,7 @@ module.exports = {
 							.setSKUId('1298023132027944980')
 				
 				const row = new ActionRowBuilder().addComponents(premiumButton)
-				return interaction.reply({ embeds: [new EmbedBuilder().setTitle("This command is locked to **premium servers only!** You can get premium by pressing the button below and then running </userticket:1329067836886351953>! Most of the profits goes twords fuling Ererejs candy and pastery addiction :D").setColor([255, 0, 0])] });
+				return interaction.reply({ embeds: [new EmbedBuilder().setTitle("This command is locked to **premium servers only!** You can get premium by pressing the button below and then running </useticket:1329067836886351953>! Most of the profits goes twords fuling Ererejs candy and pastery addiction :D").setColor([255, 0, 0])] });
 			}
 
 			if (command.botPermissions) {

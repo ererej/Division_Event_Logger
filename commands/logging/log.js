@@ -72,7 +72,9 @@ module.exports = {
         const voice_channel = await interaction.guild.channels.fetch(host.voice.channelId)
         let attendees = []
         if (voice_channel.members) {
-            attendees = voice_channel.members.values()
+            for (const member of voice_channel.members.values()) {
+                attendees.push(member)
+            }
         }
 
         const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
@@ -119,8 +121,8 @@ module.exports = {
                 confirmation.values.forEach(async value => {
                     const member = await interaction.guild.members.fetch(value)
                     attendees.push(member)
+                    
                 })
-                
 
             } catch (error) {
                 if (error.message === "Collector received no interactions before ending with reason: time") {

@@ -60,21 +60,42 @@ module.exports = {
         let totalPatrolAttendes = 0
 
 
-        let totalAttendesHistory = [5, 4, 3, 2, 1, 0]
-        totalAttendesHistory = await Promise.all(totalAttendesHistory.map(async (index) => {
-            const events = await db.Events.findAll({ 
-                where: { 
-                    guild_id: interaction.guild.id, 
-                    createdAt: { 
-                        [Op.lt]: new Date(new Date() - (Math.abs(start - end) * (index))), 
-                        [Op.gt]: new Date(new Date() - (Math.abs(start - end) * (index + 1)))
-                    } 
-                } 
-            });
-            return events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
-        }));
+        // let totalAttendesHistory = [5, 4, 3, 2, 1, 0]
+        // totalAttendesHistory = await Promise.all(totalAttendesHistory.map(async (index) => {
+        //     const events = await db.Events.findAll({ 
+        //         where: { 
+        //             guild_id: interaction.guild.id, 
+        //             createdAt: { 
+        //                 [Op.lt]: new Date(new Date() - (Math.abs(start - end) * (index))), 
+        //                 [Op.gt]: new Date(new Date() - (Math.abs(start - end) * (index + 1)))
+        //             } 
+        //         } 
+        //     });
+        //     return events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
+        // }));
 
-        console.log(totalAttendesHistory)
+        let totalAttendesHistory = [0,0,0,0,0,0]
+        let averageAttendesHistory = [0,0,0,0,0,0]
+        let amountOfEventsHistory = [0,0,0,0,0,0]
+        const dataRangeIndexes = [5, 4, 3, 2, 1, 0]
+
+        dataRangeIndexes.forEach(async (index) => {
+            const events = await db.Events.findAll({
+                where: {
+                    guild_id: interaction.guild.id,
+                    createdAt: {
+                        [Op.lt]: new Date(new Date() - (Math.abs(start - end) * (index))),
+                        [Op.gt]: new Date(new Date() - (Math.abs(start - end) * (index + 1)))
+                    }
+                }
+            });
+            totalAttendesHistory[dataRangeIndexes.indexOf(index)] = events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
+            averageAttendesHistory[dataRangeIndexes.indexOf(index)] = events.length ? Math.round(totalAttendesHistory[totalAttendesHistory.length - 1] / events.length) : 0;
+            amountOfEventsHistory[dataRangeIndexes.indexOf(index)] = events.length;
+        });
+
+
+
 
         const divsEvents = await db.Events.findAll({ where: { guild_id: interaction.guild.id, createdAt: { [Op.lt]: new Date(new Date() - start), [Op.gt]: new Date(new Date() - end) } } } )
         const divsTrainings = divsEvents.filter(e => e.type === "training")
@@ -140,6 +161,9 @@ module.exports = {
         let graphs = []
         graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
         graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistory}, 'line', 300, 500 ))
+        graphs.push(await generateGraph({ title: "average attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: averageAttendesHistory}, 'line', 300, 500 ))
+        graphs.push(await generateGraph({ title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistory}, 'line', 300, 500 ))
+
 
         interaction.editReply("Done generating graphs! sending data...")
 

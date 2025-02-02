@@ -18,16 +18,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
         const embeded_error = new EmbedBuilder().setColor(Colors.Red)
-
-        let tester = false
-        testers.servers.forEach(server => {
-            if ( !tester && server.id === interaction.guild.id) {
-                tester = true
-            }
-        });
-        if (!tester) {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription('This command is **only enabled** for testers!')] });
-        }  
+  
 
         let  member = interaction.options.getUser('user')
         await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Updating <@${member.id}> please wait!`)] })
