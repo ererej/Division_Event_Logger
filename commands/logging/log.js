@@ -247,9 +247,11 @@ module.exports = {
             }
             if (updateRankResponse.message) {
                 if (updateRankResponse.message.includes("highest rank")) {
-                description += "Thanks for attending (can not get promoted by attending events!)";
-                } else {
-                description += updateRankResponse.message
+                    description += "Thanks for attending (can not get promoted by attending events!)";
+                } else if (updateRankResponse.message.includes("Can not be demoted with " + nameOfPromoPoints + "!")) { 
+                    description += "Thanks for attending (can not be demoted with " + nameOfPromoPoints + "!)";
+                }else {
+                    description += updateRankResponse.message
                 }
                 if (updateRankResponse.error) {
                 continue;
