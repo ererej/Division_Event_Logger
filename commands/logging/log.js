@@ -118,6 +118,7 @@ module.exports = {
             const collectorFilter = i => i.customId === 'select_attendees' && i.user.id === interaction.user.id
             try {
                 const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                attendees = []
                 confirmation.values.forEach(async value => {
                     const member = await interaction.guild.members.fetch(value)
                     attendees.push(member)
