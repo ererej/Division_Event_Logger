@@ -80,7 +80,7 @@ module.exports = {
             dbRank.promo_points = interaction.options.getInteger('promo_points')
         }
 
-        if (interaction.options.getBoolean('officer')) {
+        if (interaction.options.getBoolean('officer') !== null) {
             dbRank.is_officer = interaction.options.getBoolean('officer')
         }
         if (interaction.options.getString('tag')) {

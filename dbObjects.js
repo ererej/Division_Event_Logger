@@ -68,6 +68,26 @@ Users.createUser = async function (member, noblox, groupId, robloxUser) {
 	return user;
 }
 
+Reflect.defineProperty(Users.prototype, 'updateOfficer', {
+	value: async function(rank) {
+		rank = rank ? rank : await this.getRank()
+		if (rank.is_officer ) {
+			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } })) {
+				Officers.create({ user_id: this.user_id, guild_id: this.guild_id, retired: null })
+				this.officer = true
+			}
+		} else {
+			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } }) 
+			if (officer) {
+				officer.update({ retired: new Date() })
+				this.officer = false
+			}
+		}
+		this.save()
+		return this.officer
+	}
+});
+
 Reflect.defineProperty(Servers.prototype, "getRanks", {
 	value: () => {
 		return Ranks.findAll({
@@ -148,16 +168,8 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 				break
 			}
 		}
-		if (rank.is_officer ) {
-			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
-				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
-			}
-		} else {
-			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } }) 
-			if (officer) {
-				officer.update({ retired: new Date() })
-			}
-		}
+		await this.updateOfficer(MEMBER, nextRank)
+
 		this.save()
 		if (showPromoPoints) {
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
@@ -229,16 +241,7 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 				demotions = 0
 			}
 		}
-		if (rank.is_officer ) {
-			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
-				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
-			}
-		} else {
-			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } }) 
-			if (officer) {
-				officer.update({ retired: new Date() })
-			}
-		}
+		await this.updateOfficer(MEMBER, nextRank)
 		this.save()
 		if (showPromoPoints) {
 			const rankAbove = ranks[rankIndexInRanks + 1]
@@ -307,16 +310,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 		}
 		this.rank_id = rank.id
-		if (rank.is_officer ) {
-			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
-				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
-			}
-		} else {
-			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } }) 
-			if (officer) {
-				officer.update({ retired: new Date() })
-			}
-		}
+		await this.updateOfficer(MEMBER, rank)
 		this.save()
 		return { message: `Promoted from <@&${oldRank}> to <@&${rank.id}> ` + (smallError ? smallError : ""), robloxUser: robloxUser }
 	}
@@ -449,16 +443,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		}
 
 		//TEMPORARY REMOVE WHEN function uses User.prototype.setRank()
-		if (dbRank.is_officer ) {
-			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } })) {
-				Officers.create({ user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null })
-			}
-		} else {
-			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: MEMBER.guild.id, retired: null } }) 
-			if (officer) {
-				officer.update({ retired: new Date() })
-			}
-		}
+		await this.updateOfficer(MEMBER, dbRank)
 
 		return { robloxUser: robloxUser }
 	}
