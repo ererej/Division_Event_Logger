@@ -56,7 +56,7 @@ module.exports = {
             
         }
         if (time) {
-            interaction.editReply({ content: `Timestamp: <t:${Math.round(time.getTime()/1000)}:R>`})
+            interaction.editReply({ content: `<t:${Math.round(time.getTime()/1000)}:R>`})
         } else {
             interaction.editReply({ embeds: [embeded_error.setDescription("Please enter a valid time!")]})
         }
