@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const config = require('./config.json');
-const dbcredentoiols = process.argv.includes("--productiondb") ? config.productionDb : config.db;
+const dbcredentoiols = process.argv.includes("--productiondb") || process.env.DATABASE === 'productiondb' ? config.productionDb : config.db;
 const getNameOfPromoPoints = require("./functions/getNameOfPromoPoints.js")
 
 console.log("Connecting to database: " + dbcredentoiols.database)
