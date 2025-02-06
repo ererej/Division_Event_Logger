@@ -14,11 +14,14 @@ module.exports = async ({ guild, db, interaction, channel, dbChannel, rounding }
         }
         if (!dbChannel) return
 
-        channel = await guild.channels.fetch(dbChannel.channel_id)
-        if (!channel) {
-            console.log("Channel not found, deleting from database. guild: " + guild.id)
-            return dbChannel.destroy()
-        }
+        channel = await guild.channels.fetch(dbChannel.channel_id).catch(err => {
+            if (err.code == 10003) {
+                dbChannel.destroy()
+                return console.log("Channel not found, deleting from database. guild: " + guild.id)
+            }
+            console.error("Error fetching channel in updateGuildMemberCount.js: " + err + "\nGuild: " + guild.id + "\nChannel: " + dbChannel.channel_id)
+            return
+        })
     }
 
     if (!rounding) {

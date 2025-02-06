@@ -13,12 +13,14 @@ module.exports = async ({ noblox, guild, db, interaction, channel, dbChannel, gr
             dbChannel = await db.Channels.findOne({ where: { guild_id: guild.id, type: "robloxGroupCount" } })
         }
         if (!dbChannel) return
-        channel = await guild.channels.fetch(dbChannel.channel_id)
-        if (!channel) {
-            console.log("groupMemberCount Channel not found, deleting from database. guild: " + guild.id)
-            dbChannel.destroy()
+        channel = await guild.channels.fetch(dbChannel.channel_id).catch(err => {
+            if (err.code == 10003) {
+                dbChannel.destroy()
+                return console.log("groupMemberCount Channel not found, deleting from database. guild: " + guild.id)
+            }
+            console.error("Error fetching channel in updateGroupMemberCount.js: " + err + "\nGuild: " + guild.id + "\nChannel: " + dbChannel.channel_id)
             return
-        }
+        })
     }
 
     if (!noblox) {

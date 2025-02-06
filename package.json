@@ -14,10 +14,10 @@
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
     "googleapis": "^144.0.0",
-    "mysql2": "^3.11.0",
+    "mysql2": "^3.12.0",
+    "noblox.js": "^6.0.2",
     "node-fetch": "^3.3.2",
-    "sequelize": "^6.37.3",
-    "noblox.js": "^6.0.2"
+    "sequelize": "^6.37.3"
   },
   "devDependencies": {
     "sequelize-cli": "^6.6.2"
