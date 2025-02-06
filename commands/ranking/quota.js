@@ -1,14 +1,12 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
-const { sequelize, Officers, Users, Events } = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json');
 noblox.setCookie(config.sessionCookie)
 const { Op } = require("sequelize");
 const generateGraph = require('../../functions/generateGraph.js')
 const fs = require('fs');
-const { premiumLock } = require('../logging/log.js');
-const { off } = require('process');
+
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -29,7 +27,7 @@ module.exports = {
     premiumLock: true,
 
     async execute(interaction) {
-        await interaction.reply("Processing...")
+        await interaction.reply("fetching data")
         const embeded_error = new EmbedBuilder().setColor([255,0,0]) 
 
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
@@ -43,15 +41,35 @@ module.exports = {
             [start, end] = timerange.split(", ").map(Number)
         }
 
-        const officers = await Officers.findAll({
-            where: { guild_id: interaction.guild.id },
+        let officers = await db.Officers.findAll({
+            where: { guild_id: interaction.guild.id, retired: null },
             include: [{
-                model: Users,
-                as: 'user',
-                required: true,
-                on: sequelize.literal('`officers`.`user_id` = `user`.`user_id` AND `officers`.`guild_id` = `user`.`guild_id`'),
+            model: db.Users,
+            as: 'user',
+            required: true,
+            on: db.sequelize.literal('`officers`.`user_id` = `user`.`user_id` AND `officers`.`guild_id` = `user`.`guild_id`'),
             }],
         });
+
+        officers.forEach(officer => {
+            Object.setPrototypeOf(officer.user, db.Users.prototype);
+        });
+
+        async function sortOfficersByRank(officers) {
+            // Retrieve ranks for all officers
+            const officersWithRanks = await Promise.all(officers.map(async officer => {
+                const rank = await officer.user.getRank();
+                return { officer, rank_index: rank.rank_index };
+            }));
+        
+            // Sort officers based on rank_index
+            officersWithRanks.sort((a, b) => b.rank_index - a.rank_index);
+        
+            // Extract sorted officers
+            return officersWithRanks.map(item => item.officer);
+        }
+
+        officers = await sortOfficersByRank(officers);
 
 
         let fields = []
@@ -79,7 +97,7 @@ module.exports = {
         let averageAttendesHistory = [0,0,0,0,0,0]
         let amountOfEventsHistory = [0,0,0,0,0,0]
         const dataRangeIndexes = [5, 4, 3, 2, 1, 0]
-
+        interaction.editReply("fetching data done! processing server wide data...")
         dataRangeIndexes.forEach(async (index) => {
             const events = await db.Events.findAll({
                 where: {
@@ -114,8 +132,17 @@ module.exports = {
         const totalOfficersAtRallys = rallysbeforeraid.reduce((acc, event) => acc + event.amount_of_officers, 0)
 
 
-        for (const officer of officers) {
+        // console.log(Object.getOwnPropertyNames(officers[0].user).filter(function (p) {
+        //     return typeof officers[0].user[p] === 'function';
+        // }));
+        // //-> ["random", "abs", "acos", "asin", "atan", "ceil", "cos", "exp", ...etc
+
+
+        interaction.editReply("processing server wide data done! processing officer data...")
+        for (const officer of  officers) {
+            
             const updateOfficerResponce = await officer.user.updateOfficer()
+            
             if (!updateOfficerResponce) {
                 console.log("retiring officer " + officer.user_id + " in guild " + interaction.guild.id + " because they are not an officer anymore")
             }

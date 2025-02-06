@@ -71,20 +71,22 @@ Users.createUser = async function (member, noblox, groupId, robloxUser) {
 Reflect.defineProperty(Users.prototype, 'updateOfficer', {
 	value: async function(rank) {
 		rank = rank ? rank : await this.getRank()
+		let officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } })
+		this.officer = rank.is_officer
 		if (rank.is_officer ) {
-			if (!await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } })) {
-				Officers.create({ user_id: this.user_id, guild_id: this.guild_id, retired: null })
-				this.officer = true
+			if (!officer) {
+				officer = await Officers.create({ user_id: this.user_id, guild_id: this.guild_id, retired: null })
 			}
 		} else {
-			const officer = await Officers.findOne({ where: { user_id: this.user_id, guild_id: this.guild_id, retired: null } }) 
 			if (officer) {
-				officer.update({ retired: new Date() })
-				this.officer = false
+				officer.retired = new Date()
+				await officer.save()
+				officer = null
 			}
 		}
-		this.save()
-		return this.officer
+		await this.save()
+		if((rank.is_officer && !officer )|| (!rank.is_officer && officer)) console.log("Error: officer was not updated correctly!")
+		return officer ? (officer.retired === null ? officer : null) : null
 	}
 });
 
@@ -443,7 +445,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		}
 
 		//TEMPORARY REMOVE WHEN function uses User.prototype.setRank()
-		await this.updateOfficer(MEMBER, dbRank)
+		await this.updateOfficer(dbRank)
 
 		return { robloxUser: robloxUser }
 	}
