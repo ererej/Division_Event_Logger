@@ -113,7 +113,7 @@ module.exports = {
 
             if (promologs && !setRankResult.error) {
                 const promolog = await interaction.guild.channels.fetch(promologs.channel_id)
-                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> demoted <@${member.id}> ${demotions}times!\n${reply}`)], content: `<@${member.id}>`})
+                promolog.send({embeds: [new EmbedBuilder().setDescription(`<@${interaction.member.id}> demoted <@${member.id}> **${demotions}** times!\n${reply}`)], content: `<@${member.id}>`})
             }
 
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(reply)]})
