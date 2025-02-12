@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, UserSelectMenuBuilder, StringSelectMenuOptionBuilder, StringSelectMenuBuilder, ActionRowBuilder,  PermissionsBitField, Attachment, Embed, Colors } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, UserSelectMenuBuilder, StringSelectMenuOptionBuilder, StringSelectMenuBuilder, ActionRowBuilder,  PermissionsBitField, Attachment, Embed, Colors, ButtonBuilder } = require('discord.js');
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
@@ -111,19 +111,28 @@ module.exports = {
             .setPlaceholder('Select the attendees')
             .setMinValues(1)
             .setMaxValues(25)
-            const row = new ActionRowBuilder().addComponents(selectAttendees)
+            const confirmSelection = new ButtonBuilder().setCustomId('confirmSelection').setLabel('Confirm').setStyle(3)
+            const selectRow = new ActionRowBuilder().addComponents(selectAttendees)
+            const confirmRow = new ActionRowBuilder().addComponents(confirmSelection)
 
-            const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please enter the attendees of your event. \nNext time run /log before everyone leaves and you wont have to manualy do it`)], components: [row]})
+            const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please enter the attendees of your event. \nNext time run /log before everyone leaves and you wont have to manualy do it`)], components: [selectRow, confirmRow]})
 
-            const collectorFilter = i => i.customId === 'select_attendees' && i.user.id === interaction.user.id
+            const collectorFilter = i => i.user.id === interaction.user.id
             try {
-                const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
-                attendees = []
-                confirmation.values.forEach(async value => {
-                    const member = await interaction.guild.members.fetch(value)
-                    attendees.push(member)
-                    
-                })
+                while (true) {
+                    const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                    confirmation.deferUpdate()
+                    if (confirmation.customId === 'select_attendees') {
+                        attendees = []
+                        confirmation.values.forEach(async value => {
+                            const member = await interaction.guild.members.fetch(value)
+                            attendees.push(member)
+                            
+                        })
+                    } else if (confirmation.customId === 'confirmSelection') {
+                        break;
+                    }
+                }
 
             } catch (error) {
                 if (error.message === "Collector received no interactions before ending with reason: time") {
@@ -190,6 +199,7 @@ module.exports = {
             const collectorFilter = i => i.customId === 'select_event_type' && i.user.id === interaction.user.id
             try {
                 const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                confirmation.deferUpdate()
                 eventType = confirmation.values[0]
             } catch (error) {
                 if (error.message === "Collector received no interactions before ending with reason: time") {

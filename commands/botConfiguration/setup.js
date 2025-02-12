@@ -108,7 +108,7 @@ module.exports = {
         const collectorFilter = i => i.customId === 'run_auto_display_setup' && i.user.id === interaction.user.id
         try {
             const confirmation = await autoDisplayPrompt.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
-
+            confirmation.deferUpdate()
             if (confirmation.customId === 'run_auto_display_setup') {
                 
                 const selectMenu = new StringSelectMenuBuilder()
@@ -130,6 +130,7 @@ module.exports = {
 
                 try {
                     const displays = await selectDisplaysResponce.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
+                    displays.deferUpdate()
                     reply = ""
                     const selectedDisplays = displays.values
 
@@ -284,7 +285,8 @@ module.exports = {
 
             const collectorFilter = i => i.customId === 'run_auto_setup' && i.user.id === interaction.user.id
             try {
-                const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 60_000 })
+                const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 600_000 })
+                confirmation.deferUpdate()
 
                 if (confirmation.customId === 'run_auto_setup') {
                     let responceString = ""

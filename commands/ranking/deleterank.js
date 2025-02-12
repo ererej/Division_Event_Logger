@@ -40,7 +40,7 @@ module.exports = {
         const collectorFilter = i => i.customId === 'delete_rank' && i.user.id === interaction.user.id
         try {
             const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 60_000 })
-
+            confirmation.deferUpdate()
             if (confirmation.customId === 'delete_rank') {
                 await dbRank.destroy()
                 return interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The rank linked to <@&${dbRank.id}> has been deleted!`)], components: []})
