@@ -90,6 +90,58 @@ Reflect.defineProperty(Users.prototype, 'updateOfficer', {
 	}
 });
 
+Reflect.defineProperty(Users.prototype, 'updateLinkedRoles', {
+	value: async function(member, rank, oldRank) {
+		if (!rank) {
+			rank = await this.getRank()
+			if (!rank) {
+				return { message: "Error: User's rank was not found in the database!", error: true}
+			}
+		}
+		if (!member) {
+			throw new Error("Missing member parameter in updateLinkedRoles")
+		}
+		let roles;
+		let removedRoles = []
+		let addedRoles = []
+
+
+		if (rank.linked_roles) {
+			roles = rank.linked_roles.split(",")
+			
+			roles.forEach(role => {
+				if (!member.roles.cache.some(role => role.id === role)) {
+					member.roles.add(role)
+					addedRoles.push(role)
+				}
+			})
+			
+		}
+		if (oldRank) {
+			const oldRoles = oldRank ? ( oldRank.linked_roles ? oldRank.linked_roles.split(",") : []) : []
+			oldRoles.forEach(role => {
+				if (!roles.includes(role)) {
+					member.roles.remove(role)
+					removedRoles.push(role)
+				}
+			})
+		} else {
+			const allRanks = await Ranks.findAll({ where: { guild_id: this.guild_id } })
+			let allRoles = []
+			allRanks.forEach(rank => {
+				if (!rank.linked_roles) return
+				rank.linked_roles.split(",").forEach(role => {
+					if (!allRoles.includes(role)) {
+						allRoles.push(role)
+					}
+				})
+			})
+		}
+		return { addedRoles: addedRoles, removedRoles: removedRoles }
+	}
+});
+		
+
 Reflect.defineProperty(Servers.prototype, "getRanks", {
 	value: () => {
 		return Ranks.findAll({
@@ -151,7 +203,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 					return { message: responce + "Can not be promoted with " + nameOfPromoPoints + "!", error: true, robloxUser: robloxUser }
 				}
 				if (this.promo_points >=  nextRank.promo_points) {
-
+					//could be better to only do this.setRank at the end when we know its the final rank to speed up the process
 					const setRankResult = await this.setRank(noblox, groupId, MEMBER, nextRank, robloxUser).catch((err) => {
 						console.log(err)
 						return { message: `Error: An error occured while trying to promote the user! The user ended up with ${this.promo_points} ${nameOfPromoPoints} and the rank <@&${rank.id}>!`, error: true, robloxUser: robloxUser }
@@ -170,7 +222,6 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 				break
 			}
 		}
-		await this.updateOfficer(MEMBER, nextRank)
 
 		this.save()
 		if (showPromoPoints) {
@@ -243,7 +294,6 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 				demotions = 0
 			}
 		}
-		await this.updateOfficer(MEMBER, nextRank)
 		this.save()
 		if (showPromoPoints) {
 			const rankAbove = ranks[rankIndexInRanks + 1]
@@ -312,9 +362,10 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 		}
 		this.rank_id = rank.id
-		await this.updateOfficer(MEMBER, rank)
+		await this.updateOfficer(rank)
 		this.save()
-		return { message: `Promoted from <@&${oldRank}> to <@&${rank.id}> ` + (smallError ? smallError : ""), robloxUser: robloxUser }
+		const updateLinkedRolesResponce = await this.updateLinkedRoles(MEMBER, rank, oldRank)
+		return { message: `Promoted from <@&${oldRank}> to <@&${rank.id}> ` + (smallError ? smallError : "") + updateLinkedRolesResponce.addedRoles ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.split(",").join("> <@&") + ">" : "" + + updateLinkedRolesResponce.removedRoles ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.split(",").join("> <@&") + ">" : "", robloxUser: robloxUser }
 	}
 });
 
@@ -373,10 +424,20 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				this.promo_points = 0
 				this.save()
 				MEMBER.roles.add(this.rank_id)
+				await this.updateOfficer(rankFromRoblox)
+				if (rankFromRoblox.tag) {
+					MEMBER.setNickname(rankFromRoblox.tag + " " + robloxUser.cachedUsername)
+				}
+				await this.updateLinkedRoles(MEMBER, rankFromRoblox)
 				return { message: `added to the database with the rank <@&${this.rank_id}> (taken from roblox group rank)`, robloxUser: robloxUser }
 			}
 			this.rank_id = highestRank.id
 			this.save()
+			await this.updateOfficer(highestRank)
+			if (highestRank.tag) {
+				MEMBER.setNickname(highestRank.tag + " " + robloxUser.cachedUsername)
+			}
+			await this.updateLinkedRoles(MEMBER, highestRank)
 			if (highestRank.roblox_id != rankFromRoblox.roblox_id) {
 				await noblox.setRank(groupId, robloxUser.robloxId, Number(highestRank.roblox_id)).catch((err) => {
 					console.log(err)
@@ -400,6 +461,11 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				})
 				this.rank_id = highestRank.id
 				this.save()
+				await this.updateOfficer(highestRank)
+				if (highestRank.tag) {
+					MEMBER.setNickname(highestRank.tag + " " + robloxUser.cachedUsername)
+				}
+				await this.updateLinkedRoles(MEMBER, highestRank)
 				const rank = await this.getRank()
 				if (rank.roblox_id != rankFromRoblox.roblox_id) {
 					await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
@@ -409,9 +475,19 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 					return { message: `Updated roblox and database rank to <@&${rank.id}> (taken from discord roles)`, robloxUser: robloxUser }
 				}
 				return { message: `Updated database rank to <@&${rank.id}> (taken from discord roles)`, robloxUser: robloxUser }
+			} else {
+				await this.updateOfficer(dbRank)
+				if (dbRank.tag) {
+					MEMBER.setNickname(dbRank.tag + " " + robloxUser.cachedUsername)
+				}
+				await this.updateLinkedRoles(MEMBER, dbRank)
+				
+				await noblox.setRank(groupId, robloxUser.robloxId, Number(dbRank.roblox_id)).catch((err) => {
+					console.log(err)
+					return { message: `Error: An error occured while trying to update the users's roblox rank! try again later!`, error: true, robloxUser: robloxUser }
+				})
+				return { message: `Updated roblox rank to <@&${dbRank.id}> (taken from database)`, robloxUser: robloxUser }
 			}
-			
-			return { message: `Updated roblox rank to <@&${dbRank.id}> (taken from database)`, robloxUser: robloxUser }
 		} 
 
 		if (!MEMBER.roles.cache.some(role => role.id === dbRank.id)) {
@@ -436,6 +512,8 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				if (rank.tag) {
 					MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
 				}
+				await this.updateOfficer(rank)
+				await this.updateLinkedRoles(MEMBER, rank, dbRank)
 				return { message: `Updated database and roblox rank to <@&${highestRank.id}> (taken from discord roles)`, robloxUser: robloxUser }
 			}
 			if (dbRank.tag) {
@@ -446,6 +524,13 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 
 		//TEMPORARY REMOVE WHEN function uses User.prototype.setRank()
 		await this.updateOfficer(dbRank)
+		if (dbRank.tag) {
+			MEMBER.setNickname(dbRank.tag + " " + robloxUser.cachedUsername)
+		}
+		const updateLinkedRolesResponce = await this.updateLinkedRoles(MEMBER, dbRank)
+		if (updateLinkedRolesResponce.addedRoles || updateLinkedRolesResponce.removedRoles) {
+			return { message: (updateLinkedRolesResponce.addedRoles ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.split(",").join("> <@&") + ">" : "") + (updateLinkedRolesResponce.removedRoles ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.split(",").join("> <@&") + ">" : ""), robloxUser: robloxUser }
+		}
 
 		return { robloxUser: robloxUser }
 	}

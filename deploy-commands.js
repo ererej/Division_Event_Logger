@@ -1,7 +1,8 @@
 const { REST, Routes } = require('discord.js');
-const { clientId, guildId, token } = require('./config.json');
+const { clientId, testingServers, token } = require('./config.json');
 const fs = require('node:fs');
 const path = require('node:path');
+const { default: test } = require('node:test');
 
 const commands = [];
 // Grab all the command folders from the commands directory you created earlier
@@ -33,11 +34,13 @@ const rest = new REST().setToken(token);
 		console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
 		if (process.argv.includes('-t')) {
-			await rest.put(
-				Routes.applicationGuildCommands(clientId, guildId),
-				{ body: commands },
-			);
-			console.log(`Successfully reloaded ${commands.length} application (/) commands for guild ${guildId}.`);
+			testingServers.forEach(async (guildId) => {
+				await rest.put(
+					Routes.applicationGuildCommands(clientId, guildId),
+					{ body: commands },
+				);
+				console.log(`Successfully reloaded ${commands.length} application (/) commands for guild ${guildId}.`);
+			});
 		} else if (process.argv.includes('-rt')) {
 			rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [] })
 				.then(() => {

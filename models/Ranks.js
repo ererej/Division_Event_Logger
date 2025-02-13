@@ -31,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true,
-          },
+        },
+        linked_roles: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
     });
 }

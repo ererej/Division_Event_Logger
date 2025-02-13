@@ -21,10 +21,10 @@ module.exports = {
         const input = interaction.options.getString('relative_time')
         let time;
         const now = new Date()
-
-        if (input.toLowerCase().includes("minutes ") || input.toLowerCase().includes("minutes\n") || input.toLowerCase().includes("minutes") || input.toLowerCase().includes("min ") || input.toLowerCase().includes("min\n") || input.toLowerCase().includes("min")) {
+        input = input.toLowerCase()
+        if (input.includes("minutes ") || input.includes("minutes\n") || input.includes("minutes") || input.includes("min ") || input.includes("min\n") || input.includes("min") || input.includes("mins ") || input.includes("mins\n") || input.includes("mins")) {
             let words = input.toLowerCase().replace("\n", " ").split(" ")
-            const indexOfTime = words.findIndex(word => /\b(min|minutes)\b/.test(word)) - 1
+            const indexOfTime = words.findIndex(word => /\b(min|minutes|mins)\b/.test(word)) - 1
             if (indexOfTime >= 0) {
                 const timeofset = parseInt(words[indexOfTime], 10)
                 if (!isNaN(timeofset)) {
@@ -36,8 +36,8 @@ module.exports = {
                     interaction.followUp("<@386838167506124800> Time traveler detected!")
                 }
                 console.log(timeofset)
-            } else if (words.filter(word => /\b\d+(min|minutes)/.test(word)).length > 0) {
-                const timeSubString = words.filter(word => /\b\d+(min|minutes)/.test(word))[0]
+            } else if (words.filter(word => /\b\d+(min|minutes|mins)/.test(word)).length > 0) {
+                const timeSubString = words.filter(word => /\b\d+(min|minutes|mins)/.test(word))[0]
                 const ofset = parseInt(timeSubString.match(/\d+/)[0], 10)
                 time = new Date(now.getTime() + ofset * 60 * 1000)
     

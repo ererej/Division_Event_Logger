@@ -7,6 +7,7 @@ module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
 		if (!interaction.isChatInputCommand()) return;
+		if (!interaction.guild) { return interaction.reply("Commands in DMs are disabled sorry!")}
 
 		const command = interaction.client.commands.get(interaction.commandName);
 
@@ -25,6 +26,7 @@ module.exports = {
 				try {
 					subcommand = interaction.options.getSubcommand()
 				} catch (error) {}
+				
 				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + " guild name: " + interaction.guild.name +  " inputs: \n"
 				interaction.options._hoistedOptions.forEach(option => {
 					if ((logMessage + "**" + option.name + "** = " + option.value + " \n").length > 1900) {
