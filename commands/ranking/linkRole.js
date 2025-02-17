@@ -1,11 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors, ActionRowBuilder, ButtonBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 const db = require("../../dbObjects.js");
-const config = require('../../config.json')
 
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName('linkrole')
-        .setDescription('add a rank!')
+        .setDescription('Link a role to one or more ranks!')
 		.setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addRoleOption(option => 
             option.setName('role')
@@ -18,6 +17,8 @@ module.exports = {
                 .setRequired(false)
         ),
 
+    premiumLock: true,
+
     /**
      * @param {import('discord.js').CommandInteraction} interaction
     */
@@ -29,14 +30,17 @@ module.exports = {
 
         const discordRole = interaction.options.getRole('role');
         const ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id } })
+        if (ranks.length === 0) {
+            return interaction.editReply({embeds: [embeded_error.setDescription("There are no ranks linked in this server! Please run /addrank or use /setup and run automatic ranksetup")]})
+        }
         
         if (interaction.options.getBoolean('link_to_all')) {
             for (const rank of ranks) {
                 if (rank.linked_roles) {
-                    const linkedRoles = rank.linked_roles.split(',')
+                    const linkedRoles = rank.linked_roles
                     if (!linkedRoles.includes(discordRole.id)) {
                         linkedRoles.push(discordRole.id)
-                        await rank.update({ linked_roles: linkedRoles.join(',') })
+                        await rank.update({ linked_roles: linkedRoles })
                     }
                 } else {
                     await rank.update({ linked_roles: discordRole.id })
@@ -45,7 +49,6 @@ module.exports = {
             return interaction.editReply({content: `Linked ${discordRole.name} to all ranks!`})
         }
         
-        console.log(ranks.map(rank => rank = rank.id))
 
         const rankSelectMenu = new StringSelectMenuBuilder()
             .setCustomId('rank_select')
@@ -66,7 +69,6 @@ module.exports = {
                 }
             })
         )
-        console.log(options)
 
         rankSelectMenu.addOptions(options)
 
@@ -89,10 +91,11 @@ module.exports = {
         try {
             while (true) {
                 const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
-                confirmation.deferUpdate()
+                await confirmation.deferUpdate()
                 if (confirmation.customId === 'rank_select') {
                     selectedRanks = confirmation.values.map(value => ranks.find(rank => rank.id === value))
                 } else if (confirmation.customId === 'confirm_selection') {
+                    confirmation.editReply({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription('You have selected the following ranks: \n<@&' + selectedRanks.map(rank => rank.id).join('> <@&') + '>\nProssesing')], components: []})
                     break;
                 } else if (confirmation.customId === 'cancel_selection') {
                     return interaction.editReply({content: 'Why you canceling on me?!?!', components: []})
@@ -109,16 +112,16 @@ module.exports = {
 
         for (const rank of selectedRanks) {
             if (rank.linked_roles) {
-                const linkedRoles = rank.linked_roles.split(',')
+                const linkedRoles = rank.linked_roles
                 if (!linkedRoles.includes(discordRole.id)) {
                     linkedRoles.push(discordRole.id)
-                    await rank.update({ linked_roles: linkedRoles.join(',') })
+                    await rank.update({ linked_roles: linkedRoles })
                 }
             } else {
                 await rank.update({ linked_roles: discordRole.id })
             }
         }
-        return interaction.editReply({embeds:  [new EmbedBuilder().setDescription(`Linked the role: <@&` + discordRole + "> to the following ranks: \n<@&" + selectedRanks.join("> <@&") + ">").setColor(Colors.Green) ], components: [] })
+        return interaction.editReply({embeds:  [new EmbedBuilder().setDescription(`Linked the role: <@&` + discordRole + "> to the following ranks: \n<@&" + selectedRanks.map(rank => rank.id).join("> <@&") + ">").setColor(Colors.Green) ], components: [] })
 
 
     }

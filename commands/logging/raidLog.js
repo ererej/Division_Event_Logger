@@ -1,4 +1,4 @@
-const { Colors, ActionRowBuilder, UserSelectMenuBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { Colors, ActionRowBuilder, UserSelectMenuBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField, MessageFlags } = require('discord.js');
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
@@ -117,7 +117,7 @@ module.exports = {
             logMessage = await sea_format_channel.send({ content: ` <@624633098583408661> \nDivision(s): ${division_name + allys_name}\nEnemy Group: ${enemy_division} \nResoult: ${winner} \nMap: ${map}\nDate: ${date}\nProof: `, files: [{attachment: resoult.url}, {attachment: raid_discutions.url}]});
         }
         if (!dbChannel) {
-            return await interaction.editReply({ content: 'If you want the raidlogs to always go to a spesific channel then use this command </linkchannel:1246002135204626454>', ephemeral: true });
+            return await interaction.editReply({ content: 'If you want the raidlogs to always go to a spesific channel then use this command </linkchannel:1246002135204626454>', flags: MessageFlags.Ephemeral });
         }
 
         const embedReply = new EmbedBuilder()

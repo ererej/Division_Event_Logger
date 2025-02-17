@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require('@discordjs/builders');
 const cheerio = require('cheerio');
+const { MessageFlags } = require('discord.js');
 module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eventType, numberOfAttendees) => {
     const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock"}})) ? "```" : ""
     
@@ -174,7 +175,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     }
     
     const log = interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] })
-    interaction.channel.send({ content: "You can make the format be sent to a specific channel by running the /linkchannel command and setting the type to sealog!", ephemeral: true })
+    interaction.channel.send({ content: "You can make the format be sent to a specific channel by running the /linkchannel command and setting the type to sealog!", flags: MessageFlags.Ephemeral })
     return log
     
 }

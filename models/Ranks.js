@@ -35,6 +35,13 @@ module.exports = (sequelize, DataTypes) => {
         linked_roles: {
             type: DataTypes.STRING,
             allowNull: true,
+            get() {
+                const rawValue = this.getDataValue('linked_roles');
+                return rawValue ? JSON.parse(rawValue) : [];
+            },
+            set(value) {
+                this.setDataValue('linked_roles', JSON.stringify(value));
+            },
         },
     });
 }

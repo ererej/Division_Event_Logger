@@ -101,16 +101,13 @@ Reflect.defineProperty(Users.prototype, 'updateLinkedRoles', {
 		if (!member) {
 			throw new Error("Missing member parameter in updateLinkedRoles")
 		}
-		let roles;
 		let removedRoles = []
 		let addedRoles = []
 
-
 		if (rank.linked_roles) {
-			roles = rank.linked_roles.split(",")
-			
-			roles.forEach(role => {
-				if (!member.roles.cache.some(role => role.id === role)) {
+			const roles = member.roles.cache
+			rank.linked_roles.forEach(role => {
+				if (!roles.some(r => r.id == role)) {
 					member.roles.add(role)
 					addedRoles.push(role)
 				}
@@ -118,29 +115,54 @@ Reflect.defineProperty(Users.prototype, 'updateLinkedRoles', {
 			
 		}
 		if (oldRank) {
-			const oldRoles = oldRank ? ( oldRank.linked_roles ? oldRank.linked_roles.split(",") : []) : []
-			oldRoles.forEach(role => {
-				if (!roles.includes(role)) {
+			oldRank.linked_roles.forEach(role => {
+				if (!rank.linked_roles.includes(role)) {
 					member.roles.remove(role)
 					removedRoles.push(role)
 				}
 			})
 		} else {
 			const allRanks = await Ranks.findAll({ where: { guild_id: this.guild_id } })
-			let allRoles = []
-			allRanks.forEach(rank => {
-				if (!rank.linked_roles) return
-				rank.linked_roles.split(",").forEach(role => {
-					if (!allRoles.includes(role)) {
-						allRoles.push(role)
+			
+			allRanks.forEach(otherRank => {
+				if (!otherRank.linked_roles) return
+				otherRank.linked_roles.forEach(role => {
+					if (!rank.linked_roles.includes(role)) {
+						if (member.roles.cache.some(role => role.id == role)) {
+							member.roles.remove(role)
+							removedRoles.push(role)
+						}
 					}
+					
 				})
 			})
 		}
 		return { addedRoles: addedRoles, removedRoles: removedRoles }
 	}
 });
-		
+
+
+Reflect.defineProperty(Users.prototype, 'updateTag', {
+	value: async function(member, rank) {
+		if (!rank) {
+			rank = await this.getRank()
+			if (!rank) {
+				return { message: "Error: User's rank was not found in the database!", error: true}
+			}
+		}
+		if (!member) {
+			throw new Error("Missing member parameter in updateTag")
+		}
+		if (rank.tag) {
+			
+			member.setNickname(rank.tag + " " + member.user.username).catch(err => {
+				return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
+			})
+			return rank.tag
+		} 
+	}
+});
+
 
 Reflect.defineProperty(Servers.prototype, "getRanks", {
 	value: () => {
@@ -340,7 +362,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			}
 		})
 		
-		const oldRank = this.rank_id
+		let oldRank = this.rank_id
 		//add a check to see if the bot has perms to change the rank
 		MEMBER.roles.remove(oldRank).catch(err => {
 			if (err.message === "Unknown Role") {
@@ -358,14 +380,13 @@ Reflect.defineProperty(Users.prototype, 'setRank', {
 			return { message: `Error: An error occured while trying to update the users's discord rank! (The Roblox rank was still updated) Error: ${err}`, error: true, robloxUser: robloxUser }
 			}
 		})
-		if (rank.tag) {
-			MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
-		}
+		const updateTagResponce = await this.updateTag(MEMBER, rank)
 		this.rank_id = rank.id
 		await this.updateOfficer(rank)
 		this.save()
+		oldRank = await Ranks.findOne({ where: { id: oldRank } })
 		const updateLinkedRolesResponce = await this.updateLinkedRoles(MEMBER, rank, oldRank)
-		return { message: `Promoted from <@&${oldRank}> to <@&${rank.id}> ` + (smallError ? smallError : "") + updateLinkedRolesResponce.addedRoles ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.split(",").join("> <@&") + ">" : "" + + updateLinkedRolesResponce.removedRoles ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.split(",").join("> <@&") + ">" : "", robloxUser: robloxUser }
+		return { message: `Promoted from <@&${oldRank.id}> to <@&${rank.id}> ` + (smallError ? smallError : "") + (updateLinkedRolesResponce.addedRoles.length ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.join("> <@&") + ">" : "") + (updateLinkedRolesResponce.removedRoles.length ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.join("> <@&") + ">" : "") + (updateTagResponce ? updateTagResponce : ""), robloxUser: robloxUser }
 	}
 });
 
@@ -425,18 +446,14 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				this.save()
 				MEMBER.roles.add(this.rank_id)
 				await this.updateOfficer(rankFromRoblox)
-				if (rankFromRoblox.tag) {
-					MEMBER.setNickname(rankFromRoblox.tag + " " + robloxUser.cachedUsername)
-				}
+				await this.updateTag(MEMBER, rankFromRoblox)
 				await this.updateLinkedRoles(MEMBER, rankFromRoblox)
 				return { message: `added to the database with the rank <@&${this.rank_id}> (taken from roblox group rank)`, robloxUser: robloxUser }
 			}
 			this.rank_id = highestRank.id
 			this.save()
 			await this.updateOfficer(highestRank)
-			if (highestRank.tag) {
-				MEMBER.setNickname(highestRank.tag + " " + robloxUser.cachedUsername)
-			}
+			await this.updateTag(MEMBER, highestRank)
 			await this.updateLinkedRoles(MEMBER, highestRank)
 			if (highestRank.roblox_id != rankFromRoblox.roblox_id) {
 				await noblox.setRank(groupId, robloxUser.robloxId, Number(highestRank.roblox_id)).catch((err) => {
@@ -459,12 +476,13 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 						}
 					}
 				})
+				if (!highestRank) {
+					return { message: `Error: help! something went very wrong!`, error: true, robloxUser: robloxUser }
+				}
 				this.rank_id = highestRank.id
 				this.save()
 				await this.updateOfficer(highestRank)
-				if (highestRank.tag) {
-					MEMBER.setNickname(highestRank.tag + " " + robloxUser.cachedUsername)
-				}
+				await this.updateTag(MEMBER, highestRank)
 				await this.updateLinkedRoles(MEMBER, highestRank)
 				const rank = await this.getRank()
 				if (rank.roblox_id != rankFromRoblox.roblox_id) {
@@ -477,9 +495,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				return { message: `Updated database rank to <@&${rank.id}> (taken from discord roles)`, robloxUser: robloxUser }
 			} else {
 				await this.updateOfficer(dbRank)
-				if (dbRank.tag) {
-					MEMBER.setNickname(dbRank.tag + " " + robloxUser.cachedUsername)
-				}
+				await this.updateTag(MEMBER, dbRank)
 				await this.updateLinkedRoles(MEMBER, dbRank)
 				
 				await noblox.setRank(groupId, robloxUser.robloxId, Number(dbRank.roblox_id)).catch((err) => {
@@ -509,27 +525,21 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 					console.log(err)
 					return { message: `Error: An error occured while trying to update the users's roblox rank! try again later!`, error: true, robloxUser: robloxUser }
 				})
-				if (rank.tag) {
-					MEMBER.setNickname(rank.tag + " " + robloxUser.cachedUsername)
-				}
+				await this.updateTag(MEMBER, rank)
 				await this.updateOfficer(rank)
 				await this.updateLinkedRoles(MEMBER, rank, dbRank)
 				return { message: `Updated database and roblox rank to <@&${highestRank.id}> (taken from discord roles)`, robloxUser: robloxUser }
 			}
-			if (dbRank.tag) {
-				MEMBER.setNickname(dbRank.tag + " " + robloxUser.cachedUsername)
-			}
+			await this.updateTag(MEMBER, dbRank)
 			return { message: `Updated discord rank to <@&${this.rank_id}> (taken from database)`, robloxUser: robloxUser }
 		}
 
 		//TEMPORARY REMOVE WHEN function uses User.prototype.setRank()
 		await this.updateOfficer(dbRank)
-		if (dbRank.tag) {
-			MEMBER.setNickname(dbRank.tag + " " + robloxUser.cachedUsername)
-		}
+		await this.updateTag(MEMBER, dbRank)
 		const updateLinkedRolesResponce = await this.updateLinkedRoles(MEMBER, dbRank)
-		if (updateLinkedRolesResponce.addedRoles || updateLinkedRolesResponce.removedRoles) {
-			return { message: (updateLinkedRolesResponce.addedRoles ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.split(",").join("> <@&") + ">" : "") + (updateLinkedRolesResponce.removedRoles ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.split(",").join("> <@&") + ">" : ""), robloxUser: robloxUser }
+		if (updateLinkedRolesResponce.addedRoles.length || updateLinkedRolesResponce.removedRoles.length) {
+			return { message: (updateLinkedRolesResponce.addedRoles.length >= 1 ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.join("> <@&") + ">" : "") + (updateLinkedRolesResponce.removedRoles.length ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.join("> <@&") + ">" : ""), robloxUser: robloxUser }
 		}
 
 		return { robloxUser: robloxUser }

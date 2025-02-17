@@ -77,7 +77,7 @@ module.exports = {
             embeded_reply = new EmbedBuilder().setDescription(reply).setColor([0, 255, 0])
             await interaction.editReply({ embeds: [embeded_reply] });
         } else {
-            await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), name: groupName, exp: interaction.options.getInteger("current_exp") ?? 0 })
+            server = await db.Servers.create({ guild_id: interaction.guild.id, group_id: interaction.options.getInteger("roblox_group_id"), name: groupName, exp: interaction.options.getInteger("current_exp") ?? 0 })
             reply = `Server successfully saved to the database and linked to the roblox group **${groupName}**.`
             embeded_reply = new EmbedBuilder().setDescription(reply).setColor([0, 255, 0])
             await interaction.editReply({ embeds: [embeded_reply] });
