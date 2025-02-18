@@ -128,9 +128,9 @@ Reflect.defineProperty(Users.prototype, 'updateLinkedRoles', {
 				if (!otherRank.linked_roles) return
 				otherRank.linked_roles.forEach(role => {
 					if (!rank.linked_roles.includes(role)) {
-						if (member.roles.cache.some(role => role.id == role)) {
-							member.roles.remove(role)
+						if (member.roles.cache.some(role => role.id == role) && !removedRoles.includes(role)) {
 							removedRoles.push(role)
+							member.roles.remove(role)
 						}
 					}
 					
