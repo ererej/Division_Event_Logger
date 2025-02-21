@@ -1,3 +1,4 @@
+const sealog = require("../utils/sealog");
 
 
 module.exports = (sequelize, DataTypes) => {
@@ -13,10 +14,6 @@ module.exports = (sequelize, DataTypes) => {
         },
         type: {
             type: DataTypes.STRING,
-        },
-        message_link: {
-            type: DataTypes.STRING,
-            allowNull: true,
         },
         host : {
             type: DataTypes.STRING,
@@ -39,7 +36,14 @@ module.exports = (sequelize, DataTypes) => {
         amount_of_officers: {
             type: DataTypes.INTEGER,
             allowNull: false,
-        }
-
+        },
+        sealog_message_link: {
+            type: DataTypes.STRING,
+            defaultValue: null,
+        },
+        promolog_message_link: {
+            type: DataTypes.STRING,
+            defaultValue: null,
+        },
     });
 }

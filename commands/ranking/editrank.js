@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors } = requi
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
-const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
+const getNameOfPromoPoints = require("../../utils/getNameOfPromoPoints.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()

@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
-const testers = require("../../tester_servers.json");
 const noblox = require("noblox.js")
-const config = require('../../config.json')
 
 module.exports = {
 	data: new SlashCommandBuilder()

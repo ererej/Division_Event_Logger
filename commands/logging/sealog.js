@@ -4,8 +4,8 @@ const noblox = require("noblox.js")
 const config = require('../../config.json')
 
 
-const sealog = require('../../functions/sealog.js')
-const validateMessageLink = require('../../functions/validateMessageLink.js')
+const sealog = require('../../utils/sealog.js')
+const validateMessageLink = require('../../utils/validateMessageLink.js')
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -70,11 +70,12 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error]});
 		}
         
-        const announcmentmessage = await validateMessageLink(interaction, interaction.options.getString('announcemnt_link'))
-        if (!announcmentmessage) return 
+        let announcmentmessage = await validateMessageLink(interaction, interaction.options.getString('announcemnt_link'))
+        if (announcmentmessage.error) return interaction.editReply({ embeds: [embeded_error.setDescription(announcmentmessage.error)] }) 
+        announcmentmessage = announcmentmessage.message
 
         let numberOfAttendees;
-        if (interaction.options.getString('event_type') != 'patrol' ) {
+        if (true /*interaction.options.getString('event_type') != 'patrol'*/ ) {
             const collectorFilter = response => { return response.author.id === interaction.member.id && !isNaN(response.content)};
             await interaction.followUp({ content: "How many attendees did you get? DONT COUNT YOURSELF. awnser below.", fetchReply: true })
             

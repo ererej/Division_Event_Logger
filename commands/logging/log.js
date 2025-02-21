@@ -4,9 +4,9 @@ const noblox = require("noblox.js")
 const config = require('../../config.json')
 
 
-const sealog = require('../../functions/sealog.js')
-const validateMessageLink = require('../../functions/validateMessageLink.js')
-const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js")
+const sealog = require('../../utils/sealog.js')
+const validateMessageLink = require('../../utils/validateMessageLink.js')
+const getNameOfPromoPoints = require("../../utils/getNameOfPromoPoints.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -59,7 +59,7 @@ module.exports = {
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
 
         const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
-        if (!server) { //!!!!!!!! make the reply link to the /setup command.
+        if (!server) { //!!!!!!!! make the reply link to the /setup command. no!
             return await interaction.editReply({ Embeds: [embeded_error.setDescription("Server not found in the database! Please contact an admin to link the server with /setup!")]})
         }
         
@@ -98,7 +98,7 @@ module.exports = {
         let dbLogger;
         if (interaction.options.getUser('host')) {
             dbLogger = await db.Users.findOne({ where: { user_id: interaction.options.getUser('host').id, guild_id: interaction.guild.id }})
-            //add logic for updating dbloggers rank and then verifying that they are an officer
+            //! add logic for updating dbloggers rank and then verifying that they are an officer
         }
 
         //check if the user has permission to host events
@@ -151,8 +151,9 @@ module.exports = {
         const wedge_picture = interaction.options.getAttachment('wedge_picture')
         
 
-        const announcmentMessage = await validateMessageLink(interaction, interaction.options.getString('announcemnt_link'))
-        if (!announcmentMessage) return
+        let announcmentMessage = await validateMessageLink(interaction, interaction.options.getString('announcemnt_link'))
+        if (announcmentMessage.error) return interaction.editReply({ embeds: [embeded_error.setDescription(announcmentMessage.error)] })
+        announcmentMessage = announcmentMessage.message
 
 
 
@@ -292,13 +293,18 @@ module.exports = {
             dbUser.save()
         })
 
-
+        const officer = await db.Officers.findOne({ where: {user_id: host.id, guild_id: interaction.guild.id, retired: null}})
+        if (officer) {
+            officer.total_events_hosted += 1
+            officer.total_attendees += total_attendes
+            officer.save()
+        }
         interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Event has been logged to database").setColor([255, 255, 0])], components: []})
 
 
 
         event_log_embed.setDescription(description)
-        event_log_embed.setFooter({ text: `Total attendees: ${total_attendes}`})
+        event_log_embed.setFooter({ text: `Total attendees: ${total_attendes} ID: ` + dbEvent.id})
 
         /* might be reworked and reintroduced later
         const promoter_role_id = "1109546594535211168" 
@@ -307,17 +313,18 @@ module.exports = {
         //place rank up function here!
         
         //event/promo logs
-        await promologsChannel.send({content: mentions, embeds: [event_log_embed]})
-    
+        const promologs_message = await promologsChannel.send({content: mentions, embeds: [event_log_embed]})
+        dbEvent.promolog_message_link = promologs_message.url
         
         //SEA Format
         if (["training", "patrol", "tryout"].includes(eventType)) {
-            const responce = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes)
-            if (!responce) {
+            const sealogMessage = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes)
+            if (!sealogMessage) {
                 return
-            }
-            dbEvent.message_link = responce.url
+            } 
+            dbEvent.sealog_message_link = sealogMessage.url
         }
+        dbEvent.save()
         
         
         const success_embed = new EmbedBuilder().setColor([0,255,0]).setDescription("Event succesfully logged and saved to the database!")

@@ -3,7 +3,7 @@ const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
 const testers = require("../../tester_servers.json");
-const getNameOfPromoPoints = require('../../functions/getNameOfPromoPoints.js');
+const getNameOfPromoPoints = require('../../utils/getNameOfPromoPoints.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()

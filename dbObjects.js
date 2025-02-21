@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const config = require('./config.json');
 const dbcredentoiols = process.argv.includes("--productiondb") || process.env.DATABASE === 'productiondb' ? config.productionDb : config.db;
-const getNameOfPromoPoints = require("./functions/getNameOfPromoPoints.js")
+const getNameOfPromoPoints = require("./utils/getNameOfPromoPoints.js")
 
 console.log("Connecting to database: " + dbcredentoiols.database)
 const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
@@ -127,8 +127,8 @@ Reflect.defineProperty(Users.prototype, 'updateLinkedRoles', {
 			allRanks.forEach(otherRank => {
 				if (!otherRank.linked_roles) return
 				otherRank.linked_roles.forEach(role => {
-					if (!rank.linked_roles.includes(role)) {
-						if (member.roles.cache.some(role => role.id == role) && !removedRoles.includes(role)) {
+					if (!rank.linked_roles.includes(role) && !removedRoles.includes(role)) {
+						if (member.roles.cache.some(tempRole => tempRole.id == role) ) {
 							removedRoles.push(role)
 							member.roles.remove(role)
 						}

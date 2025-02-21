@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js");
-const getNameOfPromoPoints = require("../../functions/getNameOfPromoPoints.js");
-const { premiumLock } = require('./quota.js');
+const getNameOfPromoPoints = require("../../utils/getNameOfPromoPoints.js");
 
 module.exports = {
     data: new SlashCommandBuilder()

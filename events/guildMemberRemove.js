@@ -1,8 +1,8 @@
 const { Events } = require('discord.js');
 const db = require('../dbObjects.js');
 const noblox = require("noblox.js")
-const updateGroupMemberCount = require('../functions/updateGroupMemberCount.js')
-const updateGuildMemberCount = require('../functions/updateGuildMemberCount.js')
+const updateGroupMemberCount = require('../utils/updateGroupMemberCount.js')
+const updateGuildMemberCount = require('../utils/updateGuildMemberCount.js')
 
 
 module.exports = {

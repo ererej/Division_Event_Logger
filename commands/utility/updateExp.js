@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js")
-const getExp = require('../../functions/getExp.js');
-const updateExp = require('../../functions/updateExp.js');
-const getLinkedChannel = require('../../functions/getLinkedChannel.js');
+const getExp = require('../../utils/getExp.js');
+const updateExp = require('../../utils/updateExp.js');
+const getLinkedChannel = require('../../utils/getLinkedChannel.js');
 
 module.exports = {
     data: new SlashCommandBuilder()

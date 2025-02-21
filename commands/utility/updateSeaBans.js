@@ -1,9 +1,11 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ConnectionService } = require('discord.js');
 const spreadsheetId = '11B49ixK9BM2H91rhYmSF4-5SqhQWfz_zPWIC_X5eGyQ'
-const readSheetData = require('../../functions/getGoogleSheet')
-
+const readSheetData = require('../../utils/getGoogleSheet')
+const db = require("../../dbObjects.js")
+const getLinkedChannel = require('../../utils/getLinkedChannel');
 
 const { google } = require('googleapis');
+
 const { readFile } = require('fs').promises;
 
 module.exports = {
@@ -16,6 +18,8 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
         
+        const banlogsChannel = await getLinkedChannel(interaction.guild.id, db, { type: "banlogs" })
+
         const responce = await readSheetData(spreadsheetId, 'Individuals List!A1:c300')
         const rows = responce.data.values;
         let UserIDs = []
@@ -46,6 +50,7 @@ module.exports = {
                     })
                     if (failed) continue
                     replyString += ` ✅ **banned <@${userId}>!!!!**\n`
+                    if (banlogsChannel) banlogsChannel.send({content: `:ballot_box_with_check: <@${userId}> has been banned by <@${interaction.user.id}>!`})
                     bancount++
                     continue
                     

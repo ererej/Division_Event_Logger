@@ -2,10 +2,10 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ChannelType } = 
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js");
 
-const getExp = require('../../functions/getExp.js');
-const updateExp = require('../../functions/updateExp.js');
-const updateGroupMemberCount = require('../../functions/updateGroupMemberCount.js');
-const updateGuildMemberCount = require('../../functions/updateGuildMemberCount.js');
+const getExp = require('../../utils/getExp.js');
+const updateExp = require('../../utils/updateExp.js');
+const updateGroupMemberCount = require('../../utils/updateGroupMemberCount.js');
+const updateGuildMemberCount = require('../../utils/updateGuildMemberCount.js');
 
 
 module.exports = {
@@ -37,6 +37,7 @@ module.exports = {
                     { name: 'sealogs', value: "sealogs" },
                     { name: 'raidlogs', value: "raidlogs"},
                     { name: 'promologs', value: "promologs" },
+                    { name: 'banlogs', value: "banlogs" },
                     { name: 'none', value: "none"}
                 )
         ),
@@ -61,8 +62,8 @@ module.exports = {
 
         const channel = interaction.options.getChannel('channel')
         const vcChannels = ["training", "patrol", "raid", "gamenight", "tryout"]
-        const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs"]
-        const logChannels = ["sealogs", "promologs", "raidlogs"]
+        const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs", "banlogs"]
+        const logChannels = ["sealogs", "promologs", "raidlogs", "banlogs"]
         const VcDisplays = ["robloxGroupCount", "guildMemberCount", "vcexpdisplay", "vcleveldisplay", "vcsmallexpdisplay"]
         if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(linkType) || VcDisplays.includes(linkType))) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Text Channel to link **${linkType}** to!`)] })

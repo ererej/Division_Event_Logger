@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
-
+const db = require("../../dbObjects.js")
+const getLinkedChannel = require('../../utils/getLinkedChannel');
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName('massban')
@@ -17,6 +18,9 @@ module.exports = {
     botPermissions: [PermissionsBitField.Flags.BanMembers],
     async execute(interaction) {
         await interaction.deferReply()
+
+        const banlogsChannel = await getLinkedChannel(interaction.guild.id, db, { type: "banlogs" })
+
         let UserIDs = interaction.options.getString('users').split(',')
         if (UserIDs.length < 1) {
             UserIDs = interaction.options.getString('users').split('\n')
@@ -50,6 +54,7 @@ module.exports = {
                     })
                     if (failed) continue
                     replyString += ` ✅ **banned <@${userId}>!!!!**\n`
+                    if (banlogsChannel) banlogsChannel.send({content: `:ballot_box_with_check: <@${userId}> has been banned by <@${interaction.user.id}>!`})
                     bancount++
                     continue
                     

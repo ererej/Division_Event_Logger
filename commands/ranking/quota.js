@@ -4,7 +4,7 @@ const noblox = require("noblox.js")
 const config = require('../../config.json');
 noblox.setCookie(config.sessionCookie)
 const { Op } = require("sequelize");
-const generateGraph = require('../../functions/generateGraph.js')
+const generateGraph = require('../../utils/generateGraph.js')
 const fs = require('fs');
 
 

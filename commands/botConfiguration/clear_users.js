@@ -1,7 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
 const db = require("../../dbObjects.js")
-const testers = require("../../tester_servers.json");
-const { testerLock } = require('../ranking/quota.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()

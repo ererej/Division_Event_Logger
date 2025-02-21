@@ -2,11 +2,11 @@ const { ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, S
 const db = require("../../dbObjects.js");
 const noblox = require("noblox.js")
 const config = require('../../config.json')
-const updateGuildMemberCount = require('../../functions/updateGuildMemberCount.js');
-const updateGroupMemberCount = require('../../functions/updateGroupMemberCount.js');
-const updateExp = require('../../functions/updateExp.js');
-const getExp = require('../../functions/getExp.js');
-const getLinkedChannel = require('../../functions/getLinkedChannel.js');
+const updateGuildMemberCount = require('../../utils/updateGuildMemberCount.js');
+const updateGroupMemberCount = require('../../utils/updateGroupMemberCount.js');
+const updateExp = require('../../utils/updateExp.js');
+const getExp = require('../../utils/getExp.js');
+const getLinkedChannel = require('../../utils/getLinkedChannel.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()

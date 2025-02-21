@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const db = require("../../dbObjects.js")
-const testers = require("../../tester_servers.json");
 
 
 module.exports = {

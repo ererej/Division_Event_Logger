@@ -21,6 +21,9 @@ module.exports = async ({ noblox, guild, db, interaction, channel, dbChannel, gr
             console.error("Error fetching channel in updateGroupMemberCount.js: " + err + "\nGuild: " + guild.id + "\nChannel: " + dbChannel.channel_id)
             return
         })
+        if (!channel) {
+            return false
+        }
     }
 
     if (!noblox) {

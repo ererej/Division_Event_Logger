@@ -1,8 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField, ButtonBuilder, ActionRowBuilder } = require('discord.js');
 const db = require("../../dbObjects.js")
-const updateExp = require('../../functions/updateExp.js');
+const updateExp = require('../../utils/updateExp.js');
 const noblox = require("noblox.js");
-const { botPermissions } = require('./linkChannel.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
