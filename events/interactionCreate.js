@@ -7,6 +7,10 @@ module.exports = {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
 		if (!interaction.isChatInputCommand()) return;
+		//check if the bot has critical permissions
+		if (!interaction.guild.members.cache.get("1201941514520117280").permissions.has(PermissionsBitField.Flags.SendMessages) || !interaction.guild.members.cache.get("1201941514520117280").permissions.has(PermissionsBitField.Flags.ViewChannel)) {
+			return interaction.user.send({ embeds: [new EmbedBuilder().setTitle("I'm missing permissions!").setDescription(`I'm need the following permissions to respond to commands: \`Send Messages\` and \`View Channel\``).setColor([255, 0, 0])] });
+		}
 		if (!interaction.guild) { return interaction.reply("Commands in DMs are disabled sorry!")}
 
 		const command = interaction.client.commands.get(interaction.commandName);
@@ -20,22 +24,23 @@ module.exports = {
 			//logs 
 			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
-                const channel = await testServer.channels.fetch("1285158576448344064");
-				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 1) * 3600000)
-				let subcommand = "";
-				try {
-					subcommand = interaction.options.getSubcommand()
-				} catch (error) {}
-				
-				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + " guild name: " + interaction.guild.name +  " inputs: \n"
-				interaction.options._hoistedOptions.forEach(option => {
-					if ((logMessage + "**" + option.name + "** = " + option.value + " \n").length > 1900) {
-						channel.send(logMessage);
-						logMessage = ""
-					}
-					logMessage += "**" + option.name + "** = " + option.value + " \n" 
-				});
-                await channel.send(logMessage);
+                await testServer.channels.fetch("1285158576448344064").then(channel => {
+					const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 1) * 3600000)
+					let subcommand = "";
+					try {
+						subcommand = interaction.options.getSubcommand()
+					} catch (error) {}
+					
+					let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + " guild name: " + interaction.guild.name +  " inputs: \n"
+					interaction.options._hoistedOptions.forEach(option => {
+						if ((logMessage + "**" + option.name + "** = " + option.value + " \n").length > 1900) {
+							channel.send(logMessage);
+							logMessage = ""
+						}
+						logMessage += "**" + option.name + "** = " + option.value + " \n" 
+					});
+					channel.send(logMessage);
+				})
             }
 			//warning message
 			if (config.host != "server" && interaction.guild.id !== "831851819457052692" && interaction.user.id != "386838167506124800") {
@@ -46,14 +51,16 @@ module.exports = {
 				return interaction.reply({ embeds: [new EmbedBuilder().setTitle("This command is locked to **testers only!**").setColor([255, 0, 0])] });
 			} 
 
-			const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
-			if (command.premiumLock && (!server || !server.premium_end_date || server.premium_end_date < new Date())) {
-				const premiumButton = new ButtonBuilder()
-							.setStyle(6)
-							.setSKUId('1298023132027944980')
-				
-				const row = new ActionRowBuilder().addComponents(premiumButton)
-				return interaction.reply({ embeds: [new EmbedBuilder().setTitle("This command is locked to **premium servers only!** You can get premium by pressing the button below and then running </useticket:1329067836886351953>! Most of the profits goes twords fuling Ererejs candy and pastery addiction :D").setColor([255, 0, 0])] });
+			if (command.premiumLock) {
+				const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
+				if (!server || !server.premium_end_date || server.premium_end_date < new Date()) {
+					const premiumButton = new ButtonBuilder()
+								.setStyle(6)
+								.setSKUId('1298023132027944980')
+					
+					const row = new ActionRowBuilder().addComponents(premiumButton)
+					return interaction.reply({ components: [row], embeds: [new EmbedBuilder().setTitle("This command is locked to **premium servers only!** You can get premium by pressing the button below and then running </useticket:1329067836886351953>! Most of the profits goes twords fuling Ererejs candy and pastery addiction :D").setColor([255, 0, 0])] });
+				}
 			}
 
 			if (command.botPermissions) {
