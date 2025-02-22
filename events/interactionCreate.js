@@ -5,6 +5,11 @@ const db = require("../dbObjects.js")
 
 module.exports = {
 	name: Events.InteractionCreate,
+
+	/**
+	 * @param {import('discord.js').Interaction} interaction
+	 * @returns {Promise<void>}
+	 */
 	async execute(interaction) {
 		if (!interaction.isChatInputCommand()) return;
 		//check if the bot has critical permissions
@@ -22,23 +27,22 @@ module.exports = {
 
 		try {
 			//logs 
-			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
+			const testServer = interaction.client.guilds.cache.get("831851819457052692")
 			if (testServer) {
-                await testServer.channels.fetch("1285158576448344064").then(channel => {
-					const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 1) * 3600000)
-					let subcommand = "";
-					try {
-						subcommand = interaction.options.getSubcommand()
-					} catch (error) {}
-					
-					let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + " guild name: " + interaction.guild.name +  " inputs: \n"
-					interaction.options._hoistedOptions.forEach(option => {
-						if ((logMessage + "**" + option.name + "** = " + option.value + " \n").length > 1900) {
-							channel.send(logMessage);
-							logMessage = ""
-						}
-						logMessage += "**" + option.name + "** = " + option.value + " \n" 
-					});
+				const channel = testServer.channels.cache.get("1285158576448344064")
+				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 1) * 3600000)
+				let subcommand = "";
+				try {
+					subcommand = interaction.options.getSubcommand()
+				} catch (error) {}
+				
+				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + " guild name: " + interaction.guild.name +  " inputs: \n"
+				interaction.options._hoistedOptions.forEach(option => {
+					if ((logMessage + "**" + option.name + "** = " + option.value + " \n").length > 1900) {
+						channel.send(logMessage);
+						logMessage = ""
+					}
+					logMessage += "**" + option.name + "** = " + option.value + " \n" 
 					channel.send(logMessage);
 				})
             }
@@ -81,9 +85,9 @@ module.exports = {
 			} else {
 				await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 			}
-			const testServer = await interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
+			const testServer = interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
-                const channel = await testServer.channels.fetch("1285158576448344064");
+                const channel = testServer.channels.cache.find("1285158576448344064");
 				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 2) * 3600000)
 
 				let errorLogs = "the interaction that was created at [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] failed!"
