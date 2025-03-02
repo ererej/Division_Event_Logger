@@ -18,10 +18,9 @@ module.exports = {
         await interaction.deferReply();
         const embeded_error = new EmbedBuilder().setColor(Colors.Red)
 
-        const input = interaction.options.getString('relative_time')
+        const input = interaction.options.getString('relative_time').toLowerCase()
         let time;
         const now = new Date()
-        input = input.toLowerCase()
         if (input.includes("minutes ") || input.includes("minutes\n") || input.includes("minutes") || input.includes("min ") || input.includes("min\n") || input.includes("min") || input.includes("mins ") || input.includes("mins\n") || input.includes("mins")) {
             let words = input.toLowerCase().replace("\n", " ").split(" ")
             const indexOfTime = words.findIndex(word => /\b(min|minutes|mins)\b/.test(word)) - 1

@@ -45,7 +45,7 @@ module.exports = {
                 // Delete the message that contains the link to where to log the event
                 const channel_messages = await sea_log.channel.messages.fetch({ around: sea_log.id, limit: 2 });
                 const regex = /^VVV https:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+\/\d+$ VVV/
-                const loggingChannelPointer = channel_messages.findOne(message => message.position < sea_log.position && regex.test(message.content));
+                const loggingChannelPointer = channel_messages.find(message => message.position < sea_log.position && regex.test(message.content));
                 if (loggingChannelPointer) {
                     loggingChannelPointer.delete();
                     console.log('deleted logging channel pointer');

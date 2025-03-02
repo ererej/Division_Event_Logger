@@ -18,7 +18,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
         
-        const banlogsChannel = await getLinkedChannel(interaction.guild.id, db, { type: "banlogs" })
+        const banlogsChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "banlogs" })
 
         const responce = await readSheetData(spreadsheetId, 'Individuals List!A1:c300')
         const rows = responce.data.values;

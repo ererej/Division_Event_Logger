@@ -123,7 +123,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
                 return response.author.id === interaction.member.id && !isNaN(response.content.replace(/(minutes|min)/, "")) && parseInt(response.content.replace(/(minutes|min)/, "")) > 0;
             };
             
-            const followUpAskingForTime = await interaction.followUp({ embeds: [new EmbedBuilder().setDescription("I suspect that this event was not logged right as the event ended. Please type an estimation of how long the event was in minutes below.").setColor([255,255,0])], fetchReply: true })
+            const followUpAskingForTime = await interaction.followUp({ embeds: [new EmbedBuilder().setDescription("I suspect that this event was not logged right as the event ended. \n**Please type an estimation of how long the event was in minutes below.**").setColor([255,0,0])], fetchReply: true })
             
             try {
                 const collected = await interaction.channel.awaitMessages({ filter: collectorFilter, max: 1, time: 300_000, errors: ['time'] });
