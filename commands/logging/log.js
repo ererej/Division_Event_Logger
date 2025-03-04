@@ -130,6 +130,7 @@ module.exports = {
                             
                         })
                     } else if (confirmation.customId === 'confirmSelection') {
+                        interaction.editReply({embeds: [new EmbedBuilder().setDescription("Selection confirmed")], components: []})
                         break;
                     }
                 }
@@ -152,7 +153,7 @@ module.exports = {
         
 
         let announcmentMessage = await validateMessageLink(interaction, interaction.options.getString('announcemnt_link'))
-        if (announcmentMessage.error) return interaction.editReply({ embeds: [embeded_error.setDescription(announcmentMessage.error)] })
+        if (announcmentMessage.error) return interaction.editReply({ embeds: [embeded_error.setDescription(announcmentMessage.error)], components: []})
         announcmentMessage = announcmentMessage.message
 
 
