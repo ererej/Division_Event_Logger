@@ -203,7 +203,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		let responce = "";
 		let showPromoPoints = true;
 		let nextRank;
-
+		let rankIndexInRanks;
 		ranks.some(function(tempRank, i) {
 			if (tempRank.id == rank.id) {
 				rankIndexInRanks = i;
@@ -220,12 +220,13 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 			showPromoPoints = true
 			
 			nextRank = ranks[rankIndexInRanks + 1]
+			rankIndexInRanks += 1
 			if (nextRank) {
 				if (nextRank.obtainable === false) {
 					return { message: responce + "Can not be promoted with " + nameOfPromoPoints + "!", error: true, robloxUser: robloxUser }
 				}
 				if (this.promo_points >=  nextRank.promo_points) {
-					//could be better to only do this.setRank at the end when we know its the final rank to speed up the process
+					//todo could be better to only do this.setRank at the end when we know its the final rank to speed up the process
 					const setRankResult = await this.setRank(noblox, groupId, MEMBER, nextRank, robloxUser).catch((err) => {
 						console.log(err)
 						return { message: `Error: An error occured while trying to promote the user! The user ended up with ${this.promo_points} ${nameOfPromoPoints} and the rank <@&${rank.id}>!`, error: true, robloxUser: robloxUser }
