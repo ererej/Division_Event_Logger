@@ -68,7 +68,7 @@ module.exports = {
         if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(linkType) || VcDisplays.includes(linkType))) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Text Channel to link **${linkType}** to!`)] })
         } else if (channel.type === ChannelType.GuildText && !textChannels.includes(linkType) && linkType != "logs") {
-            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Voice Channel to *${linkType}** to!`)] })
+            return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Voice Channel to **${linkType}** to!`)] })
         }
         let replyString = ""
 
@@ -112,6 +112,10 @@ module.exports = {
         } else if (["expdisplay", "vcexpdisplay", "vcsmallexpdisplay", "vcleveldisplay"].includes(linkType)) {
             const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: linkType })
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
+            if (!server) {
+                dbChannel.destroy()
+                return interaction.editReply({ embeds: [new EmbedBuilder().setDescription("The server was not found in the database! please run /setup!").setColor([255, 0, 0])] })
+            }
             const exp = (server.exp ? server.exp : await getExp(interaction, server))
             if (typeof exp === "string") {
                 dbChannel.destroy()

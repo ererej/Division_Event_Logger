@@ -34,7 +34,6 @@ module.exports = {
                 if (timeofset < 0) {
                     interaction.followUp("<@386838167506124800> Time traveler detected!")
                 }
-                console.log(timeofset)
             } else if (words.filter(word => /\b\d+(min|minutes|mins)/.test(word)).length > 0) {
                 const timeSubString = words.filter(word => /\b\d+(min|minutes|mins)/.test(word))[0]
                 const ofset = parseInt(timeSubString.match(/\d+/)[0], 10)

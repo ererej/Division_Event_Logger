@@ -16,10 +16,10 @@ module.exports = {
             option.setName('timerange')
                 .setDescription('The time range to check the quota for')
                 .addChoices(
-                    { name: 'week', value: "0, 7 * 24 * 60 * 60 * 1000" },
-                    { name: 'month', value: "0, 30 * 24 * 60 * 60 * 1000" },
-                    { name: 'last week', value: "7 * 24 * 60 * 60 * 1000, 2 * 7 * 24 * 60 * 60 * 1000" },
-                    { name: 'last month', value: "30 * 24 * 60 * 60 * 1000, 2 * 30 * 24 * 60 * 60 * 1000" }
+                    { name: 'week', value: JSON.stringify([0, 7 * 24 * 60 * 60 * 1000]) },
+                    { name: 'month', value: JSON.stringify([0, 30 * 24 * 60 * 60 * 1000]) },
+                    { name: 'last week', value: JSON.stringify([7 * 24 * 60 * 60 * 1000, 2 * 7 * 24 * 60 * 60 * 1000]) },
+                    { name: 'last month', value: JSON.stringify([30 * 24 * 60 * 60 * 1000, 2 * 30 * 24 * 60 * 60 * 1000]) }
                 )
         )
         ,
@@ -38,11 +38,21 @@ module.exports = {
         const timerange = interaction.options.getString('timerange')
         let [start, end] = [0, 7 * 24 * 60 * 60 * 1000]
         if (timerange ) {
-            [start, end] = timerange.split(", ").map(Number)
+            start = JSON.parse(timerange)[0]
+            end = JSON.parse(timerange)[1]
+            
         }
+        const startTime = new Date(new Date() - end)
+        const endTime = new Date(new Date() - start)
 
         let officers = await db.Officers.findAll({
-            where: { guild_id: interaction.guild.id, retired: null },
+            where: {
+            guild_id: interaction.guild.id,
+            [Op.or]: [
+                { retired: null },
+                { retired: { [Op.gt]: new Date(new Date() - end) }, createdAt: { [Op.lt]: new Date(new Date() - end) } }
+            ]
+            },
             include: [{
             model: db.Users,
             as: 'user',
@@ -79,26 +89,42 @@ module.exports = {
         let totalPatrolAttendes = 0
 
 
-        // let totalAttendesHistory = [5, 4, 3, 2, 1, 0]
-        // totalAttendesHistory = await Promise.all(totalAttendesHistory.map(async (index) => {
-        //     const events = await db.Events.findAll({ 
-        //         where: { 
-        //             guild_id: interaction.guild.id, 
-        //             createdAt: { 
-        //                 [Op.lt]: new Date(new Date() - (Math.abs(start - end) * (index))), 
-        //                 [Op.gt]: new Date(new Date() - (Math.abs(start - end) * (index + 1)))
-        //             } 
-        //         } 
-        //     });
-        //     return events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
-        // }));
 
-        let totalAttendesHistory = [0,0,0,0,0,0]
-        let averageAttendesHistory = [0,0,0,0,0,0]
-        let amountOfEventsHistory = [0,0,0,0,0,0]
-        const dataRangeIndexes = [5, 4, 3, 2, 1, 0]
-        interaction.editReply("fetching data done! processing server wide data...")
-        dataRangeIndexes.forEach(async (index) => {
+        // per day data
+        let totalAttendesHistoryPerDay = [0,0,0,0,0,0]
+        let averageAttendesHistoryPerDay = [0,0,0,0,0,0]
+        let amountOfEventsHistoryPerDay = [0,0,0,0,0,0]
+        let dataRangeIndexesPerDay = []
+
+        for (let i = (end - start)/(24 * 60 * 60 * 1000); i >= 0; i--) {
+            dataRangeIndexesPerDay.push(i)
+        }
+
+        dataRangeIndexesPerDay.forEach(async (index) => {
+            const events = await db.Events.findAll({
+                where: {
+                    guild_id: interaction.guild.id,
+                    createdAt: {
+                        [Op.lt]: new Date(new Date() - (24*60*60*1000 * (index))),
+                        [Op.gt]: new Date(new Date() - (24*60*60*1000 * (index + 1)))
+                    }
+                }
+            })
+            totalAttendesHistoryPerDay[dataRangeIndexesPerDay.indexOf(index)] = events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
+            averageAttendesHistoryPerDay[dataRangeIndexesPerDay.indexOf(index)] = events.length ? Math.round((totalAttendesHistoryPerDay[dataRangeIndexesPerDay.indexOf(index)] / events.length)*10) /10 : 0;
+            amountOfEventsHistoryPerDay[dataRangeIndexesPerDay.indexOf(index)] = events.length;
+        })
+        
+    
+
+
+
+        // per week data
+        let totalAttendesHistoryPerWeek = [0,0,0,0,0,0]
+        let averageAttendesHistoryPerWeek = [0,0,0,0,0,0]
+        let amountOfEventsHistoryPerWeek = [0,0,0,0,0,0]
+        const dataRangeIndexesPerWeek = [5, 4, 3, 2, 1, 0]
+        dataRangeIndexesPerWeek.forEach(async (index) => {
             const events = await db.Events.findAll({
                 where: {
                     guild_id: interaction.guild.id,
@@ -108,9 +134,9 @@ module.exports = {
                     }
                 }
             });
-            totalAttendesHistory[dataRangeIndexes.indexOf(index)] = events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
-            averageAttendesHistory[dataRangeIndexes.indexOf(index)] = events.length ? Math.round(totalAttendesHistory[totalAttendesHistory.length - 1] / events.length) : 0;
-            amountOfEventsHistory[dataRangeIndexes.indexOf(index)] = events.length;
+            totalAttendesHistoryPerWeek[dataRangeIndexesPerWeek.indexOf(index)] = events.reduce((acc, event) => acc + event.amount_of_attendees, 0) ?? 0;
+            averageAttendesHistoryPerWeek[dataRangeIndexesPerWeek.indexOf(index)] = events.length ? Math.round((totalAttendesHistoryPerWeek[dataRangeIndexesPerWeek.indexOf(index)] / events.length)*10) /10 : 0;
+            amountOfEventsHistoryPerWeek[dataRangeIndexesPerWeek.indexOf(index)] = events.length;
         });
 
 
@@ -143,7 +169,7 @@ module.exports = {
             
             const updateOfficerResponce = await officer.user.updateOfficer()
             
-            if (!updateOfficerResponce) {
+            if (!updateOfficerResponce && officer.retired > endTime) {
                 console.log("retiring officer " + officer.user_id + " in guild " + interaction.guild.id + " because they are not an officer anymore")
             }
             
@@ -171,17 +197,16 @@ module.exports = {
             const rallysAfterRaidAttended = rallyafterraid.filter(e => e.attendees.split(",").includes(officer.user_id) || e.host === officer.user_id)
 
             description += `<@&${officer.user.rank_id}> \n`
-            description += `**${events.length}** events hosted (${divsEvents.length ? Math.round(events.length * 100 / divsEvents.length) : 0}%). Average attendees *${events.length != 0 ? Math.round(officersTotalAttendes/events.length) : 0}*\n`
+            description += `**${events.length}** events hosted (${divsEvents.length ? Math.round(events.length * 100 / divsEvents.length) : 0}%). Average attendees **${events.length != 0 ? Math.round(officersTotalAttendes/events.length) : 0}**\n`
             description += `   - *${trainings.length}* trainings (${events.length != 0 ? Math.round(trainings.length * 100/events.length) : 0}%) Average attendance *${trainings.length != 0 ? Math.round(trainingAttendes/trainings.length * 10)/10 : 0}*\n\n` 
             description += `   - *${patrols.length}* patrols (${events.length != 0 ? Math.round(patrols.length/events.length*100) : 0}%) Average attendance *${patrols.length != 0 ? Math.round(patrolAttendes/patrols.length*10)/10 : 0}*\n\n`
             description += `   - *${events.length - trainings.length - patrols.length}* other events (${events.length ? Math.round((events.length - trainings.length - patrols.length)*100/events.length) : 0}%) Average attendance *${events.length - trainings.length - patrols.length != 0 ? Math.round(((officersTotalAttendes - trainingAttendes - patrolAttendes) * 10 / (events.length - trainings.length - patrols.length)) )/10 : 0}*\n\n`
             description += `   - *${rallysbeforeraid.filter(e => e.host === officer.user_id).length}* rallys hosted\n\n`
             description += `${officersTotalAttendes} total attendees\n`
-            description += `**${events.length != 0 ? Math.round(officersTotalAttendes/events.length) : "0"}** average attendees per event\n`
             description += `${eventsAttended.length} events attended\n`
             description += `${eventsCohosted.length} events cohosted\n`
-            description += `rallys before raid attended: ${rallysBeforeRaidAttended.length}\n`
-            description += `rallys after raid attended: ${rallysAfterRaidAttended.length}\n`
+            description += `${rallysBeforeRaidAttended.length} rallys before raid attended \n`
+            description += `${rallysAfterRaidAttended.length} rallys after raid attended\n`
 
             fields.push({ name: title, value: '<@' + officer.user_id + ">\n" + description, inline: true })
 
@@ -191,9 +216,17 @@ module.exports = {
 
         let graphs = []
         graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
-        graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistory}, 'line', 300, 500 ))
-        graphs.push(await generateGraph({ title: "average attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: averageAttendesHistory}, 'line', 300, 500 ))
-        graphs.push(await generateGraph({ title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistory}, 'line', 300, 500 ))
+        graphs.push(await generateGraph({ title: "average attendees per day", labels: dataRangeIndexesPerDay.map(index => {
+            const date = new Date(new Date() - (24*60*60*1000 * index));
+            return `${date.getDate()}/${date.getMonth() + 1}`;
+        }), values: averageAttendesHistoryPerDay}, 'line', 300, 500 ))
+        graphs.push(await generateGraph({ title: "amount of Events per day", labels: dataRangeIndexesPerDay.map(index => {
+            const date = new Date(new Date() - (24*60*60*1000 * index));
+            return `${date.getDate()}/${date.getMonth() + 1}`;
+        }), values: amountOfEventsHistoryPerDay}, 'line', 300, 500 ))
+        graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistoryPerWeek}, 'line', 300, 500 ))
+        graphs.push(await generateGraph({ title: "average attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: averageAttendesHistoryPerWeek}, 'line', 300, 500 ))
+        graphs.push(await generateGraph({ title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistoryPerWeek}, 'line', 300, 500 ))
 
 
         interaction.editReply("Done generating graphs! sending data...")
