@@ -1,5 +1,10 @@
 const { EmbedBuilder } = require("@discordjs/builders");
 
+/**
+ * @param {import('discord.js').CommandInteraction} interaction
+ * @param {string} messageLink
+ * @returns {Promise<{message: import('discord.js').Message, channel: import('discord.js').TextChannel} | {error: string}>}
+ */
 module.exports = async (interaction, messageLink) => {
     const regex = /^https:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+\/\d+$/;
     if (!regex.test(messageLink)) {

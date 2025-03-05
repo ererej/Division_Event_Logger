@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors } = require("discord.js");
 const validateMessageLink = require("../../utils/validateMessageLink");
 const db = require("../../dbObjects");
+const { Op, and } = require("sequelize");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -33,39 +34,35 @@ module.exports = {
         }
 
         if (event.host !== interaction.user.id && !(interaction.member.permissions.has('ADMINISTRATOR') || interaction.member.permissions.has('MANAGE_GUILD'))) {
-            return interaction.editReply({ embeds: [embeded_error.setDescription(`Access denied! You are not the host of the event!`)]});
+            return interaction.editReply({ embeds: [embeded_error.setDescription(`Access denied! You are not the host of the event nor are you an administator!`)]});
         }
 
         if (deleteLogs) {
-            console.log(event.sealog_message_link, event.promo_log_message_link);
-            const sea_log = await validateMessageLink(interaction, event.sealog_message_link);
-            const promo_log = await validateMessageLink(interaction, event.promo_log_message_link);
-            console.log(sea_log, promo_log);
-            if (sea_log.message) {
+            let seaLog = await validateMessageLink(interaction, event.sealog_message_link);
+            const promo_log = await validateMessageLink(interaction, event.promolog_message_link);
+            if (seaLog.message) {
                 // Delete the message that contains the link to where to log the event
-                const channel_messages = await sea_log.channel.messages.fetch({ around: sea_log.id, limit: 2 });
-                const regex = /^VVV https:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+\/\d+$ VVV/
-                const loggingChannelPointer = channel_messages.find(message => message.position < sea_log.position && regex.test(message.content));
-                if (loggingChannelPointer) {
-                    loggingChannelPointer.delete();
-                    console.log('deleted logging channel pointer');
+                const channel_messages = await seaLog.channel.messages.fetch({ around: seaLog.message.id, limit: 2 });
+                // find and delete any VVV <#channel_id> VVV messages
+                const lastMessage = channel_messages.last();
+                const regex = /^VVV <#\d+> VVV$/
+                if (lastMessage && regex.test(lastMessage.content)) {
+                    await lastMessage.delete().catch(console.error());
                 }
-                sea_log.message.delete
-                console.log('deleted sea log message');
+                await seaLog.message.delete().catch(console.error());
             }
             if (promo_log.message) {
-                promo_log.message.delete();
-                console.log('deleted promo log message');
+                await promo_log.message.delete().catch(console.error());
             }
         }
 
-        const hostOfficer = await db.Officers.findAll({ where: { user_id: event.host, guild_id: event.guild_id } });
-        if (hostOfficer) {
-            hostOfficer.forEach(officer => {
-                if ( officer.createdAt > event.createdAt || (officer.retired && officer.retired < event.createdAt )) return;
-                officer.update({ total_events_hosted: officer.total_events_hosted - 1, total_attendees: officer.total_attendees - event.amount_of_attendees });
-            });
+        const hostOfficer = await db.Officers.findAll({ where: { user_id: event.host, guild_id: event.guild_id, createdAt: {[Op.lt]: event.createdAt},  retired: { [Op.or]: [null, { [Op.gt]: event.createdAt }]} } });
+        if (hostOfficer.length === 0) {
+            return interaction.editReply({ embeds: [embeded_error.setDescription(`Some thing is very wrong and no officer found for the host of the event!`)]});
+        } else if (hostOfficer.length > 1) {
+            return interaction.editReply({ embeds: [embeded_error.setDescription(`Some thing is very wrong and more than one officer found for the host of the event!`)]});
         }
+        hostOfficer[0].update({ total_events_hosted: hostOfficer.total_events_hosted - 1, total_attendees: hostOfficer.total_attendees - event.amount_of_attendees });
 
         
 
