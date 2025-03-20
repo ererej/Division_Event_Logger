@@ -27,7 +27,7 @@ module.exports = {
         if (!server) return await interaction.editReply({ embeds: [embeded_error.setDescription("please run the /setup command so that the server gets added to the data base")]})
         
         server.exp = interaction.options.getInteger('amount')
-        server.save()
+        await server.save()
         const responce = await updateExp(db, server, interaction)
         if (typeof responce === "string") return interaction.editReply({ embeds: [new EmbedBuilder().setDescription(responce).setColor([255, 0, 0])] })
 

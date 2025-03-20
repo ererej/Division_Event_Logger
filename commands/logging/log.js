@@ -220,6 +220,45 @@ module.exports = {
         if (cohost) {
             description+=`*Cohost:* <@${cohost.id}>\n`
         }
+        if (eventType === "tryout") {
+            const selectAttendees = new UserSelectMenuBuilder()
+            .setCustomId('select_passers')
+            .setPlaceholder('Select the passers')
+            .setMinValues(1)
+            .setMaxValues(25)
+            const confirmSelection = new ButtonBuilder().setCustomId('confirmSelection').setLabel('Confirm').setStyle(3)
+            const selectRow = new ActionRowBuilder().addComponents(selectAttendees)
+            const confirmRow = new ActionRowBuilder().addComponents(confirmSelection)
+
+            const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please enter who passed the tryout!`)], components: [selectRow, confirmRow]})
+
+            const collectorFilter = i => i.user.id === interaction.user.id
+            try {
+                while (true) {
+                    const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                    confirmation.deferUpdate()
+                    if (confirmation.customId === 'select_passers') {
+                        attendees = []
+                        confirmation.values.forEach(async value => {
+                            const member = await interaction.guild.members.fetch(value)
+                            attendees.push(member)
+                            
+                        })
+                    } else if (confirmation.customId === 'confirmSelection') {
+                        interaction.editReply({embeds: [new EmbedBuilder().setDescription("Selection confirmed")], components: []})
+                        description+=`**Passed:** ${attendees.map(member => `<@${member.id}>`).join(", ")}\n`
+                        break;
+                    }
+                }
+
+            } catch (error) {
+                if (error.message === "Collector received no interactions before ending with reason: time") {
+                    return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 300 secounds, cancelling!")], components: []})
+                } else {
+                        throw error
+                }
+            }
+        }
         description+=`**Attendees:** `
         let officers = []
         let total_attendes = 0, total_officers = 0
@@ -229,6 +268,11 @@ module.exports = {
         let mentions = `<@${host.id}> `
 
         let dbAttendees = []
+
+
+        let promopointsRewarded = await db.Settings.findOne({ where: {guild_id: interaction.guild.id, type: "promopointsfor" + eventType}}) 
+
+        promopointsRewarded = promopointsRewarded ? promopointsRewarded.config : eventType === "gamenight" ? 0 : 1
 
         for (const member of attendees) {
             if (member.user.bot || host.id === member.user.id ) continue;
@@ -252,15 +296,15 @@ module.exports = {
 
             dbAttendees.push(dbUser)
 
-            const rank = await dbUser.getRank()
+            const rank = updateRankResponse.rank
             if (rank.is_officer) {
                 officers.push(member.id)
                 total_officers++
             }
             if (updateRankResponse.message) {
-                if (updateRankResponse.message.includes("highest rank")) {
+                if (updateRankResponse.message.includes("highest rank")) { //? wtf?!?!
                     description += "Thanks for attending (can not get promoted by attending events!)";
-                } else if (updateRankResponse.message.includes("Can not be demoted with " + nameOfPromoPoints + "!")) { 
+                } else if (updateRankResponse.message.includes("Can not be demoted with " + nameOfPromoPoints + "!")) { //? wtf?!?!
                     description += "Thanks for attending (can not be demoted with " + nameOfPromoPoints + "!)";
                 }else {
                     description += updateRankResponse.message
@@ -271,7 +315,7 @@ module.exports = {
             }
             dbUser.total_events_attended += 1
             const robloxUser = updateRankResponse.robloxUser
-            const addPromoPointResponce = (eventType !== 'gamenight') ? await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, 1, robloxUser) : {message: `Thanks for attending! Gamenights do not give ${nameOfPromoPoints} sorry!`}
+            const addPromoPointResponce = (promopointsRewarded !== 0) ? await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, promopointsRewarded, robloxUser) : {message: `Thanks for attending! ${eventType}'s does not give ${nameOfPromoPoints} sorry!`}
             if (addPromoPointResponce && updateRankResponse.message) { description += "\n" }
             description += addPromoPointResponce.message
             dbUser.save()
@@ -287,7 +331,7 @@ module.exports = {
             attendeesIds += dbUser.id + ","
         })
 
-        const dbEvent = await db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendeesIds, amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers})
+        const dbEvent = await db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendeesIds, amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers, promopoints_rewarded: promopointsRewarded, announcment_message: announcmentMessage.url})
 
         dbAttendees.forEach(async dbUser => {
             dbUser.events = dbUser.events ? dbUser.events + "," + dbEvent.id : "" + dbEvent.id
@@ -300,7 +344,7 @@ module.exports = {
             officer.total_attendees += total_attendes
             officer.save()
         }
-        interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Event has been logged to database").setColor([255, 255, 0])], components: []})
+        interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Almost done!").setColor([255, 255, 0])], components: []})
 
 
 
@@ -323,7 +367,10 @@ module.exports = {
             if (!sealogMessage) {
                 return
             } 
-            dbEvent.sealog_message_link = sealogMessage.url
+            dbEvent.sealog_message_link = sealogMessage.sealog.url
+            dbEvent.length = sealogMessage.length
+            dbEvent.game = sealogMessage.game
+            dbEvent.createdAt = sealogMessage.date ?? new Date()
         }
         dbEvent.save()
         

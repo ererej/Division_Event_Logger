@@ -19,12 +19,22 @@ module.exports = {
                     { name: 'week', value: JSON.stringify([0, 7 * 24 * 60 * 60 * 1000]) },
                     { name: 'month', value: JSON.stringify([0, 30 * 24 * 60 * 60 * 1000]) },
                     { name: 'last week', value: JSON.stringify([7 * 24 * 60 * 60 * 1000, 2 * 7 * 24 * 60 * 60 * 1000]) },
-                    { name: 'last month', value: JSON.stringify([30 * 24 * 60 * 60 * 1000, 2 * 30 * 24 * 60 * 60 * 1000]) }
+                    { name: 'last month', value: JSON.stringify([30 * 24 * 60 * 60 * 1000, 2 * 30 * 24 * 60 * 60 * 1000]) },
+                    { name: 'last whole week', value: JSON.stringify(["last whole week", 7 * 24 * 60 * 60 * 1000]) },
+                    { name: 'last whole month', value: JSON.stringify(["last whole month", 30 * 24 * 60 * 60 * 1000]) }
                 )
+        )
+        .addBooleanOption(option =>
+            option.setName('show_officer_data')
+                .setDescription('Should the officer data be shown?')
         )
         ,
     
     premiumLock: true,
+
+    /**
+     * @param {import('discord.js').CommandInteraction} interaction
+    */
 
     async execute(interaction) {
         await interaction.reply("fetching data")
@@ -37,20 +47,40 @@ module.exports = {
 
         const timerange = interaction.options.getString('timerange')
         let [start, end] = [0, 7 * 24 * 60 * 60 * 1000]
+        let startTime;
+        let endTime;
         if (timerange ) {
+            
             start = JSON.parse(timerange)[0]
             end = JSON.parse(timerange)[1]
-            
+            if (start === "last whole week") {
+                const today = new Date()
+                startTime = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1 - 7)
+                endTime = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1)
+            }
+            if (start === "last whole month") {
+                const today = new Date()
+                startTime = new Date(today.getFullYear(), today.getMonth() - 1)
+                endTime = new Date(today.getFullYear(), today.getMonth(), 0)
+                end = 30 * 24 * 60 * 60 * 1000
+            }
         }
-        const startTime = new Date(new Date() - end)
-        const endTime = new Date(new Date() - start)
-
+        
+        const showOfficerData = interaction.options.getBoolean('show_officer_data')
+        if (!startTime) {
+            startTime =  new Date(new Date() - end)
+        }
+        if (!endTime) {
+            endTime = new Date(new Date() - start)
+        }
+        
+        
         let officers = await db.Officers.findAll({
             where: {
             guild_id: interaction.guild.id,
             [Op.or]: [
                 { retired: null },
-                { retired: { [Op.gt]: new Date(new Date() - end) }, createdAt: { [Op.lt]: new Date(new Date() - end) } }
+                { retired: { [Op.gt]: startTime }, createdAt: { [Op.lt]: endTime } }
             ]
             },
             include: [{
@@ -60,6 +90,17 @@ module.exports = {
             on: db.sequelize.literal('`officers`.`user_id` = `user`.`user_id` AND `officers`.`guild_id` = `user`.`guild_id`'),
             }],
         });
+
+        // make sure duplicate officers are removed
+        const uniqueOfficers = [];
+        const uniqueOfficersIds = new Set();
+        for (const officer of officers) {
+            if (!uniqueOfficersIds.has(officer.user_id)) {
+                uniqueOfficers.push(officer);
+                uniqueOfficersIds.add(officer.user_id);
+            }
+        }
+        officers = uniqueOfficers;
 
         officers.forEach(officer => {
             Object.setPrototypeOf(officer.user, db.Users.prototype);
@@ -80,7 +121,7 @@ module.exports = {
         }
 
         officers = await sortOfficersByRank(officers);
-
+        
 
         let fields = []
 
@@ -96,17 +137,18 @@ module.exports = {
         let amountOfEventsHistoryPerDay = [0,0,0,0,0,0]
         let dataRangeIndexesPerDay = []
 
-        for (let i = (end - start)/(24 * 60 * 60 * 1000); i >= 0; i--) {
+        for (let i = (endTime - startTime)/(24 * 60 * 60 * 1000); i > 0; i--) {
             dataRangeIndexesPerDay.push(i)
         }
 
         dataRangeIndexesPerDay.forEach(async (index) => {
+            
             const events = await db.Events.findAll({
                 where: {
                     guild_id: interaction.guild.id,
                     createdAt: {
-                        [Op.lt]: new Date(new Date() - (24*60*60*1000 * (index))),
-                        [Op.gt]: new Date(new Date() - (24*60*60*1000 * (index + 1)))
+                        [Op.lt]: new Date(endTime - (24*60*60*1000 * (index - 1))),
+                        [Op.gt]: new Date(endTime - (24*60*60*1000 * (index)))
                     }
                 }
             })
@@ -129,8 +171,8 @@ module.exports = {
                 where: {
                     guild_id: interaction.guild.id,
                     createdAt: {
-                        [Op.lt]: new Date(new Date() - (Math.abs(start - end) * (index))),
-                        [Op.gt]: new Date(new Date() - (Math.abs(start - end) * (index + 1)))
+                        [Op.lt]: new Date(endTime - ((endTime - startTime) * (index))),
+                        [Op.gt]: new Date(endTime - ((endTime - startTime) * (index + 1)))
                     }
                 }
             });
@@ -142,7 +184,7 @@ module.exports = {
 
 
 
-        const divsEvents = await db.Events.findAll({ where: { guild_id: interaction.guild.id, createdAt: { [Op.lt]: new Date(new Date() - start), [Op.gt]: new Date(new Date() - end) } } } )
+        const divsEvents = await db.Events.findAll({ where: { guild_id: interaction.guild.id, createdAt: { [Op.gt]: startTime, [Op.lt]: endTime } } } )
         const divsTrainings = divsEvents.filter(e => e.type === "training")
         const divsTrainingsWith5PlusAttendees = divsTrainings.filter(e => e.amount_of_attendees >= 4) //the host is not included in amount_of_attendees but is counted twords competitions
         const divsTrainingWithHighestAttendance = divsTrainings.reduce((max, event) => event.amount_of_attendees > max.amount_of_attendees ? event : max, divsTrainings[0]);
@@ -163,14 +205,19 @@ module.exports = {
         // }));
         // //-> ["random", "abs", "acos", "asin", "atan", "ceil", "cos", "exp", ...etc
 
-
-        interaction.editReply("processing server wide data done! processing officer data...")
+        if (showOfficerData === false) {
+            interaction.editReply("Done processing server wide data! Processing neccesary officer data...")
+        } else {
+            interaction.editReply("Done processing server wide data! processing officer data...")
+        }
+        
         for (const officer of  officers) {
-            
-            const updateOfficerResponce = await officer.user.updateOfficer()
-            
-            if (!updateOfficerResponce && officer.retired > endTime) {
-                console.log("retiring officer " + officer.user_id + " in guild " + interaction.guild.id + " because they are not an officer anymore")
+            if (!officer.retired) {
+                const updateOfficerResponce = await officer.user.updateOfficer()
+                
+                if (!updateOfficerResponce && officer.retired > endTime) {
+                    console.log("retiring officer " + officer.user_id + " in guild " + interaction.guild.id + " because they are not an officer anymore")
+                }
             }
             
             let description = ""
@@ -189,6 +236,7 @@ module.exports = {
             const patrolAttendes = patrols.reduce((acc, event) => acc + event.amount_of_attendees, 0)
             totalPatrolAttendes += patrolAttendes
 
+            if (showOfficerData === false) continue
 
             const eventsAttended = divsEvents.filter(e => officer.user.events.split(",").map(Number).includes(e.id))
             const eventsCohosted = divsEvents.filter(e => e.cohost === officer.user_id)
@@ -197,7 +245,7 @@ module.exports = {
             const rallysAfterRaidAttended = rallyafterraid.filter(e => e.attendees.split(",").includes(officer.user_id) || e.host === officer.user_id)
 
             description += `<@&${officer.user.rank_id}> \n`
-            description += `**${events.length}** events hosted (${divsEvents.length ? Math.round(events.length * 100 / divsEvents.length) : 0}%). Average attendees **${events.length != 0 ? Math.round(officersTotalAttendes/events.length) : 0}**\n`
+            description += `**${events.length}** events hosted (${divsEvents.length ? Math.round(events.length * 100 / divsEvents.length) : 0}%). Average attendees **${events.length != 0 ? Math.round(officersTotalAttendes/events.length * 10)/10 : 0}**\n`
             description += `   - *${trainings.length}* trainings (${events.length != 0 ? Math.round(trainings.length * 100/events.length) : 0}%) Average attendance *${trainings.length != 0 ? Math.round(trainingAttendes/trainings.length * 10)/10 : 0}*\n\n` 
             description += `   - *${patrols.length}* patrols (${events.length != 0 ? Math.round(patrols.length/events.length*100) : 0}%) Average attendance *${patrols.length != 0 ? Math.round(patrolAttendes/patrols.length*10)/10 : 0}*\n\n`
             description += `   - *${events.length - trainings.length - patrols.length}* other events (${events.length ? Math.round((events.length - trainings.length - patrols.length)*100/events.length) : 0}%) Average attendance *${events.length - trainings.length - patrols.length != 0 ? Math.round(((officersTotalAttendes - trainingAttendes - patrolAttendes) * 10 / (events.length - trainings.length - patrols.length)) )/10 : 0}*\n\n`
@@ -209,19 +257,19 @@ module.exports = {
             description += `${rallysAfterRaidAttended.length} rallys after raid attended\n`
 
             fields.push({ name: title, value: '<@' + officer.user_id + ">\n" + description, inline: true })
-
-        };
-        
-        interaction.editReply("Done processing data done! generating graphs...")
+        }
+            
+        interaction.editReply("Done processing officer data done! generating graphs...")
+            
 
         let graphs = []
         graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
         graphs.push(await generateGraph({ title: "average attendees per day", labels: dataRangeIndexesPerDay.map(index => {
-            const date = new Date(new Date() - (24*60*60*1000 * index));
+            const date = new Date(endTime - (24*60*60*1000 * index));
             return `${date.getDate()}/${date.getMonth() + 1}`;
         }), values: averageAttendesHistoryPerDay}, 'line', 300, 500 ))
         graphs.push(await generateGraph({ title: "amount of Events per day", labels: dataRangeIndexesPerDay.map(index => {
-            const date = new Date(new Date() - (24*60*60*1000 * index));
+            const date = new Date(endTime - (24*60*60*1000 * index));
             return `${date.getDate()}/${date.getMonth() + 1}`;
         }), values: amountOfEventsHistoryPerDay}, 'line', 300, 500 ))
         graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistoryPerWeek}, 'line', 300, 500 ))

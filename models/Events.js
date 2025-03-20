@@ -45,5 +45,22 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: null,
         },
+        length: {
+            type: DataTypes.INTEGER,
+            defaultValue: null,
+        },
+        game: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        promopoints_rewarded: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 1,
+        },
+        announcment_message: {
+            type: DataTypes.STRING,
+            defaultValue: null,
+        },
     });
 }

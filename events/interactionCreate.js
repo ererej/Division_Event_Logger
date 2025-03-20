@@ -30,7 +30,7 @@ module.exports = {
 			const testServer = interaction.client.guilds.cache.get("831851819457052692")
 			if (testServer) {
 				const channel = testServer.channels.cache.get("1285158576448344064")
-				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 1) * 3600000)
+				const time = new Date(interaction.createdTimestamp)
 				let subcommand = "";
 				try {
 					subcommand = interaction.options.getSubcommand()
@@ -88,7 +88,7 @@ module.exports = {
 			const testServer = interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
 			if (testServer) {
                 const channel = testServer.channels.cache.find("1285158576448344064");
-				const time = new Date(interaction.createdTimestamp + (config.host === "Laptop" ? 0 : 2) * 3600000)
+				const time = new Date(interaction.createdTimestamp)
 
 				let errorLogs = "the interaction that was created at [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] failed!"
 				errorLogs += "\n**Error type:** " + error.name

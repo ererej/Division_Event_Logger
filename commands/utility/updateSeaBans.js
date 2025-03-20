@@ -50,7 +50,7 @@ module.exports = {
                     })
                     if (failed) continue
                     replyString += ` ✅ **banned <@${userId}>!!!!**\n`
-                    if (banlogsChannel) banlogsChannel.send({content: `:ballot_box_with_check: <@${userId}> has been banned by <@${interaction.user.id}>!`})
+                    if (banlogsChannel.channel) banlogsChannel.channel.send({content: `:ballot_box_with_check: <@${userId}> has been banned by <@${interaction.user.id}>!`, allowedMentions: {parse: [MessageMentions.NONE]}})
                     bancount++
                     continue
                     

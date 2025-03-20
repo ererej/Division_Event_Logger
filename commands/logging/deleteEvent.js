@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, Colors } = require("discord.js");
 const validateMessageLink = require("../../utils/validateMessageLink");
 const db = require("../../dbObjects");
 const { Op, and } = require("sequelize");
+const noblox = require("noblox.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -15,12 +16,20 @@ module.exports = {
     .addBooleanOption(option => 
         option.setName('delete_logs')
         .setDescription('This will make the bot remove the Sea log and promo log')
-    ),
-    
+    )
+    .addBooleanOption(option =>
+        option.setName('revert_promotions')
+        .setDescription('This will revert the promotions of the attendees')
+    )
+    ,
+    /**
+     * @param {import('discord.js').CommandInteraction} interaction
+    */
     async execute(interaction) {
         await interaction.deferReply();
         const event_id = interaction.options.getInteger('event_id');
         const deleteLogs = interaction.options.getBoolean('delete_logs');
+        const revertPromotions = interaction.options.getBoolean('revert_promotions');
 
         const embeded_error = new EmbedBuilder().setColor(Colors.Red).setTitle('Error!');
 
@@ -56,15 +65,23 @@ module.exports = {
             }
         }
 
-        const hostOfficer = await db.Officers.findAll({ where: { user_id: event.host, guild_id: event.guild_id, createdAt: {[Op.lt]: event.createdAt},  retired: { [Op.or]: [null, { [Op.gt]: event.createdAt }]} } });
-        if (hostOfficer.length === 0) {
+        const hostOfficer = await db.Officers.findOne({ where: { user_id: event.host, guild_id: event.guild_id, createdAt: {[Op.lt]: event.createdAt},  retired: { [Op.or]: [null, { [Op.gt]: event.createdAt }]} } });
+        if (!hostOfficer) {
             return interaction.editReply({ embeds: [embeded_error.setDescription(`Some thing is very wrong and no officer found for the host of the event!`)]});
-        } else if (hostOfficer.length > 1) {
-            return interaction.editReply({ embeds: [embeded_error.setDescription(`Some thing is very wrong and more than one officer found for the host of the event!`)]});
         }
-        hostOfficer[0].update({ total_events_hosted: hostOfficer.total_events_hosted - 1, total_attendees: hostOfficer.total_attendees - event.amount_of_attendees });
+        await hostOfficer.update({ total_events_hosted: hostOfficer.total_events_hosted - 1, total_attendees: hostOfficer.total_attendees - event.amount_of_attendees });
 
-        
+        if ( revertPromotions !== false ) {
+            const attendees = await db.Users.findAll({ where: { id: { [Op.in]: event.attendees.split(",") } } });
+            const ranks = await db.Ranks.findAll({ where: { guild_id: event.guild_id } });
+            const server = await db.Servers.findOne({ where: { guild_id: event.guild_id } })
+            const groupId = server.group_id;
+
+            for (const attendee of attendees) {
+                await attendee.removePromoPoints(noblox, groupId, await interaction.guild.members.fetch(attendee.user_id), ranks, 1);
+                await attendee.update({ total_events_attended: attendee.total_events_attended - 1 });
+            };
+        }
 
         // Delete the event
         event.destroy();
