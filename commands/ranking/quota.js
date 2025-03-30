@@ -200,6 +200,16 @@ module.exports = {
         const totalOfficersAtRallys = rallysbeforeraid.reduce((acc, event) => acc + event.amount_of_officers, 0)
 
 
+        //whole time frame data:
+        let trainingMaps = {}
+        divsTrainings.forEach(training => {
+            if (!trainingMaps[training.game]) {
+                trainingMaps[training.game] = 1
+            } else {
+                trainingMaps[training.game]++
+            }
+        })
+
         // console.log(Object.getOwnPropertyNames(officers[0].user).filter(function (p) {
         //     return typeof officers[0].user[p] === 'function';
         // }));
@@ -264,6 +274,7 @@ module.exports = {
 
         let graphs = []
         graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
+        graphs.push(await generateGraph({ title: "training maps", labels: [... Object.keys(trainingMaps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(trainingMaps)] }, 'doughnut', 300, 300))
         graphs.push(await generateGraph({ title: "average attendees per day", labels: dataRangeIndexesPerDay.map(index => {
             const date = new Date(endTime - (24*60*60*1000 * index));
             return `${date.getDate()}/${date.getMonth() + 1}`;

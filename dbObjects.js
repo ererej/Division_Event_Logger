@@ -154,7 +154,8 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 			throw new Error("Missing member parameter in updateTag")
 		}
 		if (rank.tag) {
-			member.setNickname(rank.tag + " " + robloxUser.cachedUsername ?? member.user.displayName).catch(err => {
+			console.log("updating tag")
+			await member.setNickname(robloxUser ? rank.tag + " " + robloxUser.cachedUsername : rank.tag + " discord name! " + member.user.displayName).catch(err => {
 				return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
 			})
 			return rank.tag
@@ -223,7 +224,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 		const promo_points_before = this.promo_points
 		let responce = "";
 		let showPromoPoints = true;
-		let nextRank;
+		
 		let rankIndexInRanks;
 		ranks.some(function(tempRank, i) {
 			if (tempRank.id == rank.id) {
@@ -234,13 +235,12 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 		const RankIndexInRanksBefore = rankIndexInRanks
 
 		this.promo_points += promotions
-
+		let nextRank = ranks[rankIndexInRanks + 1]
 		while (true) {
 			rank = await this.getRank()
 
 			showPromoPoints = true
 			
-			nextRank = ranks[rankIndexInRanks + 1]
 			rankIndexInRanks += 1
 			if (nextRank) {
 				if (nextRank.obtainable === false) {
@@ -255,12 +255,14 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 					robloxUser = setRankResult.robloxUser
 					responce += setRankResult.message;
 					this.promo_points -= nextRank.promo_points
+					nextRank = ranks[rankIndexInRanks + 1]
 					responce += "\n"
 					showPromoPoints = false
 				} else {
 					showPromoPoints = true
 					break
 				}
+				
 			} else {
 				responce += "Has reached the highest rank!\n"
 				break
@@ -270,7 +272,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 		this.save()
 		if (showPromoPoints) {
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
-			responce += `${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? nextRank.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}*!`
+			responce += `${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}*!`
 		}
 		return { message: responce, robloxUser: robloxUser }
 	}
@@ -386,7 +388,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', { //! make the it return erro
 		
 		let oldRank = this.rank_id
 		//add a check to see if the bot has perms to change the rank
-		if (MEMBER.roles.cache.some(role => role.id === oldRank.id)) {
+		if (MEMBER.roles.cache.some(role => role.id === oldRank)) {
 			await MEMBER.roles.remove(oldRank).catch(err => {
 				if (err.message === "Unknown Role") {
 					smallErrors.push(`Error: Missing role. ${MEMBER} got promoted from a rank whos role seems to have been deleted! The missing role might lead to a lot of problems, please contact Ererej(The developer of this bot) for help!`)
@@ -417,7 +419,7 @@ Reflect.defineProperty(Users.prototype, 'setRank', { //! make the it return erro
 		await this.save()
 		oldRank = await Ranks.findOne({ where: { id: oldRank } })
 		const updateLinkedRolesResponce = await this.updateLinkedRoles(MEMBER, rank, oldRank)
-		return { oldRank: oldRank, newRank: rank, smallError: smallErrors, addedLinkedRoles: updateLinkedRolesResponce.addedRoles, removedLinkedRoles: updateLinkedRolesResponce.removedRoles, robloxUser: robloxUser, message: `Promoted from <@&${oldRank.id}> to <@&${rank.id}> ` + (smallErrors ? smallErrors : "") + (updateLinkedRolesResponce.addedRoles.length ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.join("> <@&") + ">" : "") + (updateLinkedRolesResponce.removedRoles.length ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.join("> <@&") + ">" : "") + (updateTagResponce ? updateTagResponce : "") }
+		return { oldRank: oldRank, newRank: rank, smallError: smallErrors, addedLinkedRoles: updateLinkedRolesResponce.addedRoles, removedLinkedRoles: updateLinkedRolesResponce.removedRoles, robloxUser: robloxUser, message: `Promoted from <@&${oldRank.id}> to <@&${rank.id}> ` + (smallErrors ? smallErrors : "") + (updateLinkedRolesResponce.addedRoles.length ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.join("> <@&") + ">" : "") + (updateLinkedRolesResponce.removedRoles.length ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.join("> <@&") + ">" : "") + (updateTagResponce ? " Tag got updated to: **" + updateTagResponce + "**" : "") }
 	}
 });
 

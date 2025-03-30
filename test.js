@@ -4,7 +4,7 @@ const config = require('./config.json')
 
 const test = async () => {
 
-    const groupID = 16992878
+    const groupID = 2648601
      
 
     const Ranks = await noblox.getRoles(groupID)

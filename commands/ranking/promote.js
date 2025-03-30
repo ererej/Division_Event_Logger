@@ -42,20 +42,20 @@ module.exports = {
 
         let promoter = await db.Users.findOne({ where: { user_id: interaction.member.id, guild_id: interaction.guild.id }})
         
-        let promoterUpdateResponce = ""
-        if (promoter) {
-            promoterUpdateResponce = await promoter.updateRank(noblox, groupId, interaction.member)
-            if (promoter.rank_id === null) {
-                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]} )
-            }
-        } else {
+        
+        if (!promoter) {
             promoter = await db.Users.create({ user_id: interaction.member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
-            promoterUpdateResponce = await promoter.updateRank(noblox, groupId, interaction.member)
-            if (promoter.rank_id === null) {
-                promoter.destroy()
-                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
-            }
-        } 
+        }
+        
+        const promoterUpdateResponce = await promoter.updateRank(noblox, groupId, interaction.member)
+        if (promoter.rank_id === null) {
+            return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank! Error: " + promoterUpdateResponce.message)]} )
+        }
+        
+        if (promoter.rank_id === null) {
+            promoter.destroy()
+            return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank! Error: " + promoterUpdateResponce.message)]} )
+        }
         const promoters_rank = db.Ranks.findOne({ where: { id: promoter.rank_id, guild_id: interaction.guild.id }})
 
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator) && !promoters_rank.is_officer) {

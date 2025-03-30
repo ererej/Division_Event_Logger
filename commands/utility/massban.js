@@ -57,7 +57,6 @@ module.exports = {
                     if (banlogsChannel.channel) banlogsChannel.channel.send({content: `:ballot_box_with_check: <@${userId}> has been banned by <@${interaction.user.id}>!`, allowedMentions: {parse: [MessageMentions.NONE]}})
                     bancount++
                     continue
-                    
                 }
                 replyString += ` :ballot_box_with_check: *<@${userId}> is already banned :D*\n`
             } catch(err)  {
