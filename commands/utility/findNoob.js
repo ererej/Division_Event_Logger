@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -11,7 +11,7 @@ module.exports = {
      */
     async execute(interaction) {
         await interaction.deferReply();
-        if (interaction.guild.id !== "831851819457052692") {
+        if (!["831851819457052692", "1073682080380243998"].includes(interaction.guild.id)) {
             return interaction.editReply({content: "This command can only be used in ererejs testing server."})
         }
 
@@ -28,11 +28,11 @@ module.exports = {
             const members = await guild.members.fetch()
             if (members.has("1059872684881747978")) {
                 console.log("Found in: ", guild.name)
-                foundIn.push(`\nFound in ${guild.name} (${guild.id}) leaders id: ${guild.ownerId}`)
+                foundIn.push(`\nFound in ${guild.name} (${guild.id}) leader: <@${guild.ownerId}>`)
                 foundCounter++
             }
         }
-        interaction.editReply({content: "found in " + foundCounter + " servsers\n" + foundIn.join("") + "\n\nBanned in: " + serversBannedIn.join(", ")})
+        interaction.editReply({embeds: [new EmbedBuilder().setDescription("Akant was found in " + foundCounter + " servsers\n" + foundIn.join("") + "\n\nBanned in: " + serversBannedIn.join(", "))]})
 
     }
 }

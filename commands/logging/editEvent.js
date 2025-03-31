@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, Colo
 const validateMessageLink = require("../../utils/validateMessageLink");
 const db = require("../../dbObjects");
 const { Op, and } = require("sequelize");
-const generateSeaLogFormat = require("../../utils/generateSeaLogFormat");
+const generateSeaLogFormat = require("../../utils/generateSealogFormat");
 const noblox = require("noblox.js");
 
 module.exports = {
@@ -128,11 +128,11 @@ module.exports = {
             const removeButton = new ButtonBuilder().setCustomId('remove_attendees').setLabel('Remove Attendees').setStyle('Danger');
             const bothButton = new ButtonBuilder().setCustomId('both').setLabel('Both').setStyle('Secondary');
             const row = new ActionRowBuilder().addComponents(addButton, removeButton, bothButton);
-            const responce = interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Would you like to *add*, *remove* or *both* add and remove attendees?`).setColor(Colors.BLUE)], components: [row] });
+            const responce = interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Would you like to *add*, *remove* or *both* add and remove attendees?`).setColor(Colors.Blue)], components: [row] });
             
             const collectorFilter = i => i.user.id === interaction.user.id && (i.customId === 'add_attendees' || i.customId === 'remove_attendees' || i.customId === 'both') ;
             try {
-                const selection = await responce.message.awaitMessageComponent({ filter: collectorFilter, time: 300_000 });
+                const selection = await responce.awaitMessageComponent({ filter: collectorFilter, time: 300_000 });
                 selection.deferUpdate();
                 const editMethod = selection.customId;
                 
