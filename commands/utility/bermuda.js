@@ -19,12 +19,10 @@ module.exports = {
         
         //console.log(interaction.entitlements)
         
-        interaction.client.emit('guildMemberAdd', interaction.member);
-       //eventEmitter.emit('guildMemberAdd', interaction.member);
-        return interaction.editReply({content: "event emitted!"})
+    //     interaction.client.emit('guildCreate', interaction.guild);
+    //    //eventEmitter.emit('guildMemberAdd', interaction.member);
+    //     return interaction.editReply({content: "event emitted!"})
         
-
-
 
         /*
         let rateLimitRemaining = 99;
