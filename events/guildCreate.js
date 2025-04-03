@@ -18,7 +18,10 @@ module.exports = {
         }
 
         if (guild.memberCount < 50) {
-            const akant = await guild.members.fetch("1059872684881747978")
+            const akant = await guild.members.fetch("1059872684881747978").catch(err => {
+                
+                return false
+            })
             if (akant) {
                 guild.leave()
                 console.log("got added to a server with akant in it, leaving")

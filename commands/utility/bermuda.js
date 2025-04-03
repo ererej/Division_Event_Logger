@@ -16,9 +16,8 @@ module.exports = {
         await interaction.deferReply();
         if (interaction.guild.id == "831851819457052692") {
         
-        
-        //console.log(interaction.entitlements)
-        
+        const guild = await interaction.client.guilds.cache.find(guild => guild.name === "[SEA] Divided Cities Warkeeping");
+        console.log(guild)
     //     interaction.client.emit('guildCreate', interaction.guild);
     //    //eventEmitter.emit('guildMemberAdd', interaction.member);
     //     return interaction.editReply({content: "event emitted!"})

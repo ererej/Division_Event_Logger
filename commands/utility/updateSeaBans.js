@@ -11,7 +11,7 @@ const { readFile } = require('fs').promises;
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('updateseabans')
-        .setDescription('makes sure that all the SEA banned users are banned!')
+        .setDescription('makes sure that all the people on the offical blacklist are banned!')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator),
 
     botPermissions: [PermissionsBitField.Flags.BanMembers],
