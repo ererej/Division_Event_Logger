@@ -29,15 +29,15 @@ module.exports = {
 
         noblox.getRankInGroup(35403813, robloxUser.robloxId).then(async rank => {
             if (rank === 0) {
-                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`The user is not officer trained!`).setColor(Colors.Red)],})
+                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`${user} is not officer trained!`).setColor(Colors.Red)],})
             } else if (rank === 50) {
-                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`The user is officer trained!`).setColor(Colors.Green)],})
+                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`${user}is officer trained!`).setColor(Colors.Green)],})
             } else if (rank === 20) {
-                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`The user enrolled in OA but has not passed it!`).setColor(Colors.Orange)],})
+                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`${user} is enrolled in OA but has not passed it!`).setColor(Colors.Orange)],})
             } else if (rank === 255) {
-                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`The user is exempt from OA!`).setColor(Colors.Purple)],})
+                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`${user} is exempt from OA!`).setColor(Colors.Purple)],})
             } else {
-                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`The user something special in the OA group idk what go check yourself!`).setColor(Colors.Purple)],})
+                return interaction.reply({embeds: [new EmbedBuilder().setDescription(`${user} is something special in the OA group idk what go check yourself!`).setColor(Colors.Purple)],})
             }
         }).catch(err => {
             console.log(err)
