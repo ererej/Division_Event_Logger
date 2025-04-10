@@ -49,10 +49,9 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     format += "Date: DD/MM/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
     
     if (eventType === "training" || eventType === "tryout") {
-        const gamelink = announcemntMessage.content.split(/( |\n)/).find(substring => substring.startsWith("https://www.roblox.com/share?code=") || substring.startsWith("https://www.roblox.com/games/"))
+        const gamelink = announcemntMessage.content.split(/( |\n)/).find(substring => substring.startsWith("https://www.roblox.com/share?code=") || substring.startsWith("https://www.roblox.com/games/")).replace(/( |\n)/, "").replaceAll("*", "")
         if (gamelink) {
                 
-            
             //get the map name
             async function fetchMetadata(url) {
                 try {
@@ -78,7 +77,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             const metadata = await fetchMetadata(gamelink)
             if (metadata) {
                 mapName = metadata.description.split('Check out ')[1];
-                mapName = mapName.split('.')[0]
+                mapName = mapName.split('.')[0] 
             } 
         }
 

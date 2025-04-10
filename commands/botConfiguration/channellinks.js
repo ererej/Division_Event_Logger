@@ -1,47 +1,69 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const db = require("../../dbObjects.js")
+const db = require("../../dbObjects.js");
 
 module.exports = {
-	data: new SlashCommandBuilder()
+    data: new SlashCommandBuilder()
         .setName('channellinks')
-        .setDescription('lists all the linked channels'),
+        .setDescription('Lists all the linked channels'),
 
     async execute(interaction) {
-        await interaction.deferReply()  
-        const channelLinksEmbed = new EmbedBuilder()
-        .setTitle('Linked Channels:')
-        .setColor('Green')
+        await interaction.deferReply();
+        
+        // Get all channel links for the guild
         const channelLinks = await db.Channels.findAll({
             where: { guild_id: interaction.guild.id },
-        })
-        const sealogChannel = channelLinks.find(channel => channel.type === "sealogs")
-        const raidlogChannel = channelLinks.find(channel => channel.type === "raidlogs")
-        const promologChannel = channelLinks.find(channel => channel.type === "promologs")
-        const banlogsChannel = channelLinks.find(channel => channel.type === "banlogs")
-        const expdisplayChannel = channelLinks.find(channel => channel.type === "expdisplay")
-        const vcexpdisplayChannel = channelLinks.find(channel => channel.type === "vcexpdisplay")
-        const vcsmallexpdisplayChannel = channelLinks.find(channel => channel.type === "vcsmallexpdisplay")
-        const vcleveldisplayChannel = channelLinks.find(channel => channel.type === "vcleveldisplay")
-        const robloxGroupCountChannel = channelLinks.find(channel => channel.type === "robloxGroupCount")
-        const guildMemberCountChannel = channelLinks.find(channel => channel.type === "guildMemberCount")
-        const trainingChannels = channelLinks.filter(channel => channel.type === "training")
-        const patrolChannels = channelLinks.filter(channel => channel.type === "patrol")
-        const tryoutChannels = channelLinks.filter(channel => channel.type === "tryout")
-        const gamenightChannels = channelLinks.filter(channel => channel.type === "gamenight")
-        channelLinksEmbed.addFields({name: 'Sealog Channel:', value: sealogChannel ? `<#${sealogChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'RaidLog Channel:', value: raidlogChannel ? `<#${raidlogChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'PromoLog Channel:', value: promologChannel ? `<#${promologChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'BanLog Channel:', value: banlogsChannel ? `<#${banlogsChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'ExpDisplay Channel:', value: expdisplayChannel ? `<#${expdisplayChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'VcExpDisplay Channel:', value: vcexpdisplayChannel ? `<#${vcexpdisplayChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'VcSmallExpDisplay Channel:', value: vcsmallexpdisplayChannel ? `<#${vcsmallexpdisplayChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'VcLevelDisplay Channel:', value: vcleveldisplayChannel ? `<#${vcleveldisplayChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'RobloxGroupCount Channel:', value: robloxGroupCountChannel ? `<#${robloxGroupCountChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'GuildMemberCount Channel:', value: guildMemberCountChannel ? `<#${guildMemberCountChannel.channel_id}>` : "not linked"})
-        channelLinksEmbed.addFields({name: 'Training Channels:', value: trainingChannels.length > 0 ? trainingChannels.map(channel => `<#${channel.channel_id}>`).join("\n") : "none linked"})
-        channelLinksEmbed.addFields({name: 'Patrol Channels:', value: patrolChannels.length > 0 ? patrolChannels.map(channel => `<#${channel.channel_id}>`).join("\n") : "none linked"})
-        channelLinksEmbed.addFields({name: 'Tryout Channels:', value: tryoutChannels.length > 0 ? tryoutChannels.map(channel => `<#${channel.channel_id}>`).join("\n") : "none linked"})
-        channelLinksEmbed.addFields({name: 'Gamenight Channels:', value: gamenightChannels.length > 0 ? gamenightChannels.map(channel => `<#${channel.channel_id}>`).join("\n") : "none linked"})
-        .setFooter({ text: `if you want to link a channel to an event type or function, like logs or expdisplay. use the /linkchannel command!`})
-        interaction.editReply({embeds: [channelLinksEmbed]})
-}};
+        });
+
+        // Create embed
+        const channelLinksEmbed = new EmbedBuilder()
+            .setTitle('Linked Channels:')
+            .setColor('Green')
+            .setFooter({ 
+                text: 'To link a channel to an event type or function, use the /linkchannel command!'
+            });
+
+        // Define channel types and their display names
+        const singleChannelTypes = [
+            { type: "sealogs", displayName: "Sealog Channel" },
+            { type: "raidlogs", displayName: "RaidLog Channel" },
+            { type: "promologs", displayName: "PromoLog Channel" },
+            { type: "banlogs", displayName: "BanLog Channel" },
+            { type: "expdisplay", displayName: "ExpDisplay Channel" },
+            { type: "vcexpdisplay", displayName: "VcExpDisplay Channel" },
+            { type: "vcsmallexpdisplay", displayName: "VcSmallExpDisplay Channel" },
+            { type: "vcleveldisplay", displayName: "VcLevelDisplay Channel" },
+            { type: "robloxGroupCount", displayName: "RobloxGroupCount Channel" },
+            { type: "guildMemberCount", displayName: "GuildMemberCount Channel" },
+        ];
+
+        const multipleChannelTypes = [
+            { type: "training", displayName: "Training Channels" },
+            { type: "patrol", displayName: "Patrol Channels" },
+            { type: "tryout", displayName: "Tryout Channels" },
+            { type: "gamenight", displayName: "Gamenight Channels" },
+        ];
+
+        // Add single channel fields
+        for (const { type, displayName } of singleChannelTypes) {
+            const channel = channelLinks.find(channel => channel.type === type);
+            channelLinksEmbed.addFields({
+                name: displayName + ":",
+                value: channel ? `<#${channel.channel_id}>` : "not linked"
+            });
+        }
+
+        // Add multiple channel fields
+        for (const { type, displayName } of multipleChannelTypes) {
+            const channels = channelLinks.filter(channel => channel.type === type);
+            channelLinksEmbed.addFields({
+                name: displayName + ":",
+                value: channels.length > 0 
+                    ? channels.map(channel => `<#${channel.channel_id}>`).join("\n") 
+                    : "none linked"
+            });
+        }
+
+        // Send the embed
+        interaction.editReply({ embeds: [channelLinksEmbed] });
+    }
+};

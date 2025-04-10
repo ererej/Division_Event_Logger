@@ -95,7 +95,7 @@
             const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
             if (dbHost.rank_id === null) {
                 dbHost.destroy()
-                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
+                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank! Error: " + updateResponce.message)]})
             }
             
             if (updateResponce.message) {
@@ -317,7 +317,7 @@
                 dbAttendees.push(dbUser)
 
                 const rank = updateRankResponse.rank
-                if (rank.is_officer) {
+                if (rank && rank.is_officer) {
                     officers.push(member.id)
                     total_officers++
                 }

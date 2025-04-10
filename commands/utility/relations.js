@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, UserEntitlements, EmbedBuilder, PermissionsBitField, Client, User  } = require('discord.js');
+const { SlashCommandBuilder, UserEntitlements, EmbedBuilder, PermissionsBitField, Client, User, AttachmentBuilder  } = require('discord.js');
 const noblox = require("noblox.js")
 const config = require('../../config.json');
 const db = require('../../dbObjects');
@@ -25,6 +25,7 @@ module.exports = {
             .addChoices(
                 { name: 'breadthfirst', value: 'breadthfirst' },
                 { name: 'cose', value: 'cose' },
+                { name: 'cose2', value: 'cose2' },
                 { name: 'concentric', value: 'concentric' },
             )
         )
@@ -89,14 +90,19 @@ module.exports = {
         const startGroup = interaction.options.getInteger('groupid') || 2648601
         const lineSize = interaction.options.getInteger('linesize') || 1
         const depth = interaction.options.getInteger('depth') || 2
-        const testData = true
+        const testData = false
         const nodeSize = interaction.options.getInteger('nodesize') || 10
+        const ignoreLinksToStartGroup = false
 
 
         const getAffiliates = async (groupId, type) => {
             const responce = await fetch(`https://groups.roblox.com/v1/groups/${groupId}/relationships/${type}?` + new URLSearchParams({MaxRows: 1000, StartRowIndex: 0}), {
                 method: 'GET',
             })
+            if (responce.status != 200) {
+                console.log(responce.status)
+                return []
+            }
             return (await responce.json()).relatedGroups
         }
 
@@ -118,15 +124,20 @@ module.exports = {
         }
         const visited = new Set()
         const queue = [startGroup]
-        if (nodes.length == 0) {
+        
         for (let i = 0; i < depth; i++) {
+            console.log("DEPTH: " + i + " QUEUE: " + queue.length)
+            if (i == 0 && nodes.length != 0) {
+                break
+            }
             const nextQueue = []
             groups[i].push(...queue)
             for (const groupId of queue) {
-                console.log(visited.size)
-                if (visited.has(groupId)) 
-                
+                if (visited.has(groupId)) {
+                    continue
+                }
                 visited.add(groupId)
+                console.log(visited.size)
                 nodes.push({ data: { id: groupId, label: groupId } })
                 const allies = await getAffiliates(groupId, "Allies")
                 const enemies = await getAffiliates(groupId, "Enemies")
@@ -136,7 +147,7 @@ module.exports = {
                     nextQueue.push(ally.id)
                 })
                 enemies.forEach(enemy => {
-                    if (visited.has(enemy.id)) return
+                    // if (visited.has(enemy.id)) return
                     edges.push({ data: { source: groupId, target: enemy.id, type: "enemy" } } )
                     nextQueue.push(enemy.id)
                 })
@@ -144,16 +155,22 @@ module.exports = {
             queue.push(...nextQueue)
         }
 
-         edges = edges.filter(edge => visited.has(edge.data.target))
+        console.log(edges.length)
+        if (!testData) {
+            edges = edges.filter(edge => visited.has(edge.data.target))
         }
+        const edgesWithoutLinkesToStartGroup = edges.filter(edge => edge.data.source != startGroup && edge.data.target != startGroup)
         
-        if (testData) {
-            fs.writeFileSync('./tempData_nodes.json', JSON.stringify(nodes, null, 2))
-            fs.writeFileSync('./tempData_edges.json', JSON.stringify(edges, null, 2))
-        }
+        console.log(edges.length)
+        
+        // if (testData) {
+        //     fs.writeFileSync('./tempData_nodes.json', JSON.stringify(nodes, null, 2))
+        //     fs.writeFileSync('./tempData_edges.json', JSON.stringify(edges, null, 2))
+        // }
 
 
         let layout = interaction.options.getString('configs') || 'breadthfirst'
+        let layoutPart2 = null
         switch (layout) {
             case 'breadthfirst':
                 layout = {
@@ -173,18 +190,45 @@ module.exports = {
                     nodeDimensionsIncludeLabels: true,
                     fit: true,
                     padding: 10,
-                    idealEdgeLength: 20,
-                    nodeRepulsion: 1000,
-                    edgeElasticity: 1000,
+                    idealEdgeLength: function (edge){ return [edge.data('source'), edge.data('target')].includes(startGroup) ? width/2 : (edge.data('type') == "enemy" ? 400 : 50); },
+                    nodeRepulsion: 10000,
+                    edgeElasticity: function (edge) { return [edge.data('source'), edge.data('target')].includes(startGroup) ? 0 : edge.data('type') == "enemy" ? 200 : 1000; },
+                    nodeOverlap: 1000,
+                    nestingFactor: 1,
+                    numIter: 99,
+                    gravity: 0.1,
+                    refresh: 100
+                }
+                break;
+            case 'cose2':
+                layout = {
+                    name: 'breadthfirst',
+                    circle: true,
+                    directed: true,
+                    padding: 10,
+                    spacingFactor: 1.01,
+                    avoidOverlap: true,
+                    nodeDimensionsIncludeLabels: true,
+                    fit: true,
+                }
+                layoutPart2 = {
+                    name: 'cose',
+                    nodeDimensionsIncludeLabels: true,
+                    fit: true,
+                    padding: 10,
+                    idealEdgeLength: function (edge){ return [edge.data('source'), edge.data('target')].includes(startGroup) ? width/2 : (edge.data('type') == "enemy" ? 500 : 300); },
+                    nodeRepulsion: 10,
+                    edgeElasticity: function (edge) { return [edge.data('source'), edge.data('target')].includes(startGroup) ? 10 : edge.data('type') == "enemy" ? 1 : 10; },
                     nodeOverlap: 10,
                     nestingFactor: 1,
-                    numIter: 19,
+                    numIter: 100,
                     gravity: 1,
+                    refresh: 1000
                 }
                 break;
         }
 
-        //TODO make it use real data instead of hardcoded data and make it centered
+
         // Create a Cytoscape instance
         const cy = cytoscape({
 
@@ -238,7 +282,10 @@ module.exports = {
             height: interaction.options.getInteger('height') || 1000, // Set the height of the canvas
             width: interaction.options.getInteger('width') || 1000 // Set the width of the canvas
         });
+
         
+
+
         // Run the layout
         // cy.layout(cy.layout).run();
         cy.center(cy.elements());
@@ -247,7 +294,7 @@ module.exports = {
         // Create a canvas for rendering
         const width = interaction.options.getInteger('width') || 1000;
         const height = interaction.options.getInteger('height') || 1000;
-        const padding = interaction.options.getInteger('padding') || 10;
+        const padding = interaction.options.getInteger('padding') || nodeSize;
         const canvas = createCanvas(width, height);
         const ctx = canvas.getContext('2d');
 
@@ -257,6 +304,16 @@ module.exports = {
 
         // console.log('Nodes:', cy.nodes())
         // console.log('Edges:', cy.edges())
+
+        
+
+        
+
+        //const test = await getMetadata(`https://www.roblox.com/communities/${startGroup}/SEA-First-Air-Force#!/affiliates`)
+       // console.log(test)
+
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        const render = async() => {
 
         const scale = 1; // Adjust the scale as needed
         const biggestX = Math.max(...cy.nodes().map(node => node.position().x));
@@ -276,6 +333,7 @@ module.exports = {
             position.x = width/2;
             position.y = height/2;
         })
+    
 
 
         cy.edges().forEach(edge => {
@@ -285,24 +343,23 @@ module.exports = {
             ctx.beginPath();
             ctx.moveTo(source.x*scale, source.y*scale);
             ctx.lineTo(target.x*scale, target.y*scale);
-            ctx.strokeStyle = edge.data('type') == "enemy" ? '#ff0000' : '#00ff00'; // Red for enemies, green for allies
+            ctx.strokeStyle = edge.data('type') == "enemy" ? '#ff0000' : '#0000ff'; // Red for enemies, blue for allies
             ctx.lineWidth = lineSize;
             ctx.stroke();
         });
 
-        //const test = await getMetadata(`https://www.roblox.com/communities/${startGroup}/SEA-First-Air-Force#!/affiliates`)
-       // console.log(test)
 
-        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
+        let cachedImages = JSON.parse(fs.readFileSync('./tempData_images.json', 'utf8'))
+        cachedImages = new Map(cachedImages)
 
         if (interaction.options.getBoolean('groupimage')) {
             for (const group of nodes.map(node => node.data.id)) {
                 try {
                     // Add a delay before each API call
-                    await delay(30); // Adjust the delay as needed
+                    await delay(cachedImages ? 1: 1000); // Adjust the delay as needed
         
-                    const logo = await noblox.getLogo({ group: parseInt(group) }).catch(err => console.log(err));
+                    const logo = cachedImages.get(group) ?? await noblox.getLogo({ group: parseInt(group) }).catch(err => console.log(err));
+                    cachedImages.set(group, logo)
                     const img = new Image();
                     img.src = logo || 'https://www.roblox.com/asset-thumbnail/image?assetId=0&width=420&height=420&format=png';
                     console.log(logo);
@@ -321,6 +378,8 @@ module.exports = {
                     console.error(`Error loading image for group ${group}:`, err);
                 }
             }
+            fs.writeFileSync('./tempData_images.json', JSON.stringify(Array.from(cachedImages.entries())))
+            console.log(cachedImages.size)
         } else {
         cy.nodes().forEach(node => {
             const position = node.position();
@@ -349,21 +408,58 @@ module.exports = {
         
 
         // Save the canvas as a PNG
-        const outputPath = './graph.png';
-        const out = fs.createWriteStream(outputPath);
-        const stream = canvas.createPNGStream();
-        stream.pipe(out);
-
-        out.on('finish', async () => {
-            // Send the PNG file to the user
-            await interaction.editReply({
-                content: 'Here is your graph:',
-                files: [outputPath]
+        const now = new Date()
+        const outputPath = './graph' + now.getTime() + '.png';
+        return new Promise((resolve, reject) => {
+            const out = fs.createWriteStream(outputPath);
+            const stream = canvas.createPNGStream();
+            stream.pipe(out);
+            out.on('finish', () => {
+                console.log('The PNG file was created.')
+                resolve({ path: outputPath, attachment: new AttachmentBuilder(outputPath).setName('graph.png')}); 
             });
 
-            // Optionally delete the file after sending
-            fs.unlinkSync(outputPath);
-        });    
+            out.on('error', (err) => {
+                console.error('Error writing PNG file:', err);
+                reject(err); // Reject the promise on error
+            })
+        })
+        
+        }
+        let reply = ""
+        const graphs = []
+        for (let i = 0; i < 1; i++) {
+            ctx.clearRect(0, 0, width, height); // Clear the canvas before each render
+            graphs.push(await render())
+            console.log('Graph ' + i + ' rendered')
+            console.log(typeof cy.data.edges)
+            if (ignoreLinksToStartGroup) {
+                
+                // const before = cy.data.edges.size;
+                // cy.data.edges = edgesWithoutLinkesToStartGroup
+                // reply = `Graph ${i} rendered with ${before - cy.data.edges.size} edges removed.`
+            }
+            if (layoutPart2) {
+                
+                cy.layout(layoutPart2).run();
+            } else {
+                cy.layout(layout).run();
+            }
+            
+            
+        }
+
+        // Send the PNG file to the user
+        await interaction.editReply({
+            content: 'Here is your graph:    ' + reply,
+            files: graphs.map(graph => graph.attachment),
+        });
+
+        // Optionally delete the file after sending
+        graphs.forEach(outputPath => {
+            fs.unlinkSync(outputPath.path);
+        })
+         
 
   }
 };
