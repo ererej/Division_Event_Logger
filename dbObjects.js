@@ -155,9 +155,21 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 		}
 		if (rank.tag) {
 			console.log("updating tag")
-			await member.setNickname(robloxUser ? rank.tag + " " + robloxUser.cachedUsername : rank.tag + " discord name! " + member.user.displayName).catch(err => {
-				return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
-			})
+			if (robloxUser) {
+				const robloxPlayer = await noblox.getPlayer(robloxUser.robloxId).catch(err => {
+					console.log(err)
+					return { message: `Error: An error occured while trying to get the roblox player! Error: ${err}`, error: true}
+				})
+				await member.setNickname(rank.tag + " " + robloxPlayer.username).catch(err => {
+					return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
+				})
+			} else {
+				await member.setNickname(rank.tag + " discord name! " + member.user.displayName).catch(err => {
+					return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
+				})
+			}
+			
+			
 			return rank.tag
 		} 
 	}
