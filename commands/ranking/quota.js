@@ -33,6 +33,11 @@ module.exports = {
             option.setName('show_officer_data')
                 .setDescription('Should the officer data be shown?')
         )
+        .addUserOption(option =>
+            option.setName('officer')
+                .setDescription('The officer to check the quota for')
+                .setRequired(false)
+        )
         ,
     
     premiumLock: true,
@@ -45,10 +50,21 @@ module.exports = {
         await interaction.reply("fetching data")
         const embeded_error = new EmbedBuilder().setColor([255,0,0]) 
 
+        let selectedOfficer = interaction.options.getUser('officer')
+        let showServerWideData = true       
+        
+
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
-            embeded_error.setDescription("Insuficent permissions!")
-            return interaction.editReply({ embeds: [embeded_error]});
+            if (interaction.options.getUser('officer').id !== interaction.user.id) {
+                embeded_error.setDescription("You can only check other peoples quota as you are not an admin!")
+                return await interaction.editReply({ embeds: [embeded_error] });
+            }
+            selectedOfficer = interaction.user
+            showServerWideData = false
         }
+
+        const showOfficerData = selectedOfficer ? false : interaction.options.getBoolean('show_officer_data')
+
 
         const timerange = interaction.options.getString('timerange')
         let [start, end] = [0, 7 * 24 * 60 * 60 * 1000]
@@ -78,7 +94,9 @@ module.exports = {
             }
         }
         
-        const showOfficerData = interaction.options.getBoolean('show_officer_data')
+        
+        
+
         if (!startTime) {
             startTime =  new Date(new Date() - end)
         }
@@ -132,10 +150,11 @@ module.exports = {
             return officersWithRanks.map(item => item.officer);
         }
 
-        officers = await sortOfficersByRank(officers);
-        
+        if (!selectedOfficer) {
+            officers = await sortOfficersByRank(officers);
+        }
 
-        let fields = []
+        
 
         let totalAttendes = 0
         let totalTrainingAttendes = 0
@@ -149,6 +168,7 @@ module.exports = {
         let amountOfEventsHistoryPerDay = [0,0,0,0,0,0]
         let dataRangeIndexesPerDay = []
 
+        if (showServerWideData) {
         for (let i = (endTime - startTime)/(24 * 60 * 60 * 1000); i > 0; i--) {
             dataRangeIndexesPerDay.push(i)
         }
@@ -172,6 +192,7 @@ module.exports = {
             averageAttendesHistoryPerDay[dataRangeIndexesPerDay.indexOf(index)] = events.length ? Math.round((totalAttendesHistoryPerDay[dataRangeIndexesPerDay.indexOf(index)] / events.length)*10) /10 : 0;
             amountOfEventsHistoryPerDay[dataRangeIndexesPerDay.indexOf(index)] = events.length;
         })
+        }
         
     
 
@@ -183,6 +204,7 @@ module.exports = {
         let amountOfEventsHistoryPerWeek = [0,0,0,0,0,0]
         let amountAtRallysHistoryPerWeek = [0,0,0,0,0,0]
         const dataRangeIndexesPerWeek = [5, 4, 3, 2, 1, 0]
+        if (showServerWideData) {
         dataRangeIndexesPerWeek.forEach(async (index) => {
             const events = await db.Events.findAll({
                 where: {
@@ -207,6 +229,7 @@ module.exports = {
             averageAttendesHistoryPerWeek[dataRangeIndexesPerWeek.indexOf(index)] = eventsWithoutRallys.length ? Math.round((totalAttendesHistoryPerWeek[dataRangeIndexesPerWeek.indexOf(index)] / events.length)*10) /10 : 0;
             amountOfEventsHistoryPerWeek[dataRangeIndexesPerWeek.indexOf(index)] = eventsWithoutRallys.length;
         });
+        }
 
 
 
@@ -250,7 +273,8 @@ module.exports = {
         
         let topTraningHost = {host: null, events: 0, score: 0}
         let topPatrolHost = {host: null, events: 0, score: 0}
-            
+        let officerFields = []
+
         for (const officer of  officers) {
             if (!officer.retired) {
                 const updateOfficerResponce = await officer.user.updateOfficer()
@@ -267,12 +291,12 @@ module.exports = {
             const trainings = divsTrainings.filter(e => e.host === officer.user_id)
             const patrols = divsPatrols.filter(e => e.host === officer.user_id)
             
-            if (trainings.reduce((acc, event) => acc + 1 + Math.floor(event.amount_of_attendees / 5)) > topTraningHost.score) {
+            if (trainings.reduce((acc, event) => acc + 1 + Math.floor(event.amount_of_attendees / 5), 0) > topTraningHost.score) {
                 topTraningHost.host = officer.user_id
                 topTraningHost.events = trainings.length
                 topTraningHost.score = trainings.reduce((acc, event) => acc + 1 + Math.floor(event.amount_of_attendees / 5), 0)
             }
-            if (patrols.reduce((acc, event) => acc + 1 + Math.floor(event.amount_of_attendees / 5)) > topPatrolHost.score) {
+            if (patrols.reduce((acc, event) => acc + 1 + Math.floor(event.amount_of_attendees / 5), 0) > topPatrolHost.score) {
                 topPatrolHost.host = officer.user_id
                 topPatrolHost.events = patrols.length
                 topPatrolHost.score = patrols.reduce((acc, event) => acc + 1 + Math.floor(event.amount_of_attendees / 5), 0)
@@ -287,7 +311,7 @@ module.exports = {
             const patrolAttendes = patrols.reduce((acc, event) => acc + event.amount_of_attendees, 0)
             totalPatrolAttendes += patrolAttendes
 
-            if (showOfficerData === false) continue
+            if (showOfficerData === false && (!selectedOfficer || officer.user_id != selectedOfficer.id)) continue
 
             const amountOfEventsAttended = divsEvents.filter(e => officer.user.events.split(",").map(Number).includes(e.id))
             const eventsCohosted = divsEvents.filter(e => e.cohost === officer.user_id)
@@ -307,13 +331,14 @@ module.exports = {
             description += `${rallysBeforeRaidAttended.length} rallys before raid attended \n`
             description += `${rallysAfterRaidAttended.length} rallys after raid attended\n`
 
-            fields.push({ name: title, value: '<@' + officer.user_id + ">\n" + description, inline: true })
+            officerFields.push({ name: title, value: '<@' + officer.user_id + ">\n" + description, inline: true })
         }
             
         interaction.editReply("Done processing officer data done! generating graphs...")
             
 
         let graphs = []
+        if (showServerWideData) {
         graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
         graphs.push(await generateGraph({ title: "training maps", labels: [... Object.keys(trainingMaps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(trainingMaps)] }, 'doughnut', 300, 300))
         graphs.push(await generateGraph({ title: "average attendees per day", labels: dataRangeIndexesPerDay.map(index => {
@@ -329,16 +354,18 @@ module.exports = {
         graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistoryPerWeek}, 'line', 300, 500 ))
         graphs.push(await generateGraph({ title: "average attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: averageAttendesHistoryPerWeek}, 'line', 300, 500 ))
         graphs.push(await generateGraph({ title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistoryPerWeek}, 'line', 300, 500 ))
-
+        }
 
         interaction.editReply("Done generating graphs! sending data...")
 
         let description = `*<t:${Math.round(startTime.getTime()/1000)}:D> - <t:${Math.round(endTime.getTime()/1000)}:D>*\n\n`
+        if (showServerWideData) {
         description += `Total events: ${divsEvents.length} \nTotal attendees: ${totalAttendes} average attendees: ${divsEvents && totalAttendes ? Math.round((totalAttendes-totalAttendesAtRallys)*10 / (divsEvents.length - rallyafterraid.length - rallysbeforeraid.length))/10 : 0} \n`
         description += `Total trainings: ${divsTrainings.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Trainings with 5+ attending: *${divsTrainingsWith5PlusAttendees.length}* Biggest training: **${divsTrainingWithHighestAttendance ? (divsTrainingWithHighestAttendance.sealog_message_link ? "[" : "") + (divsTrainingWithHighestAttendance.amount_of_attendees + 1) + (divsTrainingWithHighestAttendance.sealog_message_link ? `](${divsTrainingWithHighestAttendance.sealog_message_link})` : "")/*+ the host*/ : 0}** Total attendees: ${totalTrainingAttendes} *Top training host:* ${topTraningHost.host ? `<@${topTraningHost.host}>(${topTraningHost.score}, ${topTraningHost.events})` : "N/A"}\n`
-        description += `Total patrols: ${divsPatrols.length} (${divsEvents.length != 0 ? Math.round(divsPatrols.length * 100 / divsEvents.length) : 0}%) Patrols with 5+ attending: *${divsPatrolWith5PlusAttendees.length}* Biggest patrol: **${divsPatrolWithHighestAttendance ? (divsPatrolWithHighestAttendance.sealog_message_link ? "[":"") + (divsPatrolWithHighestAttendance.amount_of_attendees + 1) + (divsPatrolWithHighestAttendance.sealog_message_link ? `](${divsPatrolWithHighestAttendance.sealog_message_link})` : "") /*+ the host*/ : 0}** Total attendees: ${totalPatrolAttendes} *Top patrol host:* ${topPatrolHost.host ? `<@${topPatrolHost.host}>(${topPatrolHost.score} ${topPatrolHost.events})` : "N/A"}\n`
+        description += `Total patrols: ${divsPatrols.length} (${divsEvents.length != 0 ? Math.round(divsPatrols.length * 100 / divsEvents.length) : 0}%) Patrols with 5+ attending: *${divsPatrolWith5PlusAttendees.length}* Biggest patrol: **${divsPatrolWithHighestAttendance ? (divsPatrolWithHighestAttendance.sealog_message_link ? "[":"") + (divsPatrolWithHighestAttendance.amount_of_attendees + 1) + (divsPatrolWithHighestAttendance.sealog_message_link ? `](${divsPatrolWithHighestAttendance.sealog_message_link})` : "") /*+ the host*/ : 0}** Total attendees: ${totalPatrolAttendes} *Top patrol host:* ${topPatrolHost.host ? `<@${topPatrolHost.host}>(${topPatrolHost.score}, ${topPatrolHost.events})` : "N/A"}\n`
         description += `Biggest rally: **${rallyWithHighestAttendance ? rallyWithHighestAttendance.amount_of_attendees + 1/*+ the host */ : 0} **Average rally attendees: ${rallysbeforeraid.length ? totalAttendesAtRallys / rallysbeforeraid.length : 0} \nAverage amount of officers at rallys: ${rallysbeforeraid.length ? totalOfficersAtRallys / rallysbeforeraid.length : 0}`
-        
+        }
+
         let embed = new EmbedBuilder()
             .setTitle("Quota")
             .setDescription(description)
@@ -346,7 +373,7 @@ module.exports = {
             
         let length = embed.data.title.length + embed.data.description.length
 
-        for (let field of fields) {
+        for (let field of officerFields) {
             if (length + field.name.length + field.value.length > 6000) {
                 await interaction.followUp({ embeds: [embed], files: graphs.map(g => g.attachment) })
                 for (let graph of graphs) {
