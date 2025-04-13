@@ -51,11 +51,11 @@ module.exports = {
         })
         let replyString = `**SEA Coverage**\n\n`
         replyString += `**Official Divisions:** ${coverage.allys.length + coverage.enemys.length}\n`
-        replyString += `**SEA Divisions:** ${coverage.allys.length}\n`
+        replyString += `**SEA Divisions:** ${coverage.allys.length-1}\n`
         replyString += `**Pirate Divisions:** ${coverage.enemys.length}\n`
-        replyString += `\n**Coverage:** ${Math.round((coverage.allys.length + coverage.enemys.length)*1000/(enemysIds.length + allysIds.length))/10}%\n`
-        replyString += `\n**Total offical Divisions in SEA:** ${enemysIds.length + allysIds.length}\n`
-        replyString += `**Total unoffical divisions(and divs that has not ran /setup) using the bot:** ${servers.length - coverage.allys.length + coverage.enemys.length}\n`
+        replyString += `\n**Coverage:** ${Math.round((coverage.allys.length-1 + coverage.enemys.length)*1000/(enemysIds.length + allysIds.length-1))/10}%\n`
+        replyString += `\n**Total offical Divisions in SEA:** ${enemysIds.length + allysIds.length-1}\n`
+        replyString += `**Total unoffical divisions(and divs that has not ran /setup) using the bot:** ${servers.length - (coverage.allys.length-1 + coverage.enemys.length)}\n`
 
         interaction.editReply({content: replyString})
 
@@ -63,7 +63,6 @@ module.exports = {
             const server = servers.find(server => server.guild_id == guild.id)
             return server == undefined
         })
-        console.log(console.log(otherGuilds.map(guild => guild.name).join("\n")))
         
     }
 }
