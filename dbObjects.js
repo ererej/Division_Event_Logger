@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 const config = require('./config.json');
 const dbcredentoiols = process.argv.includes("--prod") || process.env.DATABASE === 'productiondb' ? config.productionDb : config.db;
 const getNameOfPromoPoints = require("./utils/getNameOfPromoPoints.js")
+const noblox = require("noblox.js")
 
 console.log("Connecting to database: " + dbcredentoiols.database)
 const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
@@ -156,11 +157,11 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 		if (rank.tag) {
 			console.log("updating tag")
 			if (robloxUser) {
-				const robloxPlayer = await noblox.getPlayer(robloxUser.robloxId).catch(err => {
+				const robloxPlayer = await noblox.getUserInfo(robloxUser.robloxId + "").catch(err => {
 					console.log(err)
 					return { message: `Error: An error occured while trying to get the roblox player! Error: ${err}`, error: true}
 				})
-				await member.setNickname(rank.tag + " " + robloxPlayer.username).catch(err => {
+				await member.setNickname(rank.tag + " " + robloxPlayer.name).catch(err => {
 					return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
 				})
 			} else {
@@ -168,8 +169,6 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 					return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
 				})
 			}
-			
-			
 			return rank.tag
 		} 
 	}
