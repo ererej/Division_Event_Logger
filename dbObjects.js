@@ -355,7 +355,7 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 		if (showPromoPoints) {
 			const rankAbove = ranks[rankIndexInRanks + 1]
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
-			responce += (responce ? "\n" : "") + `${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${rankAbove != "∞" ? (!rankAbove.is_officer ? rankAbove.promo_points: "∞") : "∞"}*!`
+			responce += (responce ? "\n" : "") + `${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore ? (rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞") : "∞"}* to ***${this.promo_points}**/${rankAbove ? (rankAbove.promo_points != "∞" ? (!rankAbove.is_officer ? rankAbove.promo_points: "∞") : "∞") : "∞"}*!`
 		}
 		return { message: responce, robloxUser: robloxUser }
 	}
