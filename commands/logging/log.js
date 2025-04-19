@@ -298,7 +298,7 @@
                 if (member.user.bot || host.id === member.user.id ) continue;
                 total_attendes++
                 mentions += `<@${member.id}> `
-                interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Processing " + member.displayName)], components: []})
+                interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Processing " + member.displayName + "\n[" + "💚".repeat(total_attendes) + "🖤".repeat(attendees.length - total_attendes) + "]")], components: []})
                 description += `\n\n <@${member.id}>: `;
                 
                 let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});

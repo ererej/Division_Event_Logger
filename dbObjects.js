@@ -3,6 +3,7 @@ const config = require('./config.json');
 const dbcredentoiols = process.argv.includes("--prod") || process.env.DATABASE === 'productiondb' ? config.productionDb : config.db;
 const getNameOfPromoPoints = require("./utils/getNameOfPromoPoints.js")
 const noblox = require("noblox.js")
+const getRobloxUser = require("./utils/getRobloxUser.js")
 
 console.log("Connecting to database: " + dbcredentoiols.database)
 const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
@@ -445,11 +446,15 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 	value: async function(noblox, groupId, MEMBER /* guildmember */, robloxUser ) {
 		//find the users roblox account
 		if (!robloxUser) {
-			robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
-				headers: {
-				'Authorization': `Bearer ${config.roverkey}`
-				}
-			})
+			robloxUser = await getRobloxUser({MEMBER: MEMBER})
+			if (robloxUser.error) {
+				return { message: robloxUser.error, error: true}
+			}
+			// robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
+			// 	headers: {
+			// 	'Authorization': `Bearer ${config.roverkey}`
+			// 	}
+			// })
 		}
 		if (!(robloxUser.status + "").startsWith("2")) {
 			if (robloxUser.status === 404) {

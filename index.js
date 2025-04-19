@@ -5,6 +5,9 @@ const { Client, codeBlock, Collection, Events, GatewayIntentBits, ActivityType }
 const config = require('./config.json');
 const token = config.token;
 const noblox = require('noblox.js');
+const countFiles = require('./utils/countFiles');
+
+
 
 async function setCookieWithTimeout(cookie, timeout = 10000) {
     return new Promise((resolve, reject) => {
@@ -42,6 +45,10 @@ initializeNoblox().then(() => {
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
  
 
+const dirPath = path.join(__dirname);
+countFiles(dirPath, /node_modules|\.git/).then(count => {
+    console.log(`Total files (excluding node_modules): ${count}`);
+});
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
