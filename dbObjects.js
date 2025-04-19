@@ -177,11 +177,10 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 
 Reflect.defineProperty(Users.prototype, 'getRobloxUser', {
 	value: async function() {
-		robloxUser = await fetch(`https://registry.rover.link/api/guilds/${this.guild_id}/discord-to-roblox/${this.user_id}`, {
-			headers: {
-			'Authorization': `Bearer ${config.roverkey}`
+		const robloxUser = await getRobloxUser({memberId: this.user_id, guildId: this.guild_id})
+			if (robloxUser.error) {
+				return { message: robloxUser.error, error: true}
 			}
-		})
 	
 		if (!(robloxUser.status + "").startsWith("2")) {
 			if (robloxUser.status === 404) {
@@ -366,11 +365,10 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 Reflect.defineProperty(Users.prototype, 'setRank', { //! make the it return errors with retrun { error: "error message"}
 	value: async function(noblox, groupId, MEMBER, rank, robloxUser) {
 		if (!robloxUser) {
-			robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
-				headers: {
-				'Authorization': `Bearer ${config.roverkey}`
-				}
-			})
+			robloxUser = await getRobloxUser({MEMBER: MEMBER})
+			if (robloxUser.error) {
+				return { message: robloxUser.error, error: true}
+			}
 		
 			if (!(robloxUser.status + "").startsWith("2")) {
 				if (robloxUser.status === 404) {
@@ -450,11 +448,6 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 			if (robloxUser.error) {
 				return { message: robloxUser.error, error: true}
 			}
-			// robloxUser = await fetch(`https://registry.rover.link/api/guilds/${MEMBER.guild.id}/discord-to-roblox/${MEMBER.user.id}`, {
-			// 	headers: {
-			// 	'Authorization': `Bearer ${config.roverkey}`
-			// 	}
-			// })
 		}
 		if (!(robloxUser.status + "").startsWith("2")) {
 			if (robloxUser.status === 404) {
