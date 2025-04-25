@@ -39,7 +39,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
         const embeded_error = new EmbedBuilder().setColor([255, 0, 0])
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator) && !interaction.member.user.id === "386838167506124800") {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator) && interaction.member.user.id !== "386838167506124800") {
             embeded_error.setDescription("Insuficent permissions!")
             return await interaction.editReply({ embeds: [embeded_error] });
         }
@@ -55,12 +55,16 @@ module.exports = {
 
         const robloxUser = await response.json()
         const group = await noblox.getGroup(interaction.options.getInteger("roblox_group_id")).catch((err) => {
-            embeded_error.setDescription("The group id is invalid!")
-            return interaction.editReply({ embeds: [embeded_error] });
+            return "The group id is invalid!"
         })
 
+        if (group === "The group id is invalid!") {
+            embeded_error.setDescription("The group id is invalid!")
+            return interaction.editReply({ embeds: [embeded_error] });
+        }
+
         //athenticate the user
-        if (group.owner.userId !== robloxUser.robloxId && !interaction.member.user.id === "386838167506124800") {//by pass the check if the user is the owner of the bot. only so that Ererej can help divisions setup their server.
+        if (group.owner.userId !== robloxUser.robloxId && interaction.member.user.id !== "386838167506124800") {//by pass the check if the user is the owner of the bot. only so that Ererej can help divisions setup their server.
             embeded_error.setDescription("You are not the owner of the group! please have the owner run this command!")
             return interaction.editReply({ embeds: [embeded_error] });
         }
@@ -99,7 +103,7 @@ module.exports = {
         const cancelButton = new ButtonBuilder()
             .setCustomId('no')
             .setLabel('No')
-            .setStyle(ButtonStyle.Secondary)
+            .setStyle(ButtonStyle.Danger)
 
         const row = new ActionRowBuilder().addComponents(confirmButton, cancelButton)
 
@@ -277,7 +281,7 @@ module.exports = {
             const cancelButton = new ButtonBuilder()
                 .setCustomId('no')
                 .setLabel('No')
-                .setStyle(ButtonStyle.Secondary)
+                .setStyle(ButtonStyle.Danger)
 
             const row = new ActionRowBuilder().addComponents(confirmButton, cancelButton)
 
@@ -325,8 +329,8 @@ module.exports = {
                         return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup was not 100% successful ${failed} roblox ranks where not linked ${responceString} \n# The rank links where created now you need to use /editrank to configure how many promopoints are required to reach each rank, and if the rank is an officer rank and if you are able to reach it with promopoints`)], components: [] })
                     }
 
-                } else if (confirmation.customId === 'no') {
-                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup has been cancelled!`)], components: [] })
+                } else {
+                    return response.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup has been cancelled!`)], components: [] })
                 }
             } catch (error) {
                 if (error.message === "Collector received no interactions before ending with reason: time") {

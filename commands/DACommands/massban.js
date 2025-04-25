@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, MessageMentions } = require('discord.js');
 const db = require("../../dbObjects.js")
-const getLinkedChannel = require('../../utils/getLinkedChannel');
+const getLinkedChannel = require('../../utils/getLinkedChannel.js');
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName('massban')

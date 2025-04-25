@@ -132,27 +132,49 @@
 
                 const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.LuminousVividPink).setDescription(`Please enter the attendees of your event. \nNext time run /log before everyone leaves and you wont have to manualy do it`)], components: [selectRow, confirmRow]})
 
+                let selectMenu;
+                let selectMenu2;
+
                 const collectorFilter = i => i.user.id === interaction.user.id
                 try {
                     while (true) {
-                        const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                        const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 900_000 })
                         confirmation.deferUpdate()
                         if (confirmation.customId === 'select_attendees') {
-                            attendees = []
-                            confirmation.values.forEach(async value => {
-                                const member = await interaction.guild.members.fetch(value)
-                                attendees.push(member)
-                                
-                            })
+                            selectMenu = confirmation.values
+
+                            if (selectMenu.length > 23) {
+                                const anotherSelectAttendees = new UserSelectMenuBuilder()
+                                .setCustomId('select_attendees2')
+                                .setPlaceholder('Select more attendees')
+                                .setMinValues(1)
+                                .setMaxValues(25)
+                                const selectRow2 = new ActionRowBuilder().addComponents(anotherSelectAttendees)
+                                response.edit({embeds: [new EmbedBuilder().setColor(Colors.DarkVividPink).setDescription("Did someone have too many attendees for one user select menu? dont worry I got you")], components: [selectRow, selectRow2, confirmRow]})
+                            }
+                        } else if (confirmation.customId === 'select_attendees2') { // FAF rallys too much patch
+                            selectMenu2 = confirmation.values
                         } else if (confirmation.customId === 'confirmSelection') {
                             interaction.editReply({embeds: [new EmbedBuilder().setDescription("Selection confirmed")], components: []})
+                            attendees = []
+                            selectMenu.forEach(async value => {
+                                const member = await interaction.guild.members.fetch(value)
+                                attendees.push(member)
+                            })
+                            selectMenu2.forEach(async value => { // FAF rallys too much patch
+                                const member = await interaction.guild.members.fetch(value)
+                                if (attendees.includes(member)) return
+                                if (member.user.bot) return
+                                attendees.push(member)   
+                            })
+
                             break;
                         }
                     }
 
                 } catch (error) {
                     if (error.message === "Collector received no interactions before ending with reason: time") {
-                        return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 300 secounds, cancelling!")], components: []})
+                        return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 900 secounds(15min), cancelling!")], components: []})
                     } else {
                             throw error
                     }
@@ -251,7 +273,7 @@
                 const collectorFilter = i => i.user.id === interaction.user.id
                 try {
                     while (true) {
-                        const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 300_000 })
+                        const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 900_000 })
                         confirmation.deferUpdate()
                         if (confirmation.customId === 'select_passers') {
                             attendees = []
@@ -269,7 +291,7 @@
 
                 } catch (error) {
                     if (error.message === "Collector received no interactions before ending with reason: time") {
-                        return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 300 secounds, cancelling!")], components: []})
+                        return interaction.editReply({embeds: [embeded_error.setDescription("No responce was given in within 900 secounds(15min), cancelling!")], components: []})
                     } else {
                             throw error
                     }
@@ -298,7 +320,7 @@
                 if (member.user.bot || host.id === member.user.id ) continue;
                 total_attendes++
                 mentions += `<@${member.id}> `
-                interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Processing " + member.displayName + "\n[" + "💚".repeat(total_attendes) + "🖤".repeat(attendees.length - total_attendes) + "]")], components: []})
+                interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Processing " + member.displayName + "\n[" + "💙".repeat(total_attendes) + "🖤".repeat(attendees.length - total_attendes) + "]")], components: []})
                 description += `\n\n <@${member.id}>: `;
                 
                 let dbUser = await db.Users.findOne({ where: {guild_id: interaction.guild.id, user_id: member.id}});
@@ -399,5 +421,6 @@
             await interaction.editReply({embeds: [success_embed], components: []});
 
             
+
         },
     };

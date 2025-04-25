@@ -26,9 +26,14 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error]});
         }
 
+        if (interaction.guild.id == "831851819457052692") {
+            embeded_error.setDescription("You are not paying for premium in this server!!!!!!!")
+            return await interaction.editReply({ embeds: [embeded_error]});
+        }
+
         const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
         if (server == null) {
-            embeded_error.setDescription("The server is not in the database! Please run the setup command!")
+            embeded_error.setDescription("The server is not in the database! Please run the /setup command!")
             return await interaction.editReply({ embeds: [embeded_error]});
         }
 

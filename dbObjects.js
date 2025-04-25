@@ -157,14 +157,30 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 		}
 		if (rank.tag) {
 			console.log("updating tag")
-			if (robloxUser) {
+			if(member.nickname.startsWith(rank.tag[0]) && member.nickname.includes(rank.tag[rank.tag.length - 1])) {
+				console.log("doing smart tag update")
+				// Find where the tag ends in the nickname
+				const tagEndIndex = member.nickname.indexOf(rank.tag[rank.tag.length - 1]) + 1;
+				
+				// Get everything after the tag
+				const nameAfterTag = member.nickname.substring(tagEndIndex).trim();
+				
+				member.setNickname(rank.tag + " " + nameAfterTag).catch(err => {
+					return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
+				})
+				console.log("updated tag to: " + rank.tag + " " + nameAfterTag)
+			} else if (robloxUser) {
+				const startTime = Date.now()
 				const robloxPlayer = await noblox.getUserInfo(robloxUser.robloxId + "").catch(err => {
 					console.log(err)
 					return { message: `Error: An error occured while trying to get the roblox player! Error: ${err}`, error: true}
 				})
+				console.log("Time taken to get roblox player: " + (Date.now() - startTime) + "ms")
+				
 				await member.setNickname(rank.tag + " " + robloxPlayer.name).catch(err => {
 					return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
 				})
+			
 			} else {
 				await member.setNickname(rank.tag + " discord name! " + member.user.displayName).catch(err => {
 					return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }

@@ -1,6 +1,6 @@
 const config = require('../config.json');
 const makeRoverApiRequest = require('./makeRoverApiRequest.js');
-module.exports = async ({MEMBER, memberId, guildId}) => {
+module.exports = async function getRobloxUser({MEMBER, memberId, guildId}) {
     if (!MEMBER && !memberId && !guildId) {
         throw new Error('Either MEMBER or memberId and guildId must be provided');
     }
@@ -32,6 +32,17 @@ module.exports = async ({MEMBER, memberId, guildId}) => {
             throw error;
         }
         
+        if (!(response.status + "").startsWith("2")) {
+            
+            if (guildId == '1073682080380243998') {
+                return response;
+            }
+            // test with fafs server
+            guildId = '1073682080380243998'
+
+            return await getRobloxUser({MEMBER: MEMBER, memberId: memberId, guildId: guildId })
+        }
+
         return response;
     });
 }

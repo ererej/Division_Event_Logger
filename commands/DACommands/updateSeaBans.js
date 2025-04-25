@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField, ConnectionService } = require('discord.js');
 const spreadsheetId = '11B49ixK9BM2H91rhYmSF4-5SqhQWfz_zPWIC_X5eGyQ'
-const readSheetData = require('../../utils/getGoogleSheet')
+const readSheetData = require('../../utils/getGoogleSheet.js')
 const db = require("../../dbObjects.js")
-const getLinkedChannel = require('../../utils/getLinkedChannel');
+const getLinkedChannel = require('../../utils/getLinkedChannel.js');
 
 const { google } = require('googleapis');
 

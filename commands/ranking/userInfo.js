@@ -3,7 +3,8 @@ const db = require("../../dbObjects.js");
 const getNameOfPromoPoints = require("../../utils/getNameOfPromoPoints.js");
 const generateGraph = require("../../utils/generateGraph.js");
 const { Op } = require("sequelize");
-const fs = require("fs")
+const fs = require("fs");
+const { title } = require('process');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -60,7 +61,14 @@ module.exports = {
             })
             const eventTypes = {}
             const maps = {}
+            const eventsData = []
+            const eventTypeNumbers = {training: 0, patrol: 1, raid: 2, rallyBeforeRaid: 3, rallyAfterRaid: 4, other: 5}
+            const eventTypeNames = {training: "Training", Patrol: "Patrol", Raid: "Raid", rallyBeforeRaid: "Rally before raid", rallyAfterRaid: "Rally after raid", other: "Other"}
             events.forEach(event => {
+                eventsData.push({
+                    event_type: eventTypeNames[event.type] ?? eventTypeNames.other,
+                    date: event.createdAt,
+                })
                 if (!eventTypes[event.type]) {
                     eventTypes[event.type] = 1
                 } else {
@@ -76,9 +84,14 @@ module.exports = {
             })
             const eventTypesArray = Object.entries(eventTypes)
             
+            console.log()
 
             let graphs = []
             if (eventTypesArray.length > 0) {
+                graphs.push(await generateGraph({ title: "Events attended", labels: eventsData.map(event => {
+                    const date = new Date(event.date)
+                    return `${date.getDate()}/${date.getMonth() + 1}`
+                }), colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: eventsData.map(event => event.event_type) }, 'line', 300, 300))
                 graphs.push(await generateGraph({ labels: [... Object.keys(eventTypes)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(eventTypes)] }, 'doughnut', 300, 300))
                 graphs.push(await generateGraph({ labels: [... Object.keys(maps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(maps)] }, 'doughnut', 300, 300))
             }

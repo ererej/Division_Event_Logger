@@ -25,7 +25,8 @@ module.exports = {
                     { name: 'current month', value: JSON.stringify(["current month", 0]) },
                     { name: 'last week', value: JSON.stringify([7 * 24 * 60 * 60 * 1000, 2 * 7 * 24 * 60 * 60 * 1000]) },
                     { name: 'last month', value: JSON.stringify([30 * 24 * 60 * 60 * 1000, 2 * 30 * 24 * 60 * 60 * 1000]) },
-                    
+                    { name: 'previous whole week', value: JSON.stringify(["previous whole week", 7 * 24 * 60 * 60 * 1000]) },
+                    { name: 'previous whole month', value: JSON.stringify(["previous whole month", 30 * 24 * 60 * 60 * 1000]) },
                     
                 )
         )
@@ -91,6 +92,14 @@ module.exports = {
             if (start === "current month") {
                 startTime = new Date(today.getFullYear(), today.getMonth())
                 endTime = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+            }
+            if (start === "previous whole week") {
+                startTime = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1 - 14)
+                endTime = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1 - 7)
+            }
+            if (start === "previous whole month") {
+                startTime = new Date(today.getFullYear(), today.getMonth() - 2)
+                endTime = new Date(today.getFullYear(), today.getMonth() - 1, 0)
             }
         }
         
