@@ -39,7 +39,7 @@ module.exports = {
      */
     async execute(interaction) {
         await interaction.deferReply();
-        if (interaction.guild.id == "831851819457052692") {
+        if (interaction.guild.id == "831851819457052692" || (interaction.member.id == "386838167506124800" && interaction.options.getString('treatment'))) {
             switch (interaction.options.getString('treatment')) {
                 case 'test':
                     const servers = await db.Servers.findAll()
@@ -53,7 +53,29 @@ module.exports = {
 
                     break
                 case 'test3':
+                    let ranks = await noblox.getRoles(2648601)
+                    ranks = ranks.filter(rank=> /*rank.name.includes("[HR") ||*/ rank.name.includes("[HC2]"))
+                    interaction.editReply("sending")
                     
+                    const officers = await noblox.getPlayers(2648601, ranks.map(rank => rank.id))
+
+                    let amount = 0
+                    let reply = ""
+                    const members = await interaction.guild.members.fetch();
+                    for (const officer of officers) {
+                        const member = members.find(m => m.displayName === officer.username);
+                        if (member) {
+                                amount++
+                                reply += "💜"
+                            } else {
+                                reply += "🖤"
+                            }
+                            interaction.editReply(reply)
+                    }
+                    return interaction.editReply({content: `There are ${officers.length} HC2 in SEA, and ${amount} of them are in this server! That is ${Math.round((amount/officers.length)*100)}% of the HC2 in all of SEA!\n\n` + reply})
+                    break
+
+
                 default:
                     return interaction.editReply({content: "test!"})
             }

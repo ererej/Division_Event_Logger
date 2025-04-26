@@ -320,6 +320,10 @@ module.exports = {
             const patrolAttendes = patrols.reduce((acc, event) => acc + event.amount_of_attendees, 0)
             totalPatrolAttendes += patrolAttendes
 
+
+            const officersTotalTrainingLength = trainings.reduce((acc, event) => acc + (event.length ?? 0), 0)
+            const officersTotalPatrolLength = patrols.reduce((acc, event) => acc + (event.length ?? 0), 0)
+
             if (showOfficerData === false && (!selectedOfficer || officer.user_id != selectedOfficer.id)) continue
 
             const amountOfEventsAttended = divsEvents.filter(e => officer.user.events.split(",").map(Number).includes(e.id))
@@ -330,8 +334,8 @@ module.exports = {
 
             description += `<@&${officer.user.rank_id}> \n`
             description += `**${events.length}** events hosted (${divsEvents.length ? Math.round(events.length * 100 / divsEvents.length) : 0}%). Average attendees **${events.length != 0 ? Math.round(officersTotalAttendes/events.length * 10)/10 : 0}**\n`
-            description += `   - *${trainings.length}* trainings (${events.length != 0 ? Math.round(trainings.length * 100/events.length) : 0}%) Average attendance *${trainings.length != 0 ? Math.round(trainingAttendes/trainings.length * 10)/10 : 0}*\n\n` 
-            description += `   - *${patrols.length}* patrols (${events.length != 0 ? Math.round(patrols.length/events.length*100) : 0}%) Average attendance *${patrols.length != 0 ? Math.round(patrolAttendes/patrols.length*10)/10 : 0}*\n\n`
+            description += `   - *${trainings.length}* trainings (${events.length != 0 ? Math.round(trainings.length * 100/events.length) : 0}%) Average attendance *${trainings.length != 0 ? Math.round(trainingAttendes/trainings.length * 10)/10 : 0}* Average training length **${trainings.length ? officersTotalTrainingLength/trainings.length : 0}** Min\n\n` 
+            description += `   - *${patrols.length}* patrols (${events.length != 0 ? Math.round(patrols.length/events.length*100) : 0}%) Average attendance *${patrols.length != 0 ? Math.round(patrolAttendes/patrols.length*10)/10 : 0}* \n\n`
             description += `   - *${events.length - trainings.length - patrols.length}* other events (${events.length ? Math.round((events.length - trainings.length - patrols.length)*100/events.length) : 0}%) Average attendance *${events.length - trainings.length - patrols.length != 0 ? Math.round(((officersTotalAttendes - trainingAttendes - patrolAttendes) * 10 / (events.length - trainings.length - patrols.length)) )/10 : 0}*\n\n`
             description += `   - *${rallysbeforeraid.filter(e => e.host === officer.user_id).length}* rallys hosted\n\n`
             description += `${officersTotalAttendes} total attendees\n`
@@ -365,12 +369,15 @@ module.exports = {
         graphs.push(await generateGraph({ title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistoryPerWeek}, 'line', 300, 500 ))
         }
 
+        const divsTotalTrainingLength = divsTrainings.reduce((acc, event) => acc + (event.length ?? 0), 0)
+
+
         interaction.editReply("Done generating graphs! sending data...")
 
         let description = `*<t:${Math.round(startTime.getTime()/1000)}:D> - <t:${Math.round(endTime.getTime()/1000)}:D>*\n\n`
         if (showServerWideData) {
         description += `Total events: ${divsEvents.length} \nTotal attendees: ${totalAttendes} average attendees: ${divsEvents && totalAttendes ? Math.round((totalAttendes-totalAttendesAtRallys)*10 / (divsEvents.length - rallyafterraid.length - rallysbeforeraid.length))/10 : 0} \n`
-        description += `Total trainings: ${divsTrainings.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Trainings with 5+ attending: *${divsTrainingsWith5PlusAttendees.length}* Biggest training: **${divsTrainingWithHighestAttendance ? (divsTrainingWithHighestAttendance.sealog_message_link ? "[" : "") + (divsTrainingWithHighestAttendance.amount_of_attendees + 1) + (divsTrainingWithHighestAttendance.sealog_message_link ? `](${divsTrainingWithHighestAttendance.sealog_message_link})` : "")/*+ the host*/ : 0}** Total attendees: ${totalTrainingAttendes} *Top training host:* ${topTraningHost.host ? `<@${topTraningHost.host}>(${topTraningHost.score}, ${topTraningHost.events})` : "N/A"}\n`
+        description += `Total trainings: ${divsTrainings.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Trainings with 5+ attending: *${divsTrainingsWith5PlusAttendees.length}* Biggest training: **${divsTrainingWithHighestAttendance ? (divsTrainingWithHighestAttendance.sealog_message_link ? "[" : "") + (divsTrainingWithHighestAttendance.amount_of_attendees + 1) + (divsTrainingWithHighestAttendance.sealog_message_link ? `](${divsTrainingWithHighestAttendance.sealog_message_link})` : "")/*+ the host*/ : 0}** Total attendees: ${totalTrainingAttendes} *Top training host:* ${topTraningHost.host ? `<@${topTraningHost.host}>(${topTraningHost.score}, ${topTraningHost.events})` : "N/A"} Average training length **${divsTrainings.length ? divsTotalTrainingLength/divsTrainings.length : 0}** Min\n`
         description += `Total patrols: ${divsPatrols.length} (${divsEvents.length != 0 ? Math.round(divsPatrols.length * 100 / divsEvents.length) : 0}%) Patrols with 5+ attending: *${divsPatrolWith5PlusAttendees.length}* Biggest patrol: **${divsPatrolWithHighestAttendance ? (divsPatrolWithHighestAttendance.sealog_message_link ? "[":"") + (divsPatrolWithHighestAttendance.amount_of_attendees + 1) + (divsPatrolWithHighestAttendance.sealog_message_link ? `](${divsPatrolWithHighestAttendance.sealog_message_link})` : "") /*+ the host*/ : 0}** Total attendees: ${totalPatrolAttendes} *Top patrol host:* ${topPatrolHost.host ? `<@${topPatrolHost.host}>(${topPatrolHost.score}, ${topPatrolHost.events})` : "N/A"}\n`
         description += `Biggest rally: **${rallyWithHighestAttendance ? rallyWithHighestAttendance.amount_of_attendees + 1/*+ the host */ : 0} **Average rally attendees: ${rallysbeforeraid.length ? totalAttendesAtRallys / rallysbeforeraid.length : 0} \nAverage amount of officers at rallys: ${rallysbeforeraid.length ? totalOfficersAtRallys / rallysbeforeraid.length : 0}`
         }
