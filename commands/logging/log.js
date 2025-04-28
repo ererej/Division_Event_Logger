@@ -161,12 +161,14 @@
                                 const member = await interaction.guild.members.fetch(value)
                                 attendees.push(member)
                             })
-                            selectMenu2.forEach(async value => { // FAF rallys too much patch
-                                const member = await interaction.guild.members.fetch(value)
-                                if (attendees.includes(member)) return
-                                if (member.user.bot) return
-                                attendees.push(member)   
-                            })
+                            if (selectMenu2) {
+                                selectMenu2.forEach(async value => { // FAF rallys too much patch
+                                    const member = await interaction.guild.members.fetch(value)
+                                    if (attendees.includes(member)) return
+                                    if (member.user.bot) return
+                                    attendees.push(member)   
+                                })
+                            }
 
                             break;
                         }

@@ -7,6 +7,7 @@ const { createCanvas } = require('canvas');
 const fs = require('fs');
 const { default: cluster } = require('cluster');
 const { all } = require('axios');
+const generateGraph = require('../../utils/generateGraph.js');
 
 
 
@@ -53,28 +54,45 @@ module.exports = {
 
                     break
                 case 'test3':
-                    let ranks = await noblox.getRoles(2648601)
-                    ranks = ranks.filter(rank=> /*rank.name.includes("[HR") ||*/ rank.name.includes("[HC2]"))
+                    
+                    const rankNames = ["[LR1]", "[LR2]", "[LR3]", "[MR1]", "[MR2]","[MR3]", "[WO]", "[HR1]", "[HR2]", "[HR3]", "[HC1]", "[HC2]", "[HC3]"]
+                    let dataPerRank = []
+
                     interaction.editReply("sending")
                     
-                    const officers = await noblox.getPlayers(2648601, ranks.map(rank => rank.id))
+                    
+                    let replyString = ""
+                    for (const rankName of rankNames) {
+                        let ranks = await noblox.getRoles(2648601)
+                        ranks = ranks.filter(rank=> rank.name.includes(rankName))
+                            
+                        const officers = await noblox.getPlayers(2648601, ranks.map(rank => rank.id))
 
-                    let amount = 0
-                    let reply = ""
-                    const members = await interaction.guild.members.fetch();
-                    for (const officer of officers) {
-                        const member = members.find(m => m.displayName === officer.username);
-                        if (member) {
+                        let amount = 0
+                        replyString += `\n\n***${rankName}:***\n`
+                        const members = await interaction.guild.members.fetch();
+                        for (const officer of officers) {
+                            const member = members.find(m => m.displayName === officer.username);
+                            if (member) {
                                 amount++
-                                reply += "💜"
+                                replyString += "💜"
                             } else {
-                                reply += "🖤"
+                                if (rankName == "[HC3]") {
+                                    console.log(officer.username + " is one of the HC3s that are not in FAF")
+                                } 
+                                replyString += "🖤"
                             }
-                            interaction.editReply(reply)
+                            //interaction.editReply(replyString)
+                        }
+                        replyString += `\n\nThere are ${amount} ${rankName}'s in the server! (${amount*100/officers.length}%)\n\n`
+                        dataPerRank.push({rank: rankName, amount: amount, total: officers.length})
+                        console.log(rankName + ": " + amount + " / " + officers.length)
                     }
-                    return interaction.editReply({content: `There are ${officers.length} HC2 in SEA, and ${amount} of them are in this server! That is ${Math.round((amount/officers.length)*100)}% of the HC2 in all of SEA!\n\n` + reply})
-                    break
 
+                    const graph = await generateGraph({values: dataPerRank.map(data => Math.round(data.amount*100/data.total)), title: "SEA officers in FAF", labels: rankNames}, "line", 400, 400)
+                    await interaction.editReply({content: replyString, files: [graph.attachment]})
+                    fs.unlinkSync(graph.filePath)
+                    return
 
                 default:
                     return interaction.editReply({content: "test!"})
