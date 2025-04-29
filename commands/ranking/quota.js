@@ -56,7 +56,7 @@ module.exports = {
         
 
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)) {
-            if (interaction.options.getUser('officer').id !== interaction.user.id) {
+            if (selectedOfficer && selectedOfficer.id !== interaction.user.id) {
                 embeded_error.setDescription("You can only check other peoples quota as you are not an admin!")
                 return await interaction.editReply({ embeds: [embeded_error] });
             }

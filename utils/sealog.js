@@ -49,8 +49,12 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     format += "Date: DD/MM/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
     
     if (eventType === "training" || eventType === "tryout") {
-        const gamelink = announcemntMessage.content.split(/( |\n)/).find(substring => substring.startsWith("https://www.roblox.com/share?code=") || substring.startsWith("https://www.roblox.com/games/")).replace(/( |\n)/, "").replaceAll("*", "")
+        let gamelink = announcemntMessage.content.split(/( |\n)/).find(substring => substring.startsWith("https://www.roblox.com/share?code=") || substring.startsWith("https://www.roblox.com/games/"))
+        
         if (gamelink) {
+            // clean the link
+            gamelink = gamelink.replace(/( |\n)/, "").replaceAll("*", "")
+
                 
             //get the map name
             async function fetchMetadata(url) {

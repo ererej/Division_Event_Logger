@@ -27,7 +27,7 @@ module.exports = async function getRobloxUser({MEMBER, memberId, guildId}) {
         });
         
         if (!response.ok) {
-            const error = new Error(`HTTP error! Status: ${response.status}`);
+            return {error: `RoVer api returned an error! Status: ${response.status}`};
             error.response = response;
             throw error;
         }

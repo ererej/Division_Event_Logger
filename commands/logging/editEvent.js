@@ -232,9 +232,9 @@ module.exports = {
                         event.amount_of_attendees -= 1;
                         event.attendees = event.attendees.replace(`,${member.id}`, "");
                         if (promopointsRewarded > 0) {
-                            let dbAttendee = await db.Users.findOne({ where: { user_id: member.id, guild_id: guild_id } });
+                            let dbAttendee = await db.Users.findOne({ where: { user_id: member.id, guild_id: member.guild.id } });
                             if (!dbAttendee) {
-                                dbAttendee = await db.Users.create({ user_id: member.id, guild_id: guild_id, promo_points: promopointsRewarded });
+                                dbAttendee = await db.Users.create({ user_id: member.id, guild_id: member.guild.id, promo_points: promopointsRewarded });
                             }
                             const guildMember = await interaction.guild.members.fetch(member.id);                                
                             const updateRankResponse = await dbAttendee.updateRank(noblox, server.group_id, guildMember); 
