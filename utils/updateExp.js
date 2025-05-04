@@ -42,7 +42,7 @@ module.exports = async (db, server, interaction) => {
     
     
     let divisions = await db.Servers.findAll();
-    divisions.filter(d => d.guild_id !== "831851819457052692") // remove the test server form the list
+    divisions = divisions.filter(d => d.guild_id !== "831851819457052692") // remove the test server form the list
     divisions = divisions.sort((a, b) => b.exp - a.exp)
     const guildsPosission = divisions.findIndex(g => g.guild_id === interaction.guild.id)
 
