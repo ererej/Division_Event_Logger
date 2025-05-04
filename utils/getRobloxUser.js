@@ -40,9 +40,15 @@ module.exports = async function getRobloxUser({MEMBER, memberId, guildId}) {
             // test with fafs server
             guildId = '1073682080380243998'
 
-            return await getRobloxUser({MEMBER: MEMBER, memberId: memberId, guildId: guildId })
+            return await getRobloxUser({MEMBER: MEMBER, memberId: memberId, guildId: guildId }).catch(async (error) => {
+                console.log("Error in utils/getRobloxUser:", error);
+                return {error: `an error happend in /utils/getRobloxUser im sorry Status: ${response.status}`};
+            });
         }
 
         return response;
+    }).catch(async (error) => {
+        console.log("Error in utils/getRobloxUser:", error);
+        return {error: `an error happend in /utils/getRobloxUser im sorry Status: ${error.status}`};
     });
 }
