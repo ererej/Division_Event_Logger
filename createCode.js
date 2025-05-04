@@ -5,11 +5,11 @@ const db = require('./dbObjects.js');
 async function createPremiumCode() {
     try {
         const newCode = await db.PremiumCodes.create({
-            code: 'testingServer',
+            code: '1.0.6',
             uses: 1,
             expires: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
-            type: 'money',
-            amount: 999
+            type: 'days',
+            amount: 7
         });
         console.log('New premium code created:', newCode);
     } catch (error) {

@@ -11,6 +11,9 @@ module.exports = async (requestFn, maxRetries = 3) => {
             const response = await requestFn();
             
             // Get rate limit info from headers
+            if(!response.headers) {
+                throw new Error('SEND HELP No headers found in response');
+            }
             const bucket = response.headers.get('x-ratelimit-bucket');
             const remaining = parseInt(response.headers.get('x-ratelimit-remaining'), 10);
             const resetAfter = parseFloat(response.headers.get('x-ratelimit-reset-after'));

@@ -88,6 +88,9 @@ module.exports = {
         }
 
 
+
+
+
         //auto Display setup
         let channelLinks = await db.Channels.findAll({ where: { guild_id: interaction.guild.id } })
         const vcDisplays = ["guildMemberCount", "robloxGroupCount", "vcleveldisplay", "vcexpdisplay", "vcsmallexpdisplay"]
@@ -263,6 +266,8 @@ module.exports = {
                         throw error
                     }
                 }
+            } else {
+                autoDisplayPrompt.delete()
             }
         } catch(error) {
             if (error.message === "Collector received no interactions before ending with reason: time") {
@@ -330,7 +335,7 @@ module.exports = {
                     }
 
                 } else {
-                    return response.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup has been cancelled!`)], components: [] })
+                    return response.edit({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`The auto rank setup has been cancelled!`)], components: [] })
                 }
             } catch (error) {
                 if (error.message === "Collector received no interactions before ending with reason: time") {

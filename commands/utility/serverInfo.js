@@ -39,6 +39,9 @@ module.exports = {
         const settings = await db.Settings.findAll({ where: { guild_id: interaction.guild.id } })
 
         let description = premiumSatus
+
+        + `\nThis division has **${server.exp}** EXP stored in the database`
+
         + `\n\nThis server has **${ranks.length}** linked ranks \n - You can see them all with */ranks* or link more with the */addRank* command! \n\n`
         + `This server has **${users.length}** saved users \n - Users get saved when they attend their first event that is logged with */log* or when */updateUser* is ran on them! \n\n`
         + `This server has **${channelLinks.length}** linked channels \n - You can see them all with */channelLinks* or link more with the */linkChannel* command! \n\n`

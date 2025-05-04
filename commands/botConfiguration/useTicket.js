@@ -90,7 +90,7 @@ module.exports = {
 
             const premiumCode = await db.PremiumCodes.findOne({where: {code: code}})
             if (premiumCode == null) {
-                embeded_error.setDescription("The code you entered is not valid!")
+                embeded_error.setDescription("The code you entered is not valid! If you are not 100% sure that you have a code then **you dont have one** so rerun this command without inputing a code! ")
                 return await interaction.editReply({ embeds: [embeded_error]});
             }
 
