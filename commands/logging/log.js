@@ -370,10 +370,7 @@
                 return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
             }
 
-            let attendeesIds = ""
-            dbAttendees.forEach(dbUser => {
-                attendeesIds += dbUser.id + ","
-            })
+            let attendeesIds = dbAttendees.map(u => u = u.id).join(",")
 
             const dbEvent = await db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendeesIds, amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers, promopoints_rewarded: promopointsRewarded, announcment_message: announcmentMessage.url})
 
