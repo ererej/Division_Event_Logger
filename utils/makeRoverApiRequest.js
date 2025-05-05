@@ -10,23 +10,30 @@ module.exports = async (requestFn, maxRetries = 3) => {
         try {
             const response = await requestFn();
             
-            // Get rate limit info from headers
-            if(!response.headers) {
-                throw new Error('SEND HELP No headers found in response');
+             // Check if response is a proper Response object
+             if (!response || typeof response !== 'object') {
+                console.warn('Response is not a proper object:', response);
+                return response; // Return whatever we got
             }
-            const bucket = response.headers.get('x-ratelimit-bucket');
-            const remaining = parseInt(response.headers.get('x-ratelimit-remaining'), 10);
-            const resetAfter = parseFloat(response.headers.get('x-ratelimit-reset-after'));
             
-            // Store rate limit info
-            if (bucket) {
-                global.roverRateLimits.set(bucket, {
-                    remaining,
-                    resetAfter,
-                    resetTime: Date.now() + resetAfter * 1000
-                });
+            // Get rate limit info from headers if available
+            if (response.headers) {
+                const bucket = response.headers.get('x-ratelimit-bucket');
+                const remaining = parseInt(response.headers.get('x-ratelimit-remaining'), 10);
+                const resetAfter = parseFloat(response.headers.get('x-ratelimit-reset-after'));
                 
-                console.log(`Bucket: ${bucket}, Remaining: ${remaining}, Reset After: ${resetAfter}s`);
+                // Store rate limit info
+                if (bucket) {
+                    global.roverRateLimits.set(bucket, {
+                        remaining,
+                        resetAfter,
+                        resetTime: Date.now() + resetAfter * 1000
+                    });
+                    
+                    console.log(`Bucket: ${bucket}, Remaining: ${remaining}, Reset After: ${resetAfter}s`);
+                }
+            } else {
+                console.warn('Response has no headers property:', JSON.stringify(response).substring(0, 200) + '...');
             }
             
             return response;

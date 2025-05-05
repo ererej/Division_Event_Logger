@@ -388,7 +388,7 @@
                 officer.total_attendees += total_attendes
                 officer.save()
             }
-            interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Almost done!").setColor([255, 255, 0])], components: []})
+            interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Please wait just a little longer!!!").setColor([255, 0, 0])], components: []})
 
 
 
