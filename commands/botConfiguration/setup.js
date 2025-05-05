@@ -17,11 +17,11 @@ module.exports = {
                                 .setDescription('Please input the roblox group id of your roblox group')
                                 .setRequired(true)
                 )
-                .addStringOption(option =>
-                        option.setName('division_name')
-                                .setDescription('This is a manual overwrite if the DAs has misstyped the division name in the officer tracker!')
-                                .setRequired(false)
-                )
+                // .addStringOption(option =>
+                //         option.setName('division_name')
+                //                 .setDescription('This is a manual overwrite if the DAs has misstyped the division name in the officer tracker!')
+                //                 .setRequired(false)
+                // )
                 .addIntegerOption(option => 
                         option.setName('current_exp')
                                 .setDescription('please input the current total exp of your division!')
@@ -70,7 +70,7 @@ module.exports = {
         }
 
         let server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
-        const groupName = interaction.options.getString("division_name") ?? (await noblox.getGroup(interaction.options.getInteger("roblox_group_id"))).name
+        const groupName = group.name
         let reply;
         if (server) {
             server.group_id = interaction.options.getInteger("roblox_group_id")
