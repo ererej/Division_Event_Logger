@@ -79,8 +79,7 @@ module.exports = {
 
         const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
         if (dbHost.rank_id === null) {
-            dbHost.destroy()
-            return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
+            return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank! Error given: " + updateResponce.message)]})
         }
         
         if (updateResponce.message) {
@@ -244,7 +243,6 @@ module.exports = {
 
             const updateRankResponse = await dbUser.updateRank(noblox, server.group_id, member);
             if (dbUser.rank_id === null) {
-                dbUser.destroy()
                 description += updateRankResponse.message
                 continue;
             }

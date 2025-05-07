@@ -62,7 +62,6 @@ Users.createUser = async function (member, noblox, groupId, robloxUser) {
 	user = await Users.create({ user_id: member.id, guild_id: member.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruits: 0, recruted_by: null, events: "", CoHosts: 0, officer: false });
 	await user.updateRank(noblox, groupId, member, robloxUser)
 	if (user.rank_id == null) {
-		user.destroy()
 		user = null
 	} 
 	return user;
@@ -197,6 +196,11 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', {
 		if (!rank) {
 			return { message: "Error: User's rank was not found in the database!", error: true}
 		}
+
+		if (!ranks) {
+			ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
+		}
+
 		ranks = ranks.sort((a, b) => a.rank_index - b.rank_index)
 
 		const promo_points_before = this.promo_points
@@ -420,7 +424,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		const ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
 		const robloxGroup = (await noblox.getGroups(robloxUser.robloxId)).find(group => group.Id === groupId)
 		if (!robloxGroup) {
-			return { message:`Error: is not in the group!`, error: true, robloxUser: robloxUser }
+			return { message:`Error: is not in the group!`, notInGroup: true,  error: true, robloxUser: robloxUser }
 		}
 		const rankFromRoblox = ranks.find(rank => rank.roblox_id == robloxGroup.RoleId)
 		if (!rankFromRoblox) {

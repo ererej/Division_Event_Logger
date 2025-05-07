@@ -16,12 +16,14 @@ module.exports = {
         await interaction.deferReply();
         if (interaction.guild.id == "831851819457052692") {
         
+            interaction.client.emit('guildMemberAdd', interaction.member);
+            return interaction.editReply({content: "event emitted!"})
         
         //console.log(interaction.entitlements)
         
-        interaction.client.emit('guildMemberAdd', interaction.member);
-       //eventEmitter.emit('guildMemberAdd', interaction.member);
-        return interaction.editReply({content: "event emitted!"})
+    //     interaction.client.emit('guildMemberAdd', interaction.member);
+    //    //eventEmitter.emit('guildMemberAdd', interaction.member);
+    //     return interaction.editReply({content: "event emitted!"})
         
 
 

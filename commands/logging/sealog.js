@@ -50,7 +50,6 @@ module.exports = {
             interaction.member.send({ content: "your rank was verifed and this was the responce: \n" + updateRankResponce })
         }
         if (user.rank_id === null) {
-            user.destroy()
             return await interaction.editReply({ embeds: [embeded_error.setDescription("failed to verify your rank! due to: \n" + updateRankResponce)] })
         } */
         const officer_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id, is_officer: true}})

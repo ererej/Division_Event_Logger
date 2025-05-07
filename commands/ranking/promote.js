@@ -52,8 +52,7 @@ module.exports = {
             promoter = await db.Users.create({ user_id: interaction.member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
             promoterUpdateResponce = await promoter.updateRank(noblox, groupId, interaction.member)
             if (promoter.rank_id === null) {
-                promoter.destroy()
-                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank!")]})
+                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank! Error given: " + promoterUpdateResponce.message)]})
             }
         } 
         const promoters_rank = db.Ranks.findOne({ where: { id: promoter.rank_id, guild_id: interaction.guild.id }})
@@ -73,8 +72,7 @@ module.exports = {
         }
         const updateResponce = await user.updateRank(noblox, groupId, member)
         if (user.rank_id === null) {
-            user.destroy()
-            return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce.message ?? "")]} )
+            return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce.message)]} )
         }
 
         const promologs = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "promologs" }})

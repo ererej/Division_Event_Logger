@@ -9,6 +9,8 @@
   "author": "Ererej",
   "license": "ISC",
   "dependencies": {
+    "@androz2091/discord-invites-tracker": "^1.2.3",
+    "@ssmidge/discord-invites-tracker": "^1.2.3",
     "axios": "^1.7.5",
     "chartjs-node-canvas": "^4.1.6",
     "discord.js": "^14.15.3",

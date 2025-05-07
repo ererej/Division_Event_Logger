@@ -38,6 +38,14 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.BOOLEAN,
 			defaultValue: false,
 		},
+		invite_code: {
+			type: DataTypes.STRING,
+			allowNull: true,
+		},
+		invite_code_owner: {
+			type: DataTypes.STRING,
+			allowNull: true,
+		},
 	});
 	Users.associate = (models) => {
         // Define one-to-many relationship (a user can have multiple officers)

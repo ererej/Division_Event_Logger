@@ -5,6 +5,7 @@ const { Client, codeBlock, Collection, Events, GatewayIntentBits, ActivityType }
 const config = require('./config.json');
 const token = config.token;
 const noblox = require('noblox.js');
+const InvitesTracker = require('@ssmidge/discord-invites-tracker');
 
 async function setCookieWithTimeout(cookie, timeout = 10000) {
     return new Promise((resolve, reject) => {
@@ -38,7 +39,16 @@ initializeNoblox().then(() => {
 
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
- 
+
+const tracker = InvitesTracker.init(client, {
+    fetchGuilds: true,
+    fetchVanity: true,
+    fetchAuditLogs: true
+});
+
+
+
+
 
 
 client.commands = new Collection();
@@ -61,7 +71,14 @@ for (const folder of commandFolders) {
 }
 
 const eventsPath = path.join(__dirname, 'events');
-const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js')).filter(file => file != "guildMemberAdd.js" && file != "guildMemberRemove.js");
+
+tracker.on('guildMemberAdd', async (member, type, invite) => {
+    filePath = path.join(eventsPath, "guildMemberAdd.js")
+    guildMemberAdd = require(filePath)
+    guildMemberAdd.execute(member, type, invite)
+})    
+
 
 for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
