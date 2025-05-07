@@ -10,6 +10,11 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addSubcommand(subcommand =>
             subcommand
+                .setName('listsettings')
+                .setDescription('Lists all the saved settings for the server')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
                 .setName('dateformat')
                 .setDescription('determines the date format the bot will display dates in!')
                 .addStringOption(option =>
@@ -103,6 +108,33 @@ module.exports = {
                         .setRequired(true)
                         .setMaxLength(50)
                 )
+        )
+
+        .addSubcommand(subcommand =>
+            subcommand
+            .setName('promopointsperevent')
+            .setDescription('Determens how many promo points you get for attending a specific event')
+            .addStringOption(option =>
+                option.setName('event_type')
+                    .setDescription('Enter the type of event you want to set the promo points for')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: 'training', value: 'training' },
+                        { name: 'patrol', value: 'patrol' },
+                        { name: 'gamenight', value: 'gamenight' },
+                        { name: 'tryout', value: 'tryout' },
+                        { name: 'raid', value: 'raid' },
+                        { name: 'rallybeforeraid', value: 'rallybeforeraid' },
+                        { name: 'rallyafterraid', value: 'rallyafterraid' },
+                        { name: 'other', value: 'other' }
+                    )
+            )
+            .addIntegerOption(option =>
+                option.setName('promopoints')
+                    .setDescription('Enter how many promo points you get for attending the event')
+                    .setRequired(true)
+                    .setMinValue(0)
+            )
         ),
         botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages, PermissionsBitField.Flags.ManageChannels],
         async execute(interaction) {
@@ -129,6 +161,16 @@ module.exports = {
             } 
             let setting
             switch (interaction.options.getSubcommand()) {
+                case 'listsettings':
+                    const settings = await db.Settings.findAll({ where: { guild_id: interaction.guild.id } })
+                    let description = ""
+                    settings.forEach(setting => {
+                        description += `**${setting.type}**: ${setting.config}\n`
+                    })
+                    if (description === "") {
+                        description = "No settings have been set for this server!"
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Blurple).setDescription(description)] })
                 case 'dateformat':
                     const format = interaction.options.getString('format')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "dateformat" } })
@@ -160,7 +202,7 @@ module.exports = {
                     } else {
                         return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the timezone to GMT`) ] })
                     }
-                    case 'membercountrounding':
+                case 'membercountrounding':
                     const rounding = interaction.options.getInteger('rounding')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "membercountrounding" } })
                     if (setting) {
@@ -185,7 +227,7 @@ module.exports = {
                     }
                     return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the member count rounding to ${(rounding + "").length-1} digets`) ]})
                 
-                    case 'expdisplayshowotherdivs':
+                case 'expdisplayshowotherdivs':
                     const showOrHide = interaction.options.getString('showorhide')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "expdisplayshowotherdivs" } })
                     if (setting) {
@@ -229,6 +271,16 @@ module.exports = {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: "nameofpromopoints", config: name })
                     }
                     return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the name of the promo points to **${name}**`) ] })
+                case 'promopointsperevent':
+                    const event_type = interaction.options.getString('event_type')
+                    const promopoints = interaction.options.getInteger('promopoints')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `promopointsfor${event_type}` } })
+                    if (setting) {
+                        await setting.update({ config: promopoints })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: `${event_type}promopoints`, config: promopoints })
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the promo points for ${event_type} to **${promopoints}**`) ] })
             }
         }
 

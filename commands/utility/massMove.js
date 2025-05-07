@@ -31,7 +31,11 @@ module.exports = {
            
             const members = currentVoiceChannel.members
             members.forEach(member => {
-                member.voice.setChannel(targetVoiceChannel)
+                member.voice.setChannel(targetVoiceChannel).catch(err => {
+                    if (err.code !== 40032) {
+                        throw err
+                    }
+                })
             })
             const embeded = new EmbedBuilder().setColor([0,255,0])
             embeded.setDescription(`Moved ${members.size} in ${currentVoiceChannel} to ${targetVoiceChannel}`)

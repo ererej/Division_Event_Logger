@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors } = require("discord.js");
 const validateMessageLink = require("../../utils/validateMessageLink");
 const db = require("../../dbObjects");
+const { Op, and } = require("sequelize");
+const noblox = require("noblox.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -14,12 +16,20 @@ module.exports = {
     .addBooleanOption(option => 
         option.setName('delete_logs')
         .setDescription('This will make the bot remove the Sea log and promo log')
-    ),
-    
+    )
+    .addBooleanOption(option =>
+        option.setName('revert_promotions')
+        .setDescription('This will revert the promotions of the attendees')
+    )
+    ,
+    /**
+     * @param {import('discord.js').CommandInteraction} interaction
+    */
     async execute(interaction) {
         await interaction.deferReply();
         const event_id = interaction.options.getInteger('event_id');
         const deleteLogs = interaction.options.getBoolean('delete_logs');
+        const revertPromotions = interaction.options.getBoolean('revert_promotions');
 
         const embeded_error = new EmbedBuilder().setColor(Colors.Red).setTitle('Error!');
 
@@ -33,41 +43,45 @@ module.exports = {
         }
 
         if (event.host !== interaction.user.id && !(interaction.member.permissions.has('ADMINISTRATOR') || interaction.member.permissions.has('MANAGE_GUILD'))) {
-            return interaction.editReply({ embeds: [embeded_error.setDescription(`Access denied! You are not the host of the event!`)]});
+            return interaction.editReply({ embeds: [embeded_error.setDescription(`Access denied! You are not the host of the event nor are you an administator!`)]});
         }
 
         if (deleteLogs) {
-            console.log(event.sealog_message_link, event.promo_log_message_link);
-            const sea_log = await validateMessageLink(interaction, event.sealog_message_link);
-            const promo_log = await validateMessageLink(interaction, event.promo_log_message_link);
-            console.log(sea_log, promo_log);
-            if (sea_log.message) {
+            let seaLog = await validateMessageLink(interaction, event.sealog_message_link);
+            const promo_log = await validateMessageLink(interaction, event.promolog_message_link);
+            if (seaLog.message) {
                 // Delete the message that contains the link to where to log the event
-                const channel_messages = await sea_log.channel.messages.fetch({ around: sea_log.id, limit: 2 });
-                const regex = /^VVV https:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+\/\d+$ VVV/
-                const loggingChannelPointer = channel_messages.findOne(message => message.position < sea_log.position && regex.test(message.content));
-                if (loggingChannelPointer) {
-                    loggingChannelPointer.delete();
-                    console.log('deleted logging channel pointer');
+                const channel_messages = await seaLog.channel.messages.fetch({ around: seaLog.message.id, limit: 2 });
+                // find and delete any VVV <#channel_id> VVV messages
+                const lastMessage = channel_messages.last();
+                const regex = /^VVV <#\d+> VVV$/
+                if (lastMessage && regex.test(lastMessage.content)) {
+                    await lastMessage.delete().catch(console.error());
                 }
-                sea_log.message.delete
-                console.log('deleted sea log message');
+                await seaLog.message.delete().catch(console.error());
             }
             if (promo_log.message) {
-                promo_log.message.delete();
-                console.log('deleted promo log message');
+                await promo_log.message.delete().catch(console.error());
             }
         }
 
-        const hostOfficer = await db.Officers.findAll({ where: { user_id: event.host, guild_id: event.guild_id } });
-        if (hostOfficer) {
-            hostOfficer.forEach(officer => {
-                if ( officer.createdAt > event.createdAt || (officer.retired && officer.retired < event.createdAt )) return;
-                officer.update({ total_events_hosted: officer.total_events_hosted - 1, total_attendees: officer.total_attendees - event.amount_of_attendees });
-            });
+        const hostOfficer = await db.Officers.findOne({ where: { user_id: event.host, guild_id: event.guild_id, createdAt: {[Op.lt]: event.createdAt},  retired: { [Op.or]: [null, { [Op.gt]: event.createdAt }]} } });
+        if (!hostOfficer) {
+            return interaction.editReply({ embeds: [embeded_error.setDescription(`Some thing is very wrong and no officer found for the host of the event!`)]});
         }
+        await hostOfficer.update({ total_events_hosted: hostOfficer.total_events_hosted - 1, total_attendees: hostOfficer.total_attendees - event.amount_of_attendees });
 
-        
+        if ( revertPromotions !== false ) {
+            const attendees = await db.Users.findAll({ where: { id: { [Op.in]: event.attendees.split(",") } } });
+            const ranks = await db.Ranks.findAll({ where: { guild_id: event.guild_id } });
+            const server = await db.Servers.findOne({ where: { guild_id: event.guild_id } })
+            const groupId = server.group_id;
+
+            for (const attendee of attendees) {
+                await attendee.removePromoPoints(noblox, groupId, await interaction.guild.members.fetch(attendee.user_id), ranks, 1);
+                await attendee.update({ total_events_attended: attendee.total_events_attended - 1 });
+            };
+        }
 
         // Delete the event
         event.destroy();

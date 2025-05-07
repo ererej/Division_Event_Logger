@@ -13,6 +13,8 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     //time of event
     
     let eventStartTime 
+    let eventLength
+    let mapName
     if (announcemntMessage.content.toLowerCase().includes("minutes ") || announcemntMessage.content.toLowerCase().includes("minutes\n") || announcemntMessage.content.toLowerCase().includes("minutes") || announcemntMessage.content.toLowerCase().includes("min ") || announcemntMessage.content.toLowerCase().includes("min\n") || announcemntMessage.content.toLowerCase().includes("min")) {
         let words = announcemntMessage.content.toLowerCase().replace("\n", " ").split(" ")
 
@@ -47,11 +49,13 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     format += "Date: DD/MM/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
     
     if (eventType === "training" || eventType === "tryout") {
-        let mapName;
-        const gamelink = announcemntMessage.content.split(/( |\n)/).find(substring => substring.startsWith("https://www.roblox.com/share?code=") || substring.startsWith("https://www.roblox.com/games/"))
+        let gamelink = announcemntMessage.content.split(/( |\n)/).find(substring => substring.startsWith("https://www.roblox.com/share?code=") || substring.startsWith("https://www.roblox.com/games/"))
+        
         if (gamelink) {
+            // clean the link
+            gamelink = gamelink.replace(/( |\n)/, "").replaceAll("*", "")
+
                 
-            
             //get the map name
             async function fetchMetadata(url) {
                 try {
@@ -77,7 +81,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             const metadata = await fetchMetadata(gamelink)
             if (metadata) {
                 mapName = metadata.description.split('Check out ')[1];
-                mapName = mapName.split('.')[0]
+                mapName = mapName.split('.')[0] 
             } 
         }
 
@@ -117,17 +121,17 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         //const base = await db.bases.findOne({ where: { guild_id: announcemntMessage.guild.id, name: mapName } })
         
         const now = new Date()
-        let durationInMinutes = Math.ceil((now.getTime() - eventStartTime.getTime()) / 1000 / 60)
-        if (durationInMinutes > 120) {
+        eventLength = Math.ceil((now.getTime() - eventStartTime.getTime()) / 1000 / 60)
+        if (eventLength > 120) {
             const collectorFilter = response => {
                 return response.author.id === interaction.member.id && !isNaN(response.content.replace(/(minutes|min)/, "")) && parseInt(response.content.replace(/(minutes|min)/, "")) > 0;
             };
             
-            const followUpAskingForTime = await interaction.followUp({ embeds: [new EmbedBuilder().setDescription("I suspect that this event was not logged right as the event ended. Please type an estimation of how long the event was in minutes below.").setColor([255,255,0])], fetchReply: true })
+            const followUpAskingForTime = await interaction.followUp({ embeds: [new EmbedBuilder().setDescription("I suspect that this event was not logged right as the event ended. \n**Please type an estimation of how long the event was in minutes below.**").setColor([255,0,0])], fetchReply: true })
             
             try {
                 const collected = await interaction.channel.awaitMessages({ filter: collectorFilter, max: 1, time: 300_000, errors: ['time'] });
-                durationInMinutes = collected.first().content.replace(/(minutes|min)/, "");
+                eventLength = collected.first().content.replace(/(minutes|min)/, "");
                 collected.first().delete()
                 followUpAskingForTime.delete()
             } catch (error) {
@@ -136,7 +140,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             }
         }
 
-        format += `Duration: ${durationInMinutes} Minutes \n`
+        format += `Duration: ${eventLength} Minutes \n`
         if (eventType === "tryout") {
             format += `Attendee Count: ${numberOfAttendees} \n`
         } else {
@@ -170,13 +174,17 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             if (logChannelLink) {
                 logChannel.send(`VVV ${logChannelLink} VVV`)
             }
-            return logChannel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] })
+            return {sealog: await logChannel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] }), length: eventLength, game: mapName}
         }
     }
+
+    if (!mapName && eventType === "patrol") {
+        mapName = "Navy Simulator"
+    }
     
-    const log = interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] })
+    const log = await interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] })
     interaction.channel.send({ content: "You can make the format be sent to a specific channel by running the /linkchannel command and setting the type to sealog!", flags: MessageFlags.Ephemeral })
-    return log
+    return {sealog: log, length: eventLength, game: mapName, date: eventStartTime}
     
 }
 

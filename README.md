@@ -1,4 +1,1 @@
-hi
-hi again
-hi again again
-hi again again again
+A Discord bot made using Discord.js, made for Discord servers that connected to Cfront Interactive's Roblox game Navy Simulator. The bot offers a lot of features for improving the quality of life for the groups. It can for example handle promotions of event attendees this both updates their roles in the Discord server as well as updates their rank in the roblox group and the bots mySQL database.

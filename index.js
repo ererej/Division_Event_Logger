@@ -5,6 +5,9 @@ const { Client, codeBlock, Collection, Events, GatewayIntentBits, ActivityType }
 const config = require('./config.json');
 const token = config.token;
 const noblox = require('noblox.js');
+const countFiles = require('./utils/countFiles');
+
+
 const InvitesTracker = require('@ssmidge/discord-invites-tracker');
 
 async function setCookieWithTimeout(cookie, timeout = 10000) {
@@ -38,18 +41,21 @@ async function initializeNoblox() {
 initializeNoblox().then(() => {
 
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
 
+ 
+
+    
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
 const tracker = InvitesTracker.init(client, {
     fetchGuilds: true,
     fetchVanity: true,
     fetchAuditLogs: true
 });
 
-
-
-
-
+const dirPath = path.join(__dirname);
+countFiles(dirPath, /node_modules|\.git/).then(count => {
+    console.log(`Total files (excluding node_modules): ${count}`);
+});
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
@@ -92,7 +98,6 @@ for (const file of eventFiles) {
                 const logsChannel = testServer.channels.cache.get("1313126303775457320");
                 if (logsChannel) {
                     let time = new Date();
-                    time = new Date(time.getTime() + (config.host === "Laptop" ? 0 : 1) * 3600000)
                     const timestamp = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] "; 
 
                     await logsChannel.send(timestamp + `${event.name} got triggered. Args:\n${args.join(", ")}`);

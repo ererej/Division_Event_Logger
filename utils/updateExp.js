@@ -42,6 +42,7 @@ module.exports = async (db, server, interaction) => {
     
     
     let divisions = await db.Servers.findAll();
+    divisions = divisions.filter(d => d.guild_id !== "831851819457052692") // remove the test server form the list
     divisions = divisions.sort((a, b) => b.exp - a.exp)
     const guildsPosission = divisions.findIndex(g => g.guild_id === interaction.guild.id)
 
@@ -66,17 +67,20 @@ module.exports = async (db, server, interaction) => {
             new_message += `${divisions[guildsPosission - 1] ? `Division at #${guildsPosission}: ${divisions[guildsPosission - 1].name} with ${divisions[guildsPosission - 1].exp}EXP. ${divisions[guildsPosission -1].exp - server.exp}EXP needed to pass\n` : "" }${divisions[guildsPosission + 1] ?  `Division at #${guildsPosission + 2}: ${divisions[guildsPosission + 1].name} with ${divisions[guildsPosission + 1].exp}EXP\n` : "" }`
         }
         new_message += `**Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
-        new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
-        for (let i=0;i<procentage/5;i++) {
-            new_message += "▮"
-        }
-        new_message += "[0m[2;31m"
-        for (let i=0;i<20-(procentage/5);i++) {
-            new_message += "▯"
-        }
-        new_message += "[0m[2;30m[0m"
-        new_message += `] level [2;31m${level + 1}[0m (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*1000)/10}%)`
-        new_message += "\n```"
+        // new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
+        // for (let i=0;i<procentage/5;i++) {
+        //     new_message += "▮"
+        // }
+        // new_message += "[0m[2;31m"
+        // for (let i=0;i<20-(procentage/5);i++) {
+        //     new_message += "▯"
+        // }
+        // new_message += "[0m[2;30m[0m"
+        // new_message += `] level [2;31m${level + 1}[0m (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*1000)/10}%)`
+        // new_message += "\n```"
+
+        new_message += `\nLevel progress: [${"⭕".repeat(procentage/5-1 ? procentage/5-1 : 0)}${procentage/5-1 ? ":polar_bear:" : ""}${"❌".repeat(20-(procentage/5))}] (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*1000)/10}%)\n`
+
         const config = require('../config.json')
         let timezonefix = 0
         if (config.host === "Laptop") timezonefix = -2

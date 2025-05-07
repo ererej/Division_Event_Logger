@@ -21,14 +21,19 @@ module.exports = {
         await interaction.deferReply()
         const embeded_error = new EmbedBuilder().setColor([255,0,0])
         
-        if (config.host == "host" && interaction.user.id != "386838167506124800") {
+        if (config.host !== "server" && interaction.user.id != "386838167506124800") {
             embeded_error.setDescription("This command is currently disabled as the bot is running on Ererejs computer! Please try again later!")
+            return await interaction.editReply({ embeds: [embeded_error]});
+        }
+
+        if (interaction.guild.id == "831851819457052692") {
+            embeded_error.setDescription("You are not paying for premium in this server!!!!!!!")
             return await interaction.editReply({ embeds: [embeded_error]});
         }
 
         const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
         if (server == null) {
-            embeded_error.setDescription("The server is not in the database! Please run the setup command!")
+            embeded_error.setDescription("The server is not in the database! Please run the /setup command!")
             return await interaction.editReply({ embeds: [embeded_error]});
         }
 
@@ -85,7 +90,7 @@ module.exports = {
 
             const premiumCode = await db.PremiumCodes.findOne({where: {code: code}})
             if (premiumCode == null) {
-                embeded_error.setDescription("The code you entered is not valid!")
+                embeded_error.setDescription("The code you entered is not valid! If you are not 100% sure that you have a code then **you dont have one** so rerun this command without inputing a code! ")
                 return await interaction.editReply({ embeds: [embeded_error]});
             }
 
