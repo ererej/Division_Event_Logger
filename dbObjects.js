@@ -58,15 +58,29 @@ Reflect.defineProperty(Users.prototype, 'addItem', {
 Users.belongsTo(Ranks, { foreignKey: 'rank_id', as: 'rank' });
 Ranks.hasMany(Users, { foreignKey: 'rank_id', as: 'users' });
 
-Users.createUser = async function (member, noblox, groupId, robloxUser) {
-	let user = await Users.findOne({ where: { user_id: member.id, guild_id: member.guild.id } });
+Users.getUser = async function ({member, user_id, guild_id, noblox, groupId, robloxUser}) {
+	if (!member && !user_id) {
+		throw new Error("Missing member or user_id parameter in getUser")
+	}
+	if (!member && !guild_id) {
+		throw new Error("Missing guild_id or member parameter in getUser")
+	}
+	let user = await Users.findOne({ where: { user_id: user_id ?? member.id, guild_id: guild_id ?? member.guild.id } });
 	if (user) return user;
-	user = await Users.create({ user_id: member.id, guild_id: member.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruits: 0, recruted_by: null, events: "", CoHosts: 0, officer: false });
+	user = await Users.create({ user_id: user_id ?? member.id, guild_id: guild_id ?? member.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruits: 0, recruted_by: null, events: "", CoHosts: 0, officer: false });
+	
+	if (!groupId) {
+		const server = await Servers.findOne({ where: { guild_id: guild_id ?? member.guild.id } });
+		groupId = server.group_id;
+	}
+	if (!member) {
+		return null
+	}
 	await user.updateRank(noblox, groupId, member, robloxUser)
 	if (user.rank_id == null) {
 		user.destroy()
 		user = null
-	} 
+	}
 	return user;
 }
 
