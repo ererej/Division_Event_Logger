@@ -283,6 +283,7 @@ module.exports = {
         let topTraningHost = {host: null, events: 0, score: 0}
         let topPatrolHost = {host: null, events: 0, score: 0}
         let officerFields = []
+        let totalRecruits = 0   
 
         for (const officer of  officers) {
             if (!officer.retired) {
@@ -320,7 +321,9 @@ module.exports = {
             const patrolAttendes = patrols.reduce((acc, event) => acc + event.amount_of_attendees, 0)
             totalPatrolAttendes += patrolAttendes
 
-
+            const lifeTimeRecruits = await db.Users.findAll({ where : { guild_id: interaction.guild.id, recruted_by: officer.user_id } })
+            const recruits = lifeTimeRecruits.filter(e => e.join_date ? e.join_date > startTime  && e.join_date < endTime : e.createdAt > startTime && e.createdAt < endTime)
+            totalRecruits += recruits.length
             const officersTotalTrainingLength = trainings.reduce((acc, event) => acc + (event.length ?? 0), 0)
             const officersTotalPatrolLength = patrols.reduce((acc, event) => acc + (event.length ?? 0), 0)
 
@@ -339,6 +342,7 @@ module.exports = {
             description += `   - *${events.length - trainings.length - patrols.length}* other events (${events.length ? Math.round((events.length - trainings.length - patrols.length)*100/events.length) : 0}%) Average attendance *${events.length - trainings.length - patrols.length != 0 ? Math.round(((officersTotalAttendes - trainingAttendes - patrolAttendes) * 10 / (events.length - trainings.length - patrols.length)) )/10 : 0}*\n\n`
             description += `   - *${rallysbeforeraid.filter(e => e.host === officer.user_id).length}* rallys hosted\n\n`
             description += `${officersTotalAttendes} total attendees\n`
+            description += `${recruits.length} recruits (${lifeTimeRecruits.length} life time recruits)\n`
             description += `${amountOfEventsAttended.length} events attended\n`
             description += `${eventsCohosted.length} events cohosted\n`
             description += `${rallysBeforeRaidAttended.length} rallys before raid attended \n`
@@ -352,21 +356,21 @@ module.exports = {
 
         let graphs = []
         if (showServerWideData) {
-        graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
-        graphs.push(await generateGraph({ title: "training maps", labels: [... Object.keys(trainingMaps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(trainingMaps)] }, 'doughnut', 300, 300))
-        graphs.push(await generateGraph({ title: "average attendees per day", labels: dataRangeIndexesPerDay.map(index => {
-            const date = new Date(endTime - (24*60*60*1000 * index));
-            return `${date.getDate()}/${date.getMonth() + 1}`;
-        }), values: averageAttendesHistoryPerDay}, 'line', 300, 500 ))
-        graphs.push(await generateGraph({ title: "amount of Events per day", labels: dataRangeIndexesPerDay.map(index => {
-            const date = new Date(endTime - (24*60*60*1000 * index));
-            return `${date.getDate()}/${date.getMonth() + 1}`;
-        }), values: amountOfEventsHistoryPerDay}, 'line', 300, 500 ))
-        graphs.push(await generateGraph({ title: "rally attendees per week", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountAtRallysHistoryPerWeek}, 'line', 300, 500 ))
-        
-        graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistoryPerWeek}, 'line', 300, 500 ))
-        graphs.push(await generateGraph({ title: "average attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: averageAttendesHistoryPerWeek}, 'line', 300, 500 ))
-        graphs.push(await generateGraph({ title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistoryPerWeek}, 'line', 300, 500 ))
+            graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
+            graphs.push(await generateGraph({ title: "training maps", labels: [... Object.keys(trainingMaps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(trainingMaps)] }, 'doughnut', 300, 300))
+            graphs.push(await generateGraph({ title: "average attendees per day", labels: dataRangeIndexesPerDay.map(index => {
+                const date = new Date(endTime - (24*60*60*1000 * index));
+                return `${date.getDate()}/${date.getMonth() + 1}`;
+            }), values: averageAttendesHistoryPerDay}, 'line', 300, 500 ))
+            graphs.push(await generateGraph({ title: "amount of Events per day", labels: dataRangeIndexesPerDay.map(index => {
+                const date = new Date(endTime - (24*60*60*1000 * index));
+                return `${date.getDate()}/${date.getMonth() + 1}`;
+            }), values: amountOfEventsHistoryPerDay}, 'line', 300, 500 ))
+            graphs.push(await generateGraph({ title: "rally attendees per week", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountAtRallysHistoryPerWeek}, 'line', 300, 500 ))
+            
+            graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistoryPerWeek}, 'line', 300, 500 ))
+            graphs.push(await generateGraph({ title: "average attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: averageAttendesHistoryPerWeek}, 'line', 300, 500 ))
+            graphs.push(await generateGraph({ title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistoryPerWeek}, 'line', 300, 500 ))
         }
 
         const divsTotalTrainingLength = divsTrainings.reduce((acc, event) => acc + (event.length ?? 0), 0)
@@ -379,7 +383,8 @@ module.exports = {
         description += `Total events: ${divsEvents.length} \nTotal attendees: ${totalAttendes} average attendees: ${divsEvents && totalAttendes ? Math.round((totalAttendes-totalAttendesAtRallys)*10 / (divsEvents.length - rallyafterraid.length - rallysbeforeraid.length))/10 : 0} \n`
         description += `Total trainings: ${divsTrainings.length} (${divsEvents.length != 0 ? Math.round(divsTrainings.length * 100 / divsEvents.length) : 0}%) Trainings with 5+ attending: *${divsTrainingsWith5PlusAttendees.length}* Biggest training: **${divsTrainingWithHighestAttendance ? (divsTrainingWithHighestAttendance.sealog_message_link ? "[" : "") + (divsTrainingWithHighestAttendance.amount_of_attendees + 1) + (divsTrainingWithHighestAttendance.sealog_message_link ? `](${divsTrainingWithHighestAttendance.sealog_message_link})` : "")/*+ the host*/ : 0}** Total attendees: ${totalTrainingAttendes} *Top training host:* ${topTraningHost.host ? `<@${topTraningHost.host}>(${topTraningHost.score}, ${topTraningHost.events})` : "N/A"} Average training length **${divsTrainings.length ? divsTotalTrainingLength/divsTrainings.length : 0}** Min\n`
         description += `Total patrols: ${divsPatrols.length} (${divsEvents.length != 0 ? Math.round(divsPatrols.length * 100 / divsEvents.length) : 0}%) Patrols with 5+ attending: *${divsPatrolWith5PlusAttendees.length}* Biggest patrol: **${divsPatrolWithHighestAttendance ? (divsPatrolWithHighestAttendance.sealog_message_link ? "[":"") + (divsPatrolWithHighestAttendance.amount_of_attendees + 1) + (divsPatrolWithHighestAttendance.sealog_message_link ? `](${divsPatrolWithHighestAttendance.sealog_message_link})` : "") /*+ the host*/ : 0}** Total attendees: ${totalPatrolAttendes} *Top patrol host:* ${topPatrolHost.host ? `<@${topPatrolHost.host}>(${topPatrolHost.score}, ${topPatrolHost.events})` : "N/A"}\n`
-        description += `Biggest rally: **${rallyWithHighestAttendance ? rallyWithHighestAttendance.amount_of_attendees + 1/*+ the host */ : 0} **Average rally attendees: ${rallysbeforeraid.length ? totalAttendesAtRallys / rallysbeforeraid.length : 0} \nAverage amount of officers at rallys: ${rallysbeforeraid.length ? totalOfficersAtRallys / rallysbeforeraid.length : 0}`
+        description += `Biggest rally: **${rallyWithHighestAttendance ? rallyWithHighestAttendance.amount_of_attendees + 1/*+ the host */ : 0} **Average rally attendees: ${rallysbeforeraid.length ? totalAttendesAtRallys / rallysbeforeraid.length : 0} \nAverage amount of officers at rallys: ${rallysbeforeraid.length ? totalOfficersAtRallys / rallysbeforeraid.length : 0}\n`
+        description += `Total recruits recruited by officers: ${totalRecruits}`
         }
 
         let embed = new EmbedBuilder()
