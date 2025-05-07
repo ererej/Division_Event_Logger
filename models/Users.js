@@ -46,6 +46,10 @@ module.exports = (sequelize, DataTypes) => {
 			type: DataTypes.STRING,
 			allowNull: true,
 		},
+		join_date: {
+			type: DataTypes.DATE,
+			defaultValue: null,
+		},
 	});
 	Users.associate = (models) => {
         // Define one-to-many relationship (a user can have multiple officers)
