@@ -156,9 +156,7 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 			throw new Error("Missing member parameter in updateTag")
 		}
 		if (rank.tag) {
-			console.log("updating tag")
 			if(member.nickname.startsWith(rank.tag[0]) && member.nickname.includes(rank.tag[rank.tag.length - 1])) {
-				console.log("doing smart tag update")
 				// Find where the tag ends in the nickname
 				const tagEndIndex = member.nickname.indexOf(rank.tag[rank.tag.length - 1]) + 1;
 				
@@ -168,7 +166,7 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 				member.setNickname(rank.tag + " " + nameAfterTag).catch(err => {
 					return { message: `Error: An error occured while trying to update the users's tag! Error: ${err}`, error: true }
 				})
-				console.log("updated tag to: " + rank.tag + " " + nameAfterTag)
+				console.log("smart tag update: updated tag to: " + rank.tag + " " + nameAfterTag)
 			} else if (robloxUser) {
 				const startTime = Date.now()
 				const robloxPlayer = await noblox.getUserInfo(robloxUser.robloxId + "").catch(err => {
