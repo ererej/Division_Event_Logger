@@ -18,9 +18,14 @@ module.exports = {
 
                 let divisions = []
                 if (message.content.startsWith("Division Admin")) {
-                    const divisionName = message.content.split("**")[5].trim()
-                    const exp = message.content.split("(").pop().split(" ")[2] 
-                    divisions.push({ name: divisionName, exp: exp})
+                    if (message.content.includes("registered")) {
+                        const divisionName = message.content.split("**")[3].trim()
+                        const exp = 100
+                    } else if (message.content.includes("added")) {
+                        const divisionName = message.content.split("**")[5].trim()
+                        const exp = message.content.split("(").pop().split(" ")[2] 
+                        divisions.push({ name: divisionName, exp: exp})
+                    }
 
                 } else if (message.content.startsWith("AUTOMATED EXP FROM HOLO:")) {
                     const divisionName = message.content.split("**")[1].trim()
