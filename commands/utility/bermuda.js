@@ -94,6 +94,13 @@ module.exports = {
                     fs.unlinkSync(graph.filePath)
                     return
 
+                case 'test4':
+                    const guild = await interaction.client.guilds.fetch("586419206178996224")
+                    const channels = await guild.channels.fetch()
+                    interaction.editReply({content: "```" + channels.map(channel => channel.name).join("\n") + "```"})
+                    return
+
+
                 default:
                     return interaction.editReply({content: "test!"})
             }

@@ -40,7 +40,13 @@ module.exports = {
 				let logMessage = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] **/" + interaction.commandName + " " + subcommand + "** was ran. guild ID: " + interaction.guild.id + " guild name: " + interaction.guild.name +  " inputs: \n"
 				interaction.options._hoistedOptions.forEach(option => {
 					if ((logMessage + "**" + option.name + "** = " + option.value + " \n").length > 1900) {
-						channel.send(logMessage);
+						if (logMessage.length > 1950) {
+							channel.send(logMessage.substring(0, 1950));
+							logMessage = logMessage.substring(1950)
+							channel.send(logMessage);
+							
+						}
+						
 						logMessage = ""
 					}
 					logMessage += "**" + option.name + "** = " + option.value + " \n" 

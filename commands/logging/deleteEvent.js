@@ -46,7 +46,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embeded_error.setDescription(`Access denied! You are not the host of the event nor are you an administator!`)]});
         }
 
-        if (deleteLogs) {
+        if (deleteLogs !== false) {
             let seaLog = await validateMessageLink(interaction, event.sealog_message_link);
             const promo_log = await validateMessageLink(interaction, event.promolog_message_link);
             if (seaLog.message) {
@@ -85,6 +85,6 @@ module.exports = {
 
         // Delete the event
         event.destroy();
-        interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Event with the id of ${event_id} has been deleted!` + (deleteLogs ? ' and the logs have been removed!' : ''))]});
+        interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Event with the id of ${event_id} has been deleted!` + (deleteLogs !== false ? ' and the logs have been removed!' : '' + (revertPromotions !== false ? ' and the promotions have been reverted!' : '')))]});
     }
 }

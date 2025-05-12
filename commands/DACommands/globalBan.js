@@ -21,8 +21,8 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
 
-        if (interaction.user.id != "386838167506124800") {
-            return interaction.editReply("this command is disabled for now!")
+        if (!["386838167506124800", "898734231486869565", "186267447001612289", "440226355330678785", "269670081368293390", "231857677574209537", "276172188309127178", "191372087447912450", "648562380929761313"].includes(interaction.user.id)) {
+            return interaction.editReply("this command is locked to SEA marshals and the director of departments!")
         }
 
         const banReason = interaction.options.getString('reason') || "SEA banned by " + interaction.user.tag + " (" + interaction.user.id + ")!"
