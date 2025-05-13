@@ -100,7 +100,15 @@ module.exports = {
                     interaction.editReply({content: "```" + channels.map(channel => channel.name).join("\n") + "```"})
                     return
 
-
+                case 'test5':
+                    return interaction.editReply({content: "na!"})
+                    const seaMilitary =  interaction.client.guilds.cache.get("586419206178996224")
+                    const explogs = await seaMilitary.channels.fetch("1092831083130785903")
+                    const logs = await explogs.messages.fetch({limit: 5})
+                    const logsString = logs.map(log => log.content).join("\n\n")
+                    interaction.editReply({content: "```" + logsString + "```"})
+                    
+                    return
                 default:
                     return interaction.editReply({content: "test!"})
             }

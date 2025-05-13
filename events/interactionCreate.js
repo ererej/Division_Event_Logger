@@ -92,24 +92,58 @@ module.exports = {
 			} else {
 				await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
 			}
-			const testServer = interaction.client.guilds.cache.find(guild => guild.id == "831851819457052692")
-			if (testServer) {
-                const channel = testServer.channels.cache.find("1285158576448344064");
-				const time = new Date(interaction.createdTimestamp)
+			const testServer = interaction.client.guilds.cache.get("831851819457052692")
+            if (testServer) {
+                const channel = testServer.channels.cache.get("1285158576448344064");
+                if (channel) {
+                    const time = new Date(interaction.createdTimestamp)
 
-				let errorLogs = "the interaction that was created at [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] failed!"
-				errorLogs += "\n**Error type:** " + error.name
-				if (error.message) {
-					errorLogs += "\n*Error message:* " + error.message
-				}
-				if (error.cause) {
-					errorLogs += "\n*cause:* " + error.cause	
-				}
-				if (error.lineNumber) {
-					errorLogs += "\n*line number:* " + error.lineNumber
-				}
-				channel.send(errorLogs)
-			}
+                    let errorLogs = "the interaction that was created at [" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] failed!"
+                    errorLogs += "\n**Error type:** " + error.name
+                    
+                    // More detailed error information
+                    if (error.message) {
+                        errorLogs += "\n**Error message:** " + error.message
+                    }
+                    
+                    // Add stack trace information (the most important part)
+                    if (error.stack) {
+                        // Limit the stack trace to a reasonable length to avoid Discord's message limits
+                        const stackTrace = error.stack.substring(0, 1500);
+                        errorLogs += "\n**Stack trace:**\n```\n" + stackTrace + "\n```"
+                    }
+                    
+                    if (error.cause) {
+                        errorLogs += "\n**Cause:** " + error.cause	
+                    }
+                    
+                    if (error.lineNumber) {
+                        errorLogs += "\n**Line number:** " + error.lineNumber
+                    }
+                    
+                    // Add command information for better context
+                    errorLogs += "\n\n**Command:** /" + interaction.commandName;
+                    
+                    // Handle message length limits
+                    if (errorLogs.length > 1900) {
+                        // Split into multiple messages if too long
+                        const chunks = [];
+                        for (let i = 0; i < errorLogs.length; i += 1900) {
+                            chunks.push(errorLogs.substring(i, i + 1900));
+                        }
+                        
+                        chunks.forEach(chunk => {
+                            channel.send(chunk).catch(err => {
+                                console.error("Failed to send error log to channel:", err);
+                            });
+                        });
+                    } else {
+                        channel.send(errorLogs).catch(err => {
+                            console.error("Failed to send error log to channel:", err);
+                        });
+                    }
+                }
+            }
 		}
 	},
 };
