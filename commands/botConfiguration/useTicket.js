@@ -40,7 +40,7 @@ module.exports = {
         const botGroups = await noblox.getGroups(5860759846)
         const testingServer = interaction.client.guilds.cache.get("831851819457052692")
 
-		if (botGroups.filter(group => group.Id == server.group_id).length == 0) {// add a check that the bot account is in the group.
+		if (botGroups.filter(group => group.Id == server.group_id).length == 0) {// checks that the bot account is in the group.
             embeded_error.setDescription("Before you can activate premium you need to get a bot account in the roblox group and give it a high rank with the permissions to change peoples roles. Ererej has been notified and will add the bot account to the group soon(within 3 days) he will then contact you telling you that you can run the command again!")
             
             const groupJoinRequestChannel = testingServer.channels.cache.get("1327782299936489523")
@@ -56,12 +56,12 @@ module.exports = {
 
             const entitelments = (await interaction.client.application.entitlements.fetch()).filter(e => e.userId === interaction.user.id && e.skuId === '1298023132027944980' && e.consumed === false)
             if (entitelments.size < 1) {
-                const premiumButton = new ButtonBuilder()
+                const premiumButton = new ButtonBuilder() // Button linking to the store page for premium tickets
                     .setStyle(6)
                     .setSKUId('1298023132027944980')
                 const row = new ActionRowBuilder().addComponents(premiumButton)
 
-                return await interaction.editReply({ embeds: [embeded_error.setDescription("You dont have any premium tickets. You can buy one here")], components: [row]}) //add a link to the store to buy tickets
+                return await interaction.editReply({ embeds: [embeded_error.setDescription("You dont have any premium tickets. You can buy one here")], components: [row]}) 
             }
             
 

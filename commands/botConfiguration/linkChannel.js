@@ -65,6 +65,7 @@ module.exports = {
         const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs", "banlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs", "banlogs"]
         const VcDisplays = ["robloxGroupCount", "guildMemberCount", "vcexpdisplay", "vcleveldisplay", "vcsmallexpdisplay"]
+        
         if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(linkType) || VcDisplays.includes(linkType))) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Text Channel to link **${linkType}** to!`)] })
         } else if (channel.type === ChannelType.GuildText && !textChannels.includes(linkType) && linkType != "logs") {
