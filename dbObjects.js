@@ -171,7 +171,7 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 			throw new Error("Missing member parameter in updateTag")
 		}
 		if (rank.tag) {
-			if(member.nickname.startsWith(rank.tag[0]) && member.nickname.includes(rank.tag[rank.tag.length - 1])) {
+			if( member.nickname && member.nickname.startsWith(rank.tag[0]) && member.nickname.includes(rank.tag[rank.tag.length - 1])) {
 				// Find where the tag ends in the nickname
 				const tagEndIndex = member.nickname.indexOf(rank.tag[rank.tag.length - 1]) + 1;
 				

@@ -1,9 +1,23 @@
 const getLinkedChannel = require('./getLinkedChannel.js')
 module.exports = async (db, server, interaction, guild, automatic, client ) => {
 
-    guild = guild || interaction.guild
-    client = client || interaction.client
-
+    if (!guild) {
+        if (interaction) {
+            guild = interaction.guild
+        }
+    }
+    if (!guild) {
+        return "No guild found"
+    }
+    if (!client) {
+        if (interaction) {
+            client = interaction.client
+        }
+    }
+    if (!client) {
+        return "No client found"
+    }
+    
     const errorMessage = ""
     let vcExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "vcexpdisplay" }, guild)
     if (vcExpDisplayChannel.error) {
@@ -107,14 +121,26 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
 
 
     if (vcExpDisplayChannel) {
-        vcExpDisplayChannel.setName(`Exp: ${server.exp}/${exp_needed}`)
+        if (vcExpDisplayChannel.error) {
+            interaction.followUp({ content: vcExpDisplayChannel.message, })
+        } else {
+            vcExpDisplayChannel.setName(`Exp: ${server.exp}/${exp_needed}`)
+        }
     }
 
     if (levelDisplayChannel) {
-        levelDisplayChannel.setName(`Level: ${level}`)
+        if (levelDisplayChannel.error) {
+            interaction.followUp({ content: levelDisplayChannel.message, })
+        } else {
+            levelDisplayChannel.setName(`Level: ${level}`)
+        }
     }
 
     if (vcSmallExpDisplayChannel) {
-        vcSmallExpDisplayChannel.setName(`Current Exp: ${server.exp}`)
+        if (vcSmallExpDisplayChannel.error) {
+            interaction.followUp({ content: vcSmallExpDisplayChannel.message, })
+        } else {
+            vcSmallExpDisplayChannel.setName(`Current Exp: ${server.exp}`)
+        }
     }
 }

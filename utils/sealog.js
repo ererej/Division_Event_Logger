@@ -81,7 +81,11 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             const metadata = await fetchMetadata(gamelink)
             if (metadata) {
                 mapName = metadata.description.split('Check out ')[1];
-                mapName = mapName.split('.')[0] 
+                if (mapName) {
+                    mapName = mapName.split('.')[0] 
+                } else {
+                    mapName = null
+                }
             } 
         }
 

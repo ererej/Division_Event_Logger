@@ -55,11 +55,15 @@ module.exports = {
 
                     for (const server of servers) {
                         const division = divisions.find(div => server.name.includes(div.name));
-                        const guild = message.client.guilds.cache.get(server.guild_id);
                         server.exp = division.exp
                         server.save()
 
                         if (division) {
+                            const guild = message.client.guilds.cache.get(server.guild_id);
+                            if (!guild) {
+                                console.log("Guild not found for server ID: " + server.guild_id + "divisoin name: " + division.name);
+                                continue;
+                            }
                             await updateExp(db, server, undefined, guild, true, message.client)
                         }
                                 
