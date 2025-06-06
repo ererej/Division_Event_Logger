@@ -38,6 +38,9 @@ module.exports = {
         const events = await db.Events.findAll({ where: { guild_id: interaction.guild.id } })
         const settings = await db.Settings.findAll({ where: { guild_id: interaction.guild.id } })
 
+        const trainings = events.filter(event => event.type == "training")
+        const patrols = events.filter(event => event.type == "patrol")
+
         let description = premiumSatus
 
         + `\nThis division has **${server.exp}** EXP stored in the database`
@@ -47,6 +50,8 @@ module.exports = {
         + `This server has **${channelLinks.length}** linked channels \n - You can see them all with */channelLinks* or link more with the */linkChannel* command! \n\n`
         + `This server has **${officers.filter(officer => officer.retired === null).length}** active officers and **${officers.filter(officer => officer.retired !== null).length}** retired officers \n - A user is considerd an officer if they have an rank with officer set to true and they have attended/hosted an event or ran */updateuser* \n\n`
         + `This server has **${events.length}** events logged \n - Events are only saved when they are logged with */log* \n\n`
+        + `This server has **${trainings.length}** trainings logged\n\n`
+        + `This server ahs **${patrols.length}** patrols logged\n\n`
         + `This server has **${settings.length}** settings saved \n - run */settings listsetttings* to view them all or set more with /settings!`
         return interaction.editReply({embeds: [new EmbedBuilder().setDescription(description).setColor(Colors.Green)], components: [row]})
     }
