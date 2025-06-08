@@ -13,63 +13,68 @@ module.exports = {
     async execute(message) {
         if (message.channel.id == "1092831083130785903") { //exp-logs: 1092831083130785903
             if (message.author.id == "1093933445484384297") {  // jarvis bot id: 1093933445484384297
-                console.log("message found in exp-logs channel")
-                
+                try {
+                    console.log("message found in exp-logs channel")
+                    
 
-                let divisions = []
-                if (message.content.startsWith("Division Admin")) {
-                    if (message.content.includes("registered")) {
-                        const divisionName = message.content.split("**")[3].trim()
-                        const exp = 100
-                    } else if (message.content.includes("added")) {
-                        const divisionName = message.content.split("**")[5].trim()
+                    let divisions = []
+                    if (message.content.startsWith("Division Admin")) {
+                        if (message.content.includes("registered")) {
+                            const divisionName = message.content.split("**")[3].trim()
+                            const exp = 100
+                        } else if (message.content.includes("added")) {
+                            const divisionName = message.content.split("**")[5].trim()
+                            const exp = message.content.split("(").pop().split(" ")[2] 
+                            divisions.push({ name: divisionName, exp: exp})
+                        }
+
+                    } else if (message.content.startsWith("AUTOMATED EXP FROM HOLO:")) {
+                        const divisionName = message.content.split("**")[1].trim()
                         const exp = message.content.split("(").pop().split(" ")[2] 
                         divisions.push({ name: divisionName, exp: exp})
-                    }
 
-                } else if (message.content.startsWith("AUTOMATED EXP FROM HOLO:")) {
-                    const divisionName = message.content.split("**")[1].trim()
-                    const exp = message.content.split("(").pop().split(" ")[2] 
-                    divisions.push({ name: divisionName, exp: exp})
-
-                } else if (message.content.startsWith("**WINNERS**")) {
-                    const divisionRegex = /([A-Za-z0-9\s]+)\s+\((\d+)\s+win\s+streak,\s+(\d+)\s+to\s+(\d+)\s+ELO\s+\(\+\d+\),\s+(\d+)\s+to\s+(\d+)\s+EXP\s+\(\+\d+\)\)/g;
-                    let match;
-                    while ((match = divisionRegex.exec(message.content)) !== null) {
-                        const divisionName = match[1].trim();
-                        const exp = parseInt(match[6]);
-                        divisions.push({ name: divisionName, exp: exp });
-                    }
-                } else {
-                    console.log("I dont understand this exp log message!".toUpperCase(), message.content)
-                }
-
-                if (divisions.length > 0) {
-                    let servers = await db.Servers.findAll();
-                    servers = servers.filter(server => divisions.some(division => server.name.includes(division.name)))
-
-                    if (!servers || servers.length === 0) {
-                        console.log("No servers found for the given divisions.");
-                        return;
-                    }
-
-                    for (const server of servers) {
-                        const division = divisions.find(div => server.name.includes(div.name));
-                        server.exp = division.exp
-                        server.save()
-
-                        if (division) {
-                            const guild = message.client.guilds.cache.get(server.guild_id);
-                            if (!guild) {
-                                console.log("Guild not found for server ID: " + server.guild_id + "divisoin name: " + division.name);
-                                continue;
-                            }
-                            await updateExp(db, server, undefined, guild, true, message.client)
+                    } else if (message.content.startsWith("**WINNERS**")) {
+                        const divisionRegex = /([A-Za-z0-9\s]+)\s+\((\d+)\s+win\s+streak,\s+(\d+)\s+to\s+(\d+)\s+ELO\s+\(\+\d+\),\s+(\d+)\s+to\s+(\d+)\s+EXP\s+\(\+\d+\)\)/g;
+                        let match;
+                        while ((match = divisionRegex.exec(message.content)) !== null) {
+                            const divisionName = match[1].trim();
+                            const exp = parseInt(match[6]);
+                            divisions.push({ name: divisionName, exp: exp });
                         }
-                                
+                    } else {
+                        console.log("I dont understand this exp log message!".toUpperCase(), message.content)
                     }
+
+                    if (divisions.length > 0) {
+                        let servers = await db.Servers.findAll();
+                        servers = servers.filter(server => divisions.some(division => server.name.includes(division.name)))
+
+                        if (!servers || servers.length === 0) {
+                            console.log("No servers found for the given divisions.");
+                            return;
+                        }
+
+                        for (const server of servers) {
+                            const division = divisions.find(div => server.name.includes(div.name));
+                            server.exp = division.exp
+                            server.save()
+
+                            if (division) {
+                                const guild = message.client.guilds.cache.get(server.guild_id);
+                                if (!guild) {
+                                    console.log("Guild not found for server ID: " + server.guild_id + "divisoin name: " + division.name);
+                                    continue;
+                                }
+                                await updateExp(db, server, undefined, guild, true, message.client)
+                            }
+                                    
+                        }
+                    }
+                } catch(err) {
+                    const testingServer = message.client.guilds.get("831851819457052692")
+                    const eventLogs = testingServer.channels.get("1313126303775457320")
+                    eventLogs.send(err)
                 }
-            
             }
         }
     }

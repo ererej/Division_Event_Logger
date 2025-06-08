@@ -5,7 +5,7 @@ const db = require('./dbObjects.js');
 async function createPremiumCode() {
     try {
         const newCode = await db.PremiumCodes.create({
-            code: '1.0.6',
+            code: 'sbl',
             uses: 1,
             expires: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
             type: 'days',
