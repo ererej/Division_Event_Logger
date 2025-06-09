@@ -74,6 +74,7 @@ module.exports = {
                     const testingServer = message.client.guilds.get("831851819457052692")
                     const eventLogs = testingServer.channels.get("1313126303775457320")
                     eventLogs.send(err)
+                    console.error(err)
                 }
             }
         }
