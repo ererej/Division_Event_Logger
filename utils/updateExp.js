@@ -109,7 +109,7 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
         time = new Date(time - time.getTimezoneOffset() * 60000 + (parseInt(timezoneOfset) + timezonefix) * 3600000)
         const dateFormat = await db.Settings.findOne({ where: { guild_id: guild.id, type: "dateformat" } }) ? (await db.Settings.findOne({ where: { guild_id: guild.id, type: "dateformat" } })).config : "DD/MM/YYYY"
         const date = dateFormat.replace("DD", time.getDate()).replace("MM", time.getMonth()+1).replace("YYYY", time.getFullYear()) + " " + time.getHours() + ":" + time.getMinutes()
-        new_message += `\n-# Last ${automatic ? "automaticly" : ""} updated: ${date}`
+        new_message += `\n-# Last ${automatic ? "***automaticly***" : ""} updated: ${date}`
          
         const messages = await expDisplayChannel.messages.fetch({ limit: 10, })
         let message = messages.find(m => m.author.id === client.user.id && m.embeds.length === 0)
