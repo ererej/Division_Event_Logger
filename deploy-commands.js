@@ -61,7 +61,7 @@ const rest = new REST().setToken(token);
 		})
 
 		if (process.argv.includes('-t')) {
-			testingServers.forEach(async (guildId) => {
+			testingServers.forEach(async (guildId) => { //! async does not work in a .foreach loop
 				await rest.put(
 					Routes.applicationGuildCommands(clientId, guildId),
 					{ body: commands },
@@ -69,11 +69,14 @@ const rest = new REST().setToken(token);
 				console.log(`Successfully reloaded ${commands.length} application (/) commands for guild ${guildId}.`);
 			});
 		} else if (process.argv.includes('-rt')) {
-			rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [] })
+			testingServers.forEach(async (guildId) => {
+				rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [] })
 				.then(() => {
 					console.log(`Successfully removed all application (/) commands for guild ${guildId}.`);
 				})
 				.catch(console.error);
+			})
+			
 		} else if (process.argv.includes('-r')) {
 			await rest.put(
 				Routes.applicationCommands(clientId), 
