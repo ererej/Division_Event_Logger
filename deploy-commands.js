@@ -22,6 +22,7 @@ for (const folder of commandFolders) {
 			if ('guildLock' in command) {
 				guildLockedCommands.push({data: command.data.toJSON(), guilds: command.guildLock})
 			} else {
+				if (command.disabled) continue
 				commands.push(command.data.toJSON());
 			}
 		} else {
@@ -73,6 +74,12 @@ const rest = new REST().setToken(token);
 					console.log(`Successfully removed all application (/) commands for guild ${guildId}.`);
 				})
 				.catch(console.error);
+		} else if (process.argv.includes('-r')) {
+			await rest.put(
+				Routes.applicationCommands(clientId), 
+				{ body: [] },
+			)
+			console.log("Successfully removed all the commands from all servers")
 		} else {
 			// The put method is used to fully refresh all commands in the guild with the current set
 			const data = await rest.put(

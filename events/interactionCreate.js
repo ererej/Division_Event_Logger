@@ -26,6 +26,10 @@ module.exports = {
 			return;
 		}
 
+		if (command.disabled) {
+			return interaction.reply("sorry this command has been disabled and is pending removal!")
+		}
+
 		try {
 			//logs 
 			const testServer = interaction.client.guilds.cache.get("831851819457052692")

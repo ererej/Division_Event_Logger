@@ -123,12 +123,12 @@
                         return await interaction.editReply({ embeds: [embeded_error.setDescription(`You do not have permission to give custome amounts of ${nameOfPromoPoints}!`)] })
                     }
                 } 
-            }
+            }   
             
             let dbLogger;
             if (interaction.options.getUser('host')) {
                 dbLogger = await db.Users.findOne({ where: { user_id: interaction.options.getUser('host').id, guild_id: interaction.guild.id }})
-                //! add logic for updating dbloggers rank and then verifying that they are an officer
+                //!!!! add logic for updating dbloggers rank and then verifying that they are an officer
             }
 
             //check if the user has permission to host events
@@ -136,7 +136,7 @@
                 embeded_error.setDescription("Insuficent permissions!")
                 return await interaction.editReply({ embeds: [embeded_error]});
             }
-            
+            let automaticAttendence = voice_channel.id === undefined && interaction.options.getBoolean('manual_attendence') !== true
             if (voice_channel.id === undefined || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
                 const selectAttendees = new UserSelectMenuBuilder()
                 .setCustomId('select_attendees')
@@ -403,7 +403,7 @@
 
 
             event_log_embed.setDescription(description)
-            event_log_embed.setFooter({ text: `Total attendees: ${total_attendes} ID: ` + dbEvent.id})
+            event_log_embed.setFooter({ text: `Total attendees: ${total_attendes} ID: ${dbEvent.id} Automatic Attendence: **${automaticAttendence}**` })
 
             /* might be reworked and reintroduced later
             const promoter_role_id = "1109546594535211168" 

@@ -49,21 +49,28 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error]});
 		} 
 
+        const ticketPrices = {"1298023132027944980": 0.99, "1383014678002667571": 4.99}
 
-        const pricePerTicket = 0.99
+        let pricePerTicket = 0.99 
         const premiumRedeemLogsChannel = testingServer.channels.cache.get("1328990301565616250")
         if (interaction.options.getString('code') == null) {
 
-            const entitelments = (await interaction.client.application.entitlements.fetch()).filter(e => e.userId === interaction.user.id && e.skuId === '1298023132027944980' && e.consumed === false)
+            const entitelments = (await interaction.client.application.entitlements.fetch()).filter(e => e.userId === interaction.user.id && (e.skuId === '1298023132027944980' || e.skuId === "1383014678002667571") && e.consumed === false)
             if (entitelments.size < 1) {
-                const premiumButton = new ButtonBuilder() // Button linking to the store page for premium tickets
+                const premiumButton1 = new ButtonBuilder() // Button linking to the store page for premium tickets
                     .setStyle(6)
                     .setSKUId('1298023132027944980')
-                const row = new ActionRowBuilder().addComponents(premiumButton)
+                const premiumButton5 = new ButtonBuilder() // Button linking to the store page for premium tickets
+                    .setStyle(6)
+                    .setSKUId('1298023132027944980')
+                const row = new ActionRowBuilder().addComponents([premiumButton1, premiumButton5])
 
                 return await interaction.editReply({ embeds: [embeded_error.setDescription("You dont have any premium tickets. You can buy one here")], components: [row]}) 
             }
             
+            if (entitelments.length > 1) {
+                
+            }
 
             const memberCount = interaction.guild.memberCount
 
