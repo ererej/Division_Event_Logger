@@ -403,7 +403,7 @@
 
 
             event_log_embed.setDescription(description)
-            event_log_embed.setFooter({ text: `Total attendees: ${total_attendes} ID: ${dbEvent.id} Automatic Attendence: **${automaticAttendence}**` })
+            event_log_embed.setFooter({ text: `Total attendees: ${total_attendes} ID: ${dbEvent.id} Automatic Attendence: ${automaticAttendence}` })
 
             /* might be reworked and reintroduced later
             const promoter_role_id = "1109546594535211168" 
