@@ -144,7 +144,7 @@ module.exports = {
             await ticket.consume() // Consumes the ticket so it can't be used again
             await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`You have activated premium for ${Math.round(daysToAdd)} days! It will end in ${Math.round((server.premium_end_date - currentTime.getTime())/ (24 * 60 * 60 * 1000))} days. Price per month for your div is ${pricePerMounth}$ the price increses with 0.2$ for every 500 members you get\nYou have ${entitelments.size - 1} tickets left!\nThanks for supporting me and my bot!`).setColor([255, 105, 180])], components: []})
 
-            await premiumRedeemLogsChannel.send(`User: ${interaction.user} id: ${interaction.user.id} has used a ticket to activate premium for ${daysToAdd} days! \nPrice per month: ${pricePerMounth}$ \nGuild: ${interaction.guild.name} id: ${interaction.guild.id}!`)
+            await premiumRedeemLogsChannel.send(`User: ${interaction.user} id: ${interaction.user.id} has used a ${pricePerTicket}$ ticket to activate premium for ${daysToAdd} days! \nPrice per month: ${pricePerMounth}$ \nGuild: ${interaction.guild.name} id: ${interaction.guild.id}!`)
 
         } else {
             const code = interaction.options.getString('code')
