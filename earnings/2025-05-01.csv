@@ -1,0 +1,2 @@
+month,name_default,sku_type,sales_count,sales_amount,refund_count,refund_amount,sales_currencies,cancellation_count
+2025-05-01,Division Event Logger,3,4,309,0,0,"[{""presentment_currency"":""aud"",""sales_amount"":330},{""presentment_currency"":""usd"",""sales_amount"":99}]",0

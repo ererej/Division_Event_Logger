@@ -186,6 +186,12 @@
                                     attendees.push(member)   
                                 })
                             }
+                            if (attendees.find(member => member.id === host.id)) {
+                                attendees.pop(host) //remove the host from the attendees list
+                            }
+                            if (cohost && !attendees.find(member => member.id === cohost.id)) {
+                                attendees.push(cohost) 
+                            }
 
                             break;
                         }

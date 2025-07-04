@@ -109,6 +109,10 @@ module.exports = {
                     interaction.editReply({content: "```" + logsString + "```"})
                     
                     return
+                case 'test6':
+                    const guild6 = await interaction.client.guilds.fetch("1176349831690735656")
+                    await guild6.leave()
+                    return interaction.editReply({content: "left " + guild6.name + "!"})
                 default:
                     return interaction.editReply({content: "test!"})
             }
