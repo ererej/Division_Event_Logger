@@ -604,7 +604,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				const rank = await this.getRank()
 				await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
 					if (err.message === "You do not have permission to manage this user.") {
-						return { message: `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${member.id}> and the roblox rank will be fixed!`, error: true, robloxUser: robloxUser }
+						return { message: `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${MEMBER.id}> and the roblox rank will be fixed!`, error: true, robloxUser: robloxUser }
 					}
 					console.log(err)
 					return { message: `Error: An error occured while trying to update the users's roblox rank! try again later!`, error: true, robloxUser: robloxUser }

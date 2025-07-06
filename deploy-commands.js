@@ -61,8 +61,8 @@
 			})
 
 			if (process.argv.includes('-t')) {
-				testingServers.forEach(async (guildId) => { //! async does not work in a .foreach loop
-					await rest.put(
+				testingServers.forEach( (guildId) => { //! async does not work in a .foreach loop
+					rest.put(
 						Routes.applicationGuildCommands(clientId, guildId),
 						{ body: commands },
 					);
