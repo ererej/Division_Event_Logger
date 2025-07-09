@@ -8,7 +8,7 @@ const fs = require('fs');
 const { default: cluster } = require('cluster');
 const { all } = require('axios');
 const generateGraph = require('../../utils/generateGraph.js');
-
+const getRobloxUser = require('../../utils/getRobloxUser.js');
 
 
 module.exports = {
@@ -113,6 +113,18 @@ module.exports = {
                     const guild6 = await interaction.client.guilds.fetch("1176349831690735656")
                     await guild6.leave()
                     return interaction.editReply({content: "left " + guild6.name + "!"})
+                    break;
+
+                case 'test7':
+                    for (let i = 0; i < 9; i++) {
+                        try {
+                            const robloxUser = await getRobloxUser({MEMBER: interaction.member, guildId: interaction.guild.id})
+                            console.log(robloxUser)
+                        }catch (error) {
+                            
+                        }
+                    }
+                    
                 default:
                     return interaction.editReply({content: "test!"})
             }
