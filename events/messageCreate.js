@@ -56,6 +56,10 @@ module.exports = {
 
                         for (const server of servers) {
                             const division = divisions.find(div => server.name.includes(div.name));
+                            if (division.exp < 0) {
+                                console.log("Negative EXP found for division: " + division.name + " in server: " + server.name);
+                                continue;
+                            }
                             server.exp = division.exp
                             server.save()
 
