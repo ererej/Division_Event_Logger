@@ -47,7 +47,7 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
         vcSmallExpDisplayChannel = vcSmallExpDisplayChannel.channel
     }
 
-    let vcexpandleveldisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "vcsmallexpdisplay" }, guild)
+    let vcexpandleveldisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "vcexpandleveldisplay" }, guild)
     if (vcexpandleveldisplayChannel && vcexpandleveldisplayChannel.error) {
         errorMessage += vcexpandleveldisplayChannel.message + "\n"
     } else {
