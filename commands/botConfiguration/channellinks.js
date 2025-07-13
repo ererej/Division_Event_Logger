@@ -32,6 +32,7 @@ module.exports = {
             { type: "vcexpdisplay", displayName: "VcExpDisplay Channel" },
             { type: "vcsmallexpdisplay", displayName: "VcSmallExpDisplay Channel" },
             { type: "vcleveldisplay", displayName: "VcLevelDisplay Channel" },
+            { type: "vcexpandleveldisplay", displayName: "VcExpAndLevelDisplay Channel" },
             { type: "robloxGroupCount", displayName: "RobloxGroupCount Channel" },
             { type: "guildMemberCount", displayName: "GuildMemberCount Channel" },
         ];
@@ -40,6 +41,7 @@ module.exports = {
             { type: "training", displayName: "Training Channels" },
             { type: "patrol", displayName: "Patrol Channels" },
             { type: "tryout", displayName: "Tryout Channels" },
+            { type: "raid", displayName: "Raid Channels" },
             { type: "gamenight", displayName: "Gamenight Channels" },
         ];
 

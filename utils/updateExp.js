@@ -47,8 +47,14 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
         vcSmallExpDisplayChannel = vcSmallExpDisplayChannel.channel
     }
 
+    let vcexpandleveldisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "vcsmallexpdisplay" }, guild)
+    if (vcexpandleveldisplayChannel && vcexpandleveldisplayChannel.error) {
+        errorMessage += vcexpandleveldisplayChannel.message + "\n"
+    } else {
+        vcexpandleveldisplayChannel = vcexpandleveldisplayChannel.channel
+    }
 
-    if (!expDisplayChannel && !vcExpDisplayChannel && !levelDisplayChannel && !vcSmallExpDisplayChannel) {
+    if (!expDisplayChannel && !vcExpDisplayChannel && !levelDisplayChannel && !vcSmallExpDisplayChannel && !vcexpandleveldisplayChannel) {
         if (automatic) return
 
         return errorMessage + 'There is no expdisplay channel linked! Please ask an admin to link one using </linkchannel:1246002135204626454>'
@@ -141,6 +147,14 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
             interaction.followUp({ content: vcSmallExpDisplayChannel.message, })
         } else {
             vcSmallExpDisplayChannel.setName(`Current Exp: ${server.exp}`)
+        }
+    }
+
+    if (vcexpandleveldisplayChannel) {
+        if (vcexpandleveldisplayChannel.error) { 
+            interaction.followUp({ content: vcexpandleveldisplayChannel.message, })
+        } else {
+            vcexpandleveldisplayChannel.setName(`Exp: ${server.exp} (lvl ${level})`)
         }
     }
 }
