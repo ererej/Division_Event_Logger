@@ -229,6 +229,7 @@
                                 case "vcexpdisplay":
                                 case "vcsmallexpdisplay":
                                 case "vcleveldisplay":
+                                case "vcexpandleveldisplay":
                                 case "expdisplay":
                                     if (server.exp === 0) {
                                         const exp = await getExp(interaction, server)
@@ -248,7 +249,7 @@
                                     }
                                     break;
                                 default:
-                                    throw new Error(display + " is not configured to be an VC or text display!!!!")
+                                    throw new Error(display + " has no defined setup behavior!!!!")
                             }
                             if (failed) {
                                 continue
