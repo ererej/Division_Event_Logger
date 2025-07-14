@@ -77,8 +77,8 @@ module.exports = {
                 if (!maps[event.game] && event.game != undefined) {
                     maps[event.game] = 1
                 } else {
-                    if (event.map != undefined) {
-                        maps[event.map]++
+                    if (event.game != undefined) {
+                        maps[event.game]++
                     }
                 }
             })
