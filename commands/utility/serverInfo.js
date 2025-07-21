@@ -25,7 +25,7 @@ module.exports = {
         } else if (!server.premium_end_date) {
             premiumSatus = "This server has no premium subscription. \n You can buy some by going to the bots store on my profile or by pressing the button below and buying a premium ticket!\n\n"
         } else if (server.premium_end_date < Date.now()) {
-            premiumSatus = `This server's premium subscription has expired since ${Date.now() - server.premium_end_date / 1000 / 60 / 60 / 24} days ago. \nYou can buy more buy going to the bots store on my profile or pressing the button below and buying a premium ticket!\n\n`
+            premiumSatus = `This server's premium subscription has expired since ${(Date.now() - server.premium_end_date) / 1000 / 60 / 60 / 24} days ago. \nYou can buy more buy going to the bots store on my profile or pressing the button below and buying a premium ticket!\n\n`
         } else {
             premiumSatus = `This server has premium until <t:${Math.floor(server.premium_end_date/1000)}:d>`
         }
