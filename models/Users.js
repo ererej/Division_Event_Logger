@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
 			defaultValue: null,
 		},
 		events: {
-			type: DataTypes.STRING,
+			type: DataTypes.STRING(1000),
 			defaultValue: '',
 		},
 		Cohosts: {
