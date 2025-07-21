@@ -8,7 +8,6 @@ module.exports = {
         .setDescription('lists some info about this server!'),
 
     async execute(interaction) {
-        //interaction.client.emit('guildCreate', interaction.guild)
         await interaction.deferReply() 
         
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
@@ -19,14 +18,14 @@ module.exports = {
 
         const row = new ActionRowBuilder().addComponents(premiumButton)
 
-        const embeded_error = new EmbedBuilder().setColor(Colors.Red)
+        
         let premiumSatus;
         if (server === null) {
             return interaction.editReply("This server has no data in the database. Please run the </setup:1217778156300275772> command!")
         } else if (!server.premium_end_date) {
             premiumSatus = "This server has no premium subscription. \n You can buy some by going to the bots store on my profile or by pressing the button below and buying a premium ticket!\n\n"
         } else if (server.premium_end_date < Date.now()) {
-            premiumSatus = `This server's premium subscription has expired since ${Date.now() - premium_end_date / 1000 / 60 / 60 / 24} days ago. \nYou can buy more buy going to the bots store on my profile or pressing the button below and buying a premium ticket!\n\n`
+            premiumSatus = `This server's premium subscription has expired since ${Date.now() - server.premium_end_date / 1000 / 60 / 60 / 24} days ago. \nYou can buy more buy going to the bots store on my profile or pressing the button below and buying a premium ticket!\n\n`
         } else {
             premiumSatus = `This server has premium until <t:${Math.floor(server.premium_end_date/1000)}:d>`
         }
