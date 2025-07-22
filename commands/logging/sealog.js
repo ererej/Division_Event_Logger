@@ -30,6 +30,10 @@ module.exports = {
                     { name: 'patrol', value: 'patrol'},
                     { name: 'tryout', value: 'tryout'},
                 )
+        )
+        .addBooleanOption(option =>
+            option.setName('home_base')
+                .setDescription('Was this event hosted at your divisions base?')
         ),
 
     /**
@@ -88,8 +92,8 @@ module.exports = {
                 return interaction.followUp('The number of attendees was not provided, aborting!');
             }
         }
-
-        const responce = await sealog(interaction, db, interaction.options.getAttachment('wedge_picture'), announcmentmessage, interaction.options.getString('event_type'), numberOfAttendees)
+        const homeBase = interaction.options.getBoolean('home_base') || false;
+        const responce = await sealog(interaction, db, interaction.options.getAttachment('wedge_picture'), announcmentmessage, interaction.options.getString('event_type'), numberOfAttendees, homeBase)
 
         if (!responce) {
             return interaction.editReply({ embeds:  [embeded_error.setDescription('failed to generate the sea logging format!')] });

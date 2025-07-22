@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require('@discordjs/builders');
 const cheerio = require('cheerio');
 const { MessageFlags } = require('discord.js');
-module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eventType, numberOfAttendees) => {
+module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eventType, numberOfAttendees, homeBase=false) => {
     const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock"}})) ? "```" : ""
     
 
@@ -161,7 +161,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             format += `5+ Attendees?: ${numberOfAttendees >= 5 ? "5+" : "No"} \n`
         }
         format += `Map Name: ${mapName} \n`
-        format += `Base: ${/*base ? "Yes" :*/ "No"} \n`
+        format += `Base: ${homeBase ? "Yes" : "No"} \n`
     } else {
         format += `5+ Attendees?: ${numberOfAttendees >= 5 ? "5+" : "No"} \n`
     }

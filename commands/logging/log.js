@@ -52,6 +52,10 @@
                 option.setName('promo_points')
                 .setDescription('If you want to give them a specific amount of promo points')
                 .setRequired(false)
+            )
+            .addBooleanOption(option =>
+                option.setName('home_base')
+                .setDescription('Was this event hosted at your divisions base?')
             ),
 
         premiumLock: true,
@@ -423,7 +427,8 @@
             
             //SEA Format
             if (["training", "patrol", "tryout"].includes(eventType)) {
-                const sealogMessage = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes)
+                const homeBase = interaction.options.getBoolean('home_base')
+                const sealogMessage = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes, homeBase ? homeBase : false)
                 if (!sealogMessage) {
                     return
                 }   
