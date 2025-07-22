@@ -110,9 +110,18 @@ module.exports = {
                     
                     return
                 case 'test6':
-                    const guild6 = await interaction.client.guilds.fetch("1176349831690735656")
-                    await guild6.leave()
-                    return interaction.editReply({content: "left " + guild6.name + "!"})
+                    const guilds6 = ["1277358998525313025", "1292064430200459264", "1185947768972378224"]
+                    let reply = ""
+                    for (let i = 0; i < guilds6.length; i++) {
+                        const guild6 = await interaction.client.guilds.fetch(guilds6[i]).catch(error => {   
+                            console.error(`Failed to fetch guild ${guilds6[i]}:`, error);
+                        })
+                        await guild6.leave().catch(error => {
+                            console.error(`Failed to leave guild ${guild6.name}:`, error);
+                        })
+                        reply += `left ${guild6.name}!\n`
+                    }
+                    return interaction.editReply({content: reply})
                     break;
 
                 case 'test7':
