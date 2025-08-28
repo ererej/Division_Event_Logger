@@ -5,7 +5,7 @@ module.exports = {
         .setName('findnoob')
         .setDescription('A command for finding what servers akant is in'),
 
-
+    disabled: true,
     /**
      *  @param {import('discord.js').CommandInteraction} interaction
      */

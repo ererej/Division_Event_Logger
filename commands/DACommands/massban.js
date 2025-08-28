@@ -46,24 +46,32 @@ module.exports = {
                 replyString += `[${index + 1}/${UserIDs.length}]`
                 index++
                 if (!bannedUsers.includes(userId)) {
-                    let failed = false
-                    interaction.guild.bans.create(userId, {reason: `SEA bans updated by ${interaction.user.tag} (${interaction.user.id})!`}).catch(err => {
-                        replyString += ` ❌ **failed to ban <@${userId}>! Error recived: ${err.name}  ${err.message}**\n`
+                    try {
+                    
+                        await interaction.guild.bans.create(userId, {
+                            reason: `SEA banned by ${interaction.user.tag} (${interaction.user.id})!`
+                        })
+                        
+                        replyString += ` ✅ **banned <@${userId}>!!!!**\n`
+                        if (banlogsChannel.channel) { 
+                            banlogsChannel.channel.send({
+                                content: `:ballot_box_with_check: <@${userId}> has been banned by <@${interaction.user.id}>!`, 
+                                allowedMentions: {parse: [MessageMentions.NONE]}
+                            })
+                        }
+                        bancount++
+                    } catch(err) {
+                        replyString += ` ❌ **failed to ban <@${userId}>! Error received: ${err.name}  ${err.message}**\n`
                         failedBans++
-                        failed = true
-                    })
-                    if (failed) continue
-                    replyString += ` ✅ **banned <@${userId}>!!!!**\n`
-                    if (banlogsChannel.channel) banlogsChannel.channel.send({content: `:ballot_box_with_check: <@${userId}> has been banned by <@${interaction.user.id}>!`, allowedMentions: {parse: [MessageMentions.NONE]}})
-                    bancount++
-                    continue
+                    }
+                } else {
+                    replyString += ` :ballot_box_with_check: *<@${userId}> is already banned :D*\n`
                 }
-                replyString += ` :ballot_box_with_check: *<@${userId}> is already banned :D*\n`
             } catch(err)  {
-                replyString += `❌**failed to ban <@${userId}>! Error recived: ${err.name}  ${err.message}**\n`
+                replyString += `❌**failed to ban <@${userId}>! Error received: ${err.name}  ${err.message}**\n`
                 failedBans++
             }
-        }
+        } 
         replyString += `**banned ${bancount} users!**\n`
         if (failedBans > 0) {
             replyString += `***failed to ban ${failedBans} users!***\n`

@@ -8,7 +8,7 @@ const fs = require('fs');
 const { default: cluster } = require('cluster');
 const { all } = require('axios');
 const generateGraph = require('../../utils/generateGraph.js');
-
+const getRobloxUser = require('../../utils/getRobloxUser.js');
 
 
 module.exports = {
@@ -94,6 +94,46 @@ module.exports = {
                     fs.unlinkSync(graph.filePath)
                     return
 
+                case 'test4':
+                    const guild = await interaction.client.guilds.fetch("586419206178996224")
+                    const channels = await guild.channels.fetch()
+                    interaction.editReply({content: "```" + channels.map(channel => channel.name).join("\n") + "```"})
+                    return
+
+                case 'test5':
+                    return interaction.editReply({content: "na!"})
+                    const seaMilitary =  interaction.client.guilds.cache.get("586419206178996224")
+                    const explogs = await seaMilitary.channels.fetch("1092831083130785903")
+                    const logs = await explogs.messages.fetch({limit: 5})
+                    const logsString = logs.map(log => log.content).join("\n\n")
+                    interaction.editReply({content: "```" + logsString + "```"})
+                    
+                    return
+                case 'test6':
+                    const guilds6 = ["1277358998525313025", "1292064430200459264", "1185947768972378224"]
+                    let reply = ""
+                    for (let i = 0; i < guilds6.length; i++) {
+                        const guild6 = await interaction.client.guilds.fetch(guilds6[i]).catch(error => {   
+                            console.error(`Failed to fetch guild ${guilds6[i]}:`, error);
+                        })
+                        await guild6.leave().catch(error => {
+                            console.error(`Failed to leave guild ${guild6.name}:`, error);
+                        })
+                        reply += `left ${guild6.name}!\n`
+                    }
+                    return interaction.editReply({content: reply})
+                    break;
+
+                case 'test7':
+                    for (let i = 0; i < 9; i++) {
+                        try {
+                            const robloxUser = await getRobloxUser({MEMBER: interaction.member, guildId: interaction.guild.id})
+                            console.log(robloxUser)
+                        }catch (error) {
+                            
+                        }
+                    }
+                    
                 default:
                     return interaction.editReply({content: "test!"})
             }

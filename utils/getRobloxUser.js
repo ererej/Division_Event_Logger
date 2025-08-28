@@ -7,18 +7,6 @@ module.exports = async function getRobloxUser({MEMBER, memberId, guildId}) {
     if (MEMBER && !MEMBER.guild) {
         throw new Error('MEMBER must be a GuildMember object with a guild property');
     }
-
-    const bucketKey = `user-${memberId || MEMBER.user.id}`;
-    
-    // Check if we need to wait for this bucket
-    const rateLimitInfo = global.roverRateLimits?.get(bucketKey);
-    if (rateLimitInfo && rateLimitInfo.remaining === 0) {
-        const waitTime = rateLimitInfo.resetTime - Date.now();
-        if (waitTime > 0) {
-            console.log(`Waiting ${waitTime/1000}s for rate limit reset`);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-    }
     
     return makeRoverApiRequest(async () => {
         // Your fetch call here - example:
@@ -27,27 +15,30 @@ module.exports = async function getRobloxUser({MEMBER, memberId, guildId}) {
         });
         
         if (!response.ok) {
-            return {error: `RoVer api returned an error! Status: ${response.status}`};
-            error.response = response;
-            throw error;
-        }
-        
-        if (!(response.status + "").startsWith("2")) {
-            
-            if (guildId == '1073682080380243998') {
-                return response;
+            // For 429 rate limit errors, create a proper error object with response property
+            if (response.status === 429) {
+                const error = new Error(`Rate limited: ${response.status}`);
+                error.response = response;
+                throw error;
             }
-            // test with fafs server
-            guildId = '1073682080380243998'
-
-            return await getRobloxUser({MEMBER: MEMBER, memberId: memberId, guildId: guildId }).catch(async (error) => {
-                console.log("Error in utils/getRobloxUser:", error);
-                return {error: `an error happend in /utils/getRobloxUser im sorry Status: ${response.status}`};
-            });
+            
+            // For non-429 errors, try fallback to test server if not already using it
+            if (guildId !== '1073682080380243998') {
+                return await getRobloxUser({MEMBER: MEMBER, memberId: memberId, guildId: '1073682080380243998' }).catch(async (error) => {
+                    console.log("Error in utils/getRobloxUser:", error);
+                    return {error: `an error happend in /utils/getRobloxUser im sorry Status: ${response.status}`};
+                });
+            }
+            
+            // If we're already using the test server or fallback failed, throw the response
+            throw response;
         }
 
         return response;
     }).catch(async (error) => {
+        if (error.status === 404) {
+            return {error: `User not found in the group or has not verified using rover!`};
+        }
         console.log("Error in utils/getRobloxUser:", error);
         return {error: `an error happend in /utils/getRobloxUser im sorry Status: ${error.status}`};
     });

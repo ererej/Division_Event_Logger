@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require('@discordjs/builders');
 const cheerio = require('cheerio');
 const { MessageFlags } = require('discord.js');
-module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eventType, numberOfAttendees) => {
+module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eventType, numberOfAttendees, homeBase=false) => {
     const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock"}})) ? "```" : ""
     
 
@@ -33,21 +33,27 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             const timeSubString = words.filter(word => /\b\d+(min|minutes)/.test(word))[0]
             const time = parseInt(timeSubString.match(/\d+/)[0], 10)
             eventStartTime = new Date(announcemntMessage.createdTimestamp + time * 60 * 1000)
-
+            
         } else {
             eventStartTime = new Date(announcemntMessage.createdTimestamp)
         }
     } else if (/^.*<t:\d+:(t|T|d|D|f|F|R)>.*$/.test(announcemntMessage.content)) { // adds support for time stamps
         console.log("time stammmmmmp")
+        try {
         const timeString = announcemntMessage.content.match(/^.*<t:\d+:(t|T|d|D|f|F|R)>.*$/)[0]
         const time = timeString.match(/<t:\d+:(t|T|d|D|f|F|R)>$/)[0]
         eventStartTime = new Date(parseInt(time.slice(3, -3)) * 1000)
+        } catch {
+            eventStartTime = "failed to parse time!"
+        }
     } else {
         eventStartTime = new Date(announcemntMessage.createdTimestamp)
     } 
-
-    format += "Date: DD/MM/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
-    
+    if (typeof eventStartTime === "string") {
+        format += "Date: Failed to parse time! \n"
+    } else {
+        format += "Date: DD/MM/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
+    }
     if (eventType === "training" || eventType === "tryout") {
         let gamelink = announcemntMessage.content.split(/( |\n)/).find(substring => substring.startsWith("https://www.roblox.com/share?code=") || substring.startsWith("https://www.roblox.com/games/"))
         
@@ -81,7 +87,11 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             const metadata = await fetchMetadata(gamelink)
             if (metadata) {
                 mapName = metadata.description.split('Check out ')[1];
-                mapName = mapName.split('.')[0] 
+                if (mapName) {
+                    mapName = mapName.split('.')[0] 
+                } else {
+                    mapName = null
+                }
             } 
         }
 
@@ -121,7 +131,11 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         //const base = await db.bases.findOne({ where: { guild_id: announcemntMessage.guild.id, name: mapName } })
         
         const now = new Date()
-        eventLength = Math.ceil((now.getTime() - eventStartTime.getTime()) / 1000 / 60)
+        if (typeof eventStartTime === "string") {
+            eventLength = 0
+        } else {
+            eventLength = Math.ceil((now.getTime() - eventStartTime.getTime()) / 1000 / 60)
+        }
         if (eventLength > 120) {
             const collectorFilter = response => {
                 return response.author.id === interaction.member.id && !isNaN(response.content.replace(/(minutes|min)/, "")) && parseInt(response.content.replace(/(minutes|min)/, "")) > 0;
@@ -147,7 +161,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             format += `5+ Attendees?: ${numberOfAttendees >= 5 ? "5+" : "No"} \n`
         }
         format += `Map Name: ${mapName} \n`
-        format += `Base: ${/*base ? "Yes" :*/ "No"} \n`
+        format += `Base: ${homeBase ? "Yes" : "No"} \n`
     } else {
         format += `5+ Attendees?: ${numberOfAttendees >= 5 ? "5+" : "No"} \n`
     }

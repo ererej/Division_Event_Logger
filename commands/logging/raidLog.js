@@ -44,7 +44,7 @@ module.exports = {
                 .setRequired(false)
         ),
 
-	async execute(interaction) {
+	async execute(interaction) { //! broken low priority to fix
         await interaction.deferReply()
 
         //make sure to pull the attendees as soon as possible

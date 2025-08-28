@@ -52,6 +52,10 @@
                 option.setName('promo_points')
                 .setDescription('If you want to give them a specific amount of promo points')
                 .setRequired(false)
+            )
+            .addBooleanOption(option =>
+                option.setName('home_base')
+                .setDescription('Was this event hosted at your divisions base?')
             ),
 
         premiumLock: true,
@@ -65,13 +69,6 @@
 
             const embeded_error = new EmbedBuilder().setColor([255,0,0])
 
-            if (interaction.options.getInteger('promo_points') && interaction.options.getInteger('promo_points') < 0) {
-                return await interaction.editReply({ embeds: [embeded_error.setDescription("You can not give negative promo points!")] })
-            } else if (interaction.options.getInteger('promo_points')) {
-                if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator || PermissionsBitField.Flags.ManageRoles)) {
-                    return await interaction.editReply({ embeds: [embeded_error.setDescription("You do not have permission to give custome amounts of promo points!")] })
-                } 
-            }
 
             const server = await db.Servers.findOne({ where: {guild_id: interaction.guild.id}})
             if (!server) { //!!!!!!!! make the reply link to the /setup command. no!
@@ -100,7 +97,7 @@
             if (updateResponce.message) {
                 interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + updateResponce)]})
             }
-
+            
             let cohost;
             if (interaction.options.getUser('cohost')) {
                 cohost = await interaction.guild.members.fetch(interaction.options.getUser('cohost').id).catch(() => {
@@ -108,18 +105,42 @@
                 })
                 const dbCohost = await db.Users.findOne({ where: { user_id: cohost.id, guild_id: interaction.guild.id }})
             }
+
+            if (cohost != null && host.id === cohost.id) { //check that the cohost is not the host
+                embeded_error.setDescription("No uh! you are not both the host and the cohost!!!")
+                return await interaction.editReply({ embeds: [embeded_error], components: []})
+            }
+
+            if (interaction.options.getInteger('promo_points') && interaction.options.getInteger('promo_points') < 0) {
+                return await interaction.editReply({ embeds: [embeded_error.setDescription(`You can not give negative ${nameOfPromoPoints}!`)] })
+            } else if (interaction.options.getInteger('promo_points')) {
+                if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator || PermissionsBitField.Flags.ManageRoles)) {
+                    let promopointsRewarded = 0
+                    if (interaction.options.getInteger("promo_points")) {
+                        promopointsRewarded = interaction.options.getInteger("promo_points")
+                    } else {
+                        promopointsRewarded = await db.Settings.findOne({ where: {guild_id: interaction.guild.id, type: "promopointsfor" + eventType}}) 
+                        promopointsRewarded = promopointsRewarded ? promopointsRewarded.config : eventType === "gamenight" ? 0 : 1
+                    }
+                    if (interaction.options.getInteger('promo_points') !== promopointsRewarded) {
+                        return await interaction.editReply({ embeds: [embeded_error.setDescription(`You do not have permission to give custome amounts of ${nameOfPromoPoints}!`)] })
+                    }
+                } 
+            }   
             
             let dbLogger;
             if (interaction.options.getUser('host')) {
                 dbLogger = await db.Users.findOne({ where: { user_id: interaction.options.getUser('host').id, guild_id: interaction.guild.id }})
-                //! add logic for updating dbloggers rank and then verifying that they are an officer
+                //!!!! add logic for updating dbloggers rank and then verifying that they are an officer
             }
 
             //check if the user has permission to host events
             if ( !(await dbHost.getRank()).is_officer ) {
                 embeded_error.setDescription("Insuficent permissions!")
                 return await interaction.editReply({ embeds: [embeded_error]});
-            } else if (voice_channel.id === undefined || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
+            }
+            let automaticAttendence = voice_channel.id === undefined && interaction.options.getBoolean('manual_attendence') !== true
+            if (voice_channel.id === undefined || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
                 const selectAttendees = new UserSelectMenuBuilder()
                 .setCustomId('select_attendees')
                 .setPlaceholder('Select the attendees')
@@ -168,6 +189,12 @@
                                     attendees.push(member)   
                                 })
                             }
+                            if (attendees.find(member => member.id === host.id)) {
+                                attendees.pop(host) //remove the host from the attendees list
+                            }
+                            if (cohost && !attendees.find(member => member.id === cohost.id)) {
+                                attendees.push(cohost) 
+                            }
 
                             break;
                         }
@@ -180,9 +207,6 @@
                             throw error
                     }
                 }
-            } else if (cohost != null && host.id === cohost.id) { //check that the cohost is not the host
-                embeded_error.setDescription("No uh! you are not both the host and the cohost!!!")
-                return await interaction.editReply({ embeds: [embeded_error], components: []})
             }
 
             
@@ -205,15 +229,14 @@
 
 
             const time = announcmentMessage.createdAt
-            const date = `${time.getDate()}/${time.getMonth()+1}/${time.getFullYear()}`
 
-            let eventType = "event"
+            let eventType
 
 
             if (interaction.options.getString('event_type')) {
                 eventType = interaction.options.getString('event_type')
             } else { 
-                if (voice_channel.id !== undefined ) {
+                if (voice_channel.id) {
                     const VCdbChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, channel_id: voice_channel.id}})
                     if (VCdbChannel) {
                     eventType = VCdbChannel.type
@@ -221,7 +244,7 @@
                 }
             }
             
-            if (eventType === "event") {
+            if (!eventType) {
                 const selectEventType = new StringSelectMenuBuilder()
                 .setCustomId('select_event_type')
                 .setPlaceholder('Select the event type')
@@ -364,7 +387,7 @@
                 
             }
 
-            if (total_attendes === 0) {
+            if (total_attendes === 0) { // should be moved to where attendees are determined.
                 return await interaction.editReply({ embeds: [embeded_error.setDescription("No attendees === no quota point!")], components: []})
             }
 
@@ -388,7 +411,7 @@
 
 
             event_log_embed.setDescription(description)
-            event_log_embed.setFooter({ text: `Total attendees: ${total_attendes} ID: ` + dbEvent.id})
+            event_log_embed.setFooter({ text: `Total attendees: ${total_attendes} ID: ${dbEvent.id} Automatic Attendence: ${automaticAttendence}` })
 
             /* might be reworked and reintroduced later
             const promoter_role_id = "1109546594535211168" 
@@ -402,10 +425,11 @@
             
             //SEA Format
             if (["training", "patrol", "tryout"].includes(eventType)) {
-                const sealogMessage = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes)
+                const homeBase = interaction.options.getBoolean('home_base')
+                const sealogMessage = await sealog(interaction, db, wedge_picture, announcmentMessage, eventType, total_attendes, homeBase ? homeBase : false)
                 if (!sealogMessage) {
                     return
-                } 
+                }   
                 dbEvent.sealog_message_link = sealogMessage.sealog.url
                 dbEvent.length = sealogMessage.length
                 dbEvent.game = sealogMessage.game

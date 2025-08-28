@@ -280,7 +280,7 @@ module.exports = {
                     } else {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: `${event_type}promopoints`, config: promopoints })
                     }
-                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the promo points for ${event_type} to **${promopoints}**`) ] })
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the promo points for ***${event_type}*** to **${promopoints}**`) ] })
             }
         }
 

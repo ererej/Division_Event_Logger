@@ -20,9 +20,10 @@ const Settings = require('./models/Settings.js')(sequelize, Sequelize.DataTypes)
 const Events = require('./models/Events.js')(sequelize, Sequelize.DataTypes);
 const Officers = require('./models/Officers.js')(sequelize, Sequelize.DataTypes);
 const PremiumCodes = require('./models/PremiumCodes.js')(sequelize, Sequelize.DataTypes);
+const SeaBans = require('./models/SeaBans.js')(sequelize, Sequelize.DataTypes);
 
 // Assign models to sequelize.models
-const models = { sequelize, Users, Officers, Servers, Ranks, Channels, Settings, Events, PremiumCodes };
+const models = { sequelize, Users, Officers, Servers, Ranks, Channels, Settings, Events, PremiumCodes, SeaBans };
 
 // Manually call associate for each model (in case of circular dependencies)
 Object.values(models).forEach((model) => {
@@ -169,7 +170,7 @@ Reflect.defineProperty(Users.prototype, 'updateTag', {
 			throw new Error("Missing member parameter in updateTag")
 		}
 		if (rank.tag) {
-			if(member.nickname.startsWith(rank.tag[0]) && member.nickname.includes(rank.tag[rank.tag.length - 1])) {
+			if( member.nickname && member.nickname.startsWith(rank.tag[0]) && member.nickname.includes(rank.tag[rank.tag.length - 1])) {
 				// Find where the tag ends in the nickname
 				const tagEndIndex = member.nickname.indexOf(rank.tag[rank.tag.length - 1]) + 1;
 				
@@ -602,7 +603,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				const rank = await this.getRank()
 				await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
 					if (err.message === "You do not have permission to manage this user.") {
-						return { message: `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${member.id}> and the roblox rank will be fixed!`, error: true, robloxUser: robloxUser }
+						return { message: `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${MEMBER.id}> and the roblox rank will be fixed!`, error: true, robloxUser: robloxUser }
 					}
 					console.log(err)
 					return { message: `Error: An error occured while trying to update the users's roblox rank! try again later!`, error: true, robloxUser: robloxUser }

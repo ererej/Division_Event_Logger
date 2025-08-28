@@ -26,7 +26,7 @@ module.exports = {
 
         const response = await interaction.editReply({embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(`Are you sure you want to **delete all** the Rank links?`)], components: [row]})
 
-        const collectorFilter = i => i.customId === 'delete_all_ranks' && i.user.id === interaction.user.id
+        const collectorFilter = i => (i.customId === 'delete_all_ranks' || i.customId === 'cancel_deleting_all_ranks') && i.user.id === interaction.user.id
         try {
             const confirmation = await response.awaitMessageComponent({ Filter: collectorFilter, time: 60_000 })
             confirmation.deferUpdate()

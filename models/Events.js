@@ -1,6 +1,3 @@
-const sealog = require("../utils/sealog");
-
-
 module.exports = (sequelize, DataTypes) => {
     return sequelize.define('events', {
         id: { 

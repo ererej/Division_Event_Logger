@@ -26,7 +26,7 @@ module.exports = async ({userId, username, trainedSheet, exemptSheet, guildId, r
     if (exemptSheet.status != 200) {
         return { error: `Error: An error occured with the google sheet api! error code: ${exemptSheet.status} ${exemptSheet.statusText}`, trainedSheet: trainedSheet}
     }
-    if (exemptSheet.data.values.filter(row => row[1] == userId || row[0].trim() == username).length > 0) {
+    if (exemptSheet.data.values.filter(row => row[1] == userId || ( row[0] && row[0].trim() == username)).length > 0) {
         return { exempt: true, exemptSheet: exemptSheet, trainedSheet: trainedSheet }
     }
 

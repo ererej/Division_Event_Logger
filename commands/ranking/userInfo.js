@@ -77,8 +77,8 @@ module.exports = {
                 if (!maps[event.game] && event.game != undefined) {
                     maps[event.game] = 1
                 } else {
-                    if (event.map != undefined) {
-                        maps[event.map]++
+                    if (event.game != undefined) {
+                        maps[event.game]++
                     }
                 }
             })
@@ -88,12 +88,12 @@ module.exports = {
 
             let graphs = []
             if (eventTypesArray.length > 0) {
-                graphs.push(await generateGraph({ title: "Events attended", labels: eventsData.map(event => {
-                    const date = new Date(event.date)
-                    return `${date.getDate()}/${date.getMonth() + 1}`
-                }), colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: eventsData.map(event => event.event_type) }, 'line', 300, 300))
-                graphs.push(await generateGraph({ labels: [... Object.keys(eventTypes)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(eventTypes)] }, 'doughnut', 300, 300))
-                graphs.push(await generateGraph({ labels: [... Object.keys(maps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(maps)] }, 'doughnut', 300, 300))
+                // graphs.push(await generateGraph({ title: "Events attended", labels: eventsData.map(event => {
+                //     const date = new Date(event.date)
+                //     return `${date.getDate()}/${date.getMonth() + 1}`
+                // }), colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)", "rgb(255, 146, 21)"], values: eventsData.map(event => event.event_type) }, 'line', 300, 300))
+                graphs.push(await generateGraph({ labels: [... Object.keys(eventTypes)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)", "rgb(255, 146, 21)"], values: [... Object.values(eventTypes)] }, 'doughnut', 300, 300))
+                graphs.push(await generateGraph({ labels: [... Object.keys(maps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)", "rgb(255, 146, 21)"], values: [... Object.values(maps)] }, 'doughnut', 300, 300))
             }
 
             embeded.setDescription(description)

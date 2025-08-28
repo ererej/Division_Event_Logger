@@ -31,6 +31,7 @@ module.exports = {
                     { name: 'vcexpdisplay', value: "vcexpdisplay" },
                     { name: 'vcsmallexpdisplay', value: "vcsmallexpdisplay" },
                     { name: 'vcleveldisplay', value: "vcleveldisplay" },
+                    { name: 'vcexpandleveldisplay', value: "vcexpandleveldisplay" },
                     { name: 'robloxGroupCountDisplay', value: "robloxGroupCount" },
                     { name: 'guildMemberCountDisplay', value: "guildMemberCount" },
                     { name: 'logs (short hand for all the logging types)', value: "logs"},
@@ -64,7 +65,8 @@ module.exports = {
         const vcChannels = ["training", "patrol", "raid", "gamenight", "tryout"]
         const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs", "banlogs"]
         const logChannels = ["sealogs", "promologs", "raidlogs", "banlogs"]
-        const VcDisplays = ["robloxGroupCount", "guildMemberCount", "vcexpdisplay", "vcleveldisplay", "vcsmallexpdisplay"]
+        const VcDisplays = ["robloxGroupCount", "guildMemberCount", "vcexpdisplay", "vcleveldisplay", "vcsmallexpdisplay", "vcexpandleveldisplay"]
+        
         if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(linkType) || VcDisplays.includes(linkType))) {
             return await interaction.editReply({ embeds: [embeded_error.setDescription(`Please select a Text Channel to link **${linkType}** to!`)] })
         } else if (channel.type === ChannelType.GuildText && !textChannels.includes(linkType) && linkType != "logs") {
@@ -109,7 +111,7 @@ module.exports = {
                 replyString += `Successfully made <#${channel.id}> the **${logChannels[i]}** channel! \n`
             }
             return await interaction.editReply({ embeds: [new EmbedBuilder().setColor([0,255,0]).setDescription(replyString)] })
-        } else if (["expdisplay", "vcexpdisplay", "vcsmallexpdisplay", "vcleveldisplay"].includes(linkType)) {
+        } else if (["expdisplay", "vcexpdisplay", "vcsmallexpdisplay", "vcleveldisplay", "vcexpandleveldisplay"].includes(linkType)) {
             const dbChannel = await db.Channels.create({ channel_id: channel.id, guild_id: interaction.guild.id, type: linkType })
             const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
             if (!server) {
