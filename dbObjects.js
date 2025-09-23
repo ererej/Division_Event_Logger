@@ -121,24 +121,36 @@ Reflect.defineProperty(Users.prototype, 'updateLinkedRoles', {
 		}
 		let removedRoles = []
 		let addedRoles = []
+		let smallErrors = []
 
 		if (rank.linked_roles) {
 			const roles = member.roles.cache
 			rank.linked_roles.forEach(role => {
 				if (!roles.some(r => r.id == role)) {
-					member.roles.add(role)
+					member.roles.add(role).catch(err => {
+						if (err.message === "Unknown Role") {
+							smallErrors.push(`Error: Missing role. ${member} got promoted to rank whos linked role seems to have been deleted! The missing role might lead to a lot of problems(the roblox rank and database was still updated), please contact Ererej(The developer of this bot) for help!`)
+						} else if (err.message === "Missing Permissions") {
+							smallErrors.push(`Error: Missing permissions. failed to add the role <@&${rank.id}> to ${member}! I dont have permissions to add the role!`)
+						} else {
+							console.log(err)
+						return { message: `Error: An error occured while trying to update the users's discord rank! (The Roblox rank was still updated) Error: ${err}`, error: true, robloxUser: robloxUser }
+						}
+					})
 					addedRoles.push(role)
 				}
 			})
 			
 		}
 		if (oldRank) {
-			oldRank.linked_roles.forEach(role => {
-				if (!rank.linked_roles.includes(role)) {
-					member.roles.remove(role)
-					removedRoles.push(role)
-				}
-			})
+			if (oldRank.linked_roles) {
+				oldRank.linked_roles.forEach(role => {
+					if (!rank.linked_roles.includes(role)) {
+						member.roles.remove(role)
+						removedRoles.push(role)
+					}
+				})
+			}
 		} else {
 			const allRanks = await Ranks.findAll({ where: { guild_id: this.guild_id } })
 			
@@ -155,7 +167,7 @@ Reflect.defineProperty(Users.prototype, 'updateLinkedRoles', {
 				})
 			})
 		}
-		return { addedRoles: addedRoles, removedRoles: removedRoles }
+		return { addedRoles: addedRoles, removedRoles: removedRoles, smallErrors: smallErrors}
 	}
 });
 
@@ -309,6 +321,14 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 		});
 		const RankIndexInRanksBefore = rankIndexInRanks
 
+		if (typeof promotions !== "number" ){
+			promotions = parseInt(promotions)
+			if (isNaN(promotions)) {
+				console.log("promotions was not a number?!?!?")
+				return { message: "Error: promotions was not a number!", error: true, robloxUser: robloxUser }
+			}
+		}
+
 		this.promo_points += promotions
 		let nextRank = ranks[rankIndexInRanks + 1]
 		while (true) {
@@ -319,12 +339,15 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 			rankIndexInRanks += 1
 			if (nextRank) {
 				if (nextRank.obtainable === false) {
-					return { message: responce + "Can not be promoted with " + nameOfPromoPoints + "!", error: true, robloxUser: robloxUser }
+					const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
+					this.save()
+					return { message: responce + "Can not be promoted with " + nameOfPromoPoints + "!" + `\n${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/∞*!`, error: true, robloxUser: robloxUser }
 				}
 				if (this.promo_points >=  nextRank.promo_points) {
 					//todo could be better to only do this.setRank at the end when we know its the final rank to speed up the process
 					const setRankResult = await this.setRank(groupId, MEMBER, nextRank, robloxUser, milestoneData).catch((err) => {
 						console.log(err)
+						this.save()
 						return { message: `An error occured while trying to promote the user! The user ended up with ${this.promo_points} ${nameOfPromoPoints} and the rank <@&${rank.id}>!`, error: true, robloxUser: robloxUser }
 					});
 					robloxUser = setRankResult.robloxUser
@@ -380,6 +403,14 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 		});
 		const RankIndexInRanksBefore = rankIndexInRanks
 
+		
+		if (typeof demotions !== "number" ){
+			demotions = parseInt(demotions)
+			if (isNaN(demotions)) {
+				console.log("demotions was not a number?!?!?")
+				return { message: "Error: demotions was not a number!", error: true, robloxUser: robloxUser }
+			}
+		}
 
 		while (demotions > 0) {
 			rank = await this.getRank()
@@ -607,10 +638,10 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 				const rank = await this.getRank()
 				if (rank.roblox_id != rankFromRoblox.roblox_id) {
 					await noblox.setRank(groupId, robloxUser.robloxId, Number(rank.roblox_id)).catch((err) => {
-						console.log(err)
 						if (err.message === "You do not have permission to manage this user.") {
 							return { message: `Error: The bot does not have permissions to change the roblox rank! Please give *Division_helper* permissions to change members ranks and make sure its rank is high up in the higharky! The rank was changed on discord and the bots database but not on roblox! When you have given the bot the perms simply run /updateuser <@${member.id}> and the roblox rank will be fixed!`, error: true, robloxUser: robloxUser }
-						}
+							}
+						console.log(err)
 						return { message: `Error: An error occured while trying to update the users's roblox rank! try again later!`, error: true, robloxUser: robloxUser }
 					})
 					return { rank: highestRank, message: `Updated roblox and database rank to <@&${rank.id}> (taken from discord roles)`, robloxUser: robloxUser }

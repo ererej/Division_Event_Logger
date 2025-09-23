@@ -54,6 +54,7 @@
                 option.setName('promo_points')
                 .setDescription('If you want to give them a specific amount of promo points')
                 .setRequired(false)
+                .setMinValue(0)
             )
             .addBooleanOption(option =>
                 option.setName('home_base')
@@ -341,7 +342,7 @@
                 promopointsRewarded = interaction.options.getInteger("promo_points")
             } else {
                 promopointsRewarded = await db.Settings.findOne({ where: {guild_id: interaction.guild.id, type: "promopointsfor" + eventType}}) 
-                promopointsRewarded = promopointsRewarded ? promopointsRewarded.config : eventType === "gamenight" ? 0 : 1
+                promopointsRewarded = promopointsRewarded ? (promopointsRewarded.config) : (eventType === "gamenight" ? 0 : 1)
             }
 
             const milestones = await db.Milestones.findAll({ where: { guild_id: interaction.guild.id } })
@@ -420,6 +421,25 @@
                 dbUser.events = dbUser.events ? dbUser.events + "," + dbEvent.id : "" + dbEvent.id
                 dbUser.save()
             })
+
+            const promopointsForEventToHost = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `hostpromopointsfor${eventType}` } })
+            const hostPromopoints = promopointsForEventToHost ? promopointsForEventToHost.config : 0
+
+            if (hostPromopoints > 0) {
+                const addHostPromoPoints = await dbHost.addPromoPoints(noblox, server.group_id, host, guild_ranks, hostPromopoints, null)
+                description += `\n\n\n**${nameOfPromoPoints} to the host:** ${addHostPromoPoints.message}`
+            }
+
+            if (cohost && cohost.id !== host.id) {
+                const promopointsForCohost = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `cohostpromopointsfor${eventType}` } })
+                const dbCohost = await db.Users.findOne({ where: { id: cohost.id } })
+
+                if (dbCohost) {
+                    const addCohostPromoPoints = await dbCohost.addPromoPoints(noblox, server.group_id, cohost, guild_ranks, promopointsForCohost ? promopointsForCohost.config : promopointsRewarded, null)
+                    description += `\n\n\n**${nameOfPromoPoints} to the co-host:** ${addCohostPromoPoints.message}`
+                }
+            
+            }
 
             const officer = await db.Officers.findOne({ where: {user_id: host.id, guild_id: interaction.guild.id, retired: null}})
             if (officer) {

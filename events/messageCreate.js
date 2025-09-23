@@ -56,8 +56,12 @@ module.exports = {
 
                         for (const server of servers) {
                             const division = divisions.find(div => server.name.includes(div.name));
+                            if (isNaN(parseInt(division.exp))) {
+                                console.log("Invalid EXP (" + division.exp + ") found for division: " + division.name + " in server: " + server.name);
+                                continue;
+                            }
                             if (division.exp < 0) {
-                                console.log("Negative EXP found for division: " + division.name + " in server: " + server.name);
+                                console.log("Negative EXP (" + division.exp + ") found for division: " + division.name + " in server: " + server.name);
                                 continue;
                             }
                             server.exp = division.exp

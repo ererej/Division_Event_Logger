@@ -109,7 +109,11 @@ module.exports = {
             const setRankResult = await user.setRank(groupId, member, ranks[membersRankIndexInRanks + promotions], updateResponce.robloxUser ).catch((err) => {
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nAn error occured while trying to promote the user!")]})
             })
+            console.log("setRankResult", setRankResult)
             reply += setRankResult.message
+            reply += setRankResult.smallErrors ?? ""
+            console.log("smallErrors", setRankResult.smallErrors)
+            console.log(reply)
             user.promo_points = 0
             user.save()
 
