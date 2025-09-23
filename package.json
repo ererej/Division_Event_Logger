@@ -14,7 +14,7 @@
     "chartjs-node-canvas": "^4.1.6",
     "csv-parse": "^6.1.0",
     "cytoscape": "^3.31.2",
-    "discord.js": "^14.15.3",
+    "discord.js": "^14.21.0",
     "dotenv": "^16.4.5",
     "googleapis": "^144.0.0",
     "mysql2": "^3.12.0",
