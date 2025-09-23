@@ -135,7 +135,45 @@ module.exports = {
                     .setRequired(true)
                     .setMinValue(0)
             )
-        ),
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+            .setName('promopoints_per_recruit')
+            .setDescription('Determens how many promo points you get for recruiting a new member')
+            .addIntegerOption(option =>
+                option.setName('promopoints')
+                    .setDescription('Enter how many promo points you get for recruiting a new member')
+                    .setRequired(true)
+                    .setMinValue(0)
+            )
+        )
+        .addSubcommand(subcommand =>
+            subcommand.setName('curved_lines_in_graphs')
+                .setDescription('Determens if the lines in the different graphs are curved or straight')
+                .addStringOption(option =>
+                    option.setName('line_type')
+                        .setDescription('Enter the type of line you want to use')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'curved', value: 'curved' },
+                            { name: 'straight', value: 'straight' }
+                        )
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand.setName('default_attendance_type')
+                .setDescription('Determens what the default attendance type will be when using /log')
+                .addStringOption(option =>
+                    option.setName('attendance_type')
+                        .setDescription('Select the attendance type you want to be used when not specified')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'manual', value: 'manual' },
+                            { name: 'auto', value: 'auto' },
+                        )
+                )
+        )
+        ,
         botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages, PermissionsBitField.Flags.ManageChannels],
         async execute(interaction) {
             await interaction.deferReply()
@@ -281,6 +319,35 @@ module.exports = {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: `${event_type}promopoints`, config: promopoints })
                     }
                     return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the promo points for ***${event_type}*** to **${promopoints}**`) ] })
+                case 'promopointsperecruit':
+                    const recruit_promopoints = interaction.options.getInteger('promopoints')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `promopoints_per_recruit` } })
+                    if (setting) {
+                        await setting.update({ config: recruit_promopoints })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: `promopoints_per_recruit`, config: recruit_promopoints })
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the promo points for recruiting to **${recruit_promopoints}**`) ] })
+                case 'curved_lines_in_graphs':
+                    const line_type = interaction.options.getString('line_type')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `curved_lines_in_graphs` } })
+                    if (setting) {
+                        await setting.update({ config: line_type })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: `curved_lines_in_graphs`, config: line_type })
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the line type in graphs to **${line_type}**`) ] })
+                case 'default_attendance_type':
+                    const attendance_type = interaction.options.getString('attendance_type')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `default_attendance_type` } })
+                    if (setting) {
+                        await setting.update({ config: attendance_type })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: `default_attendance_type`, config: attendance_type })
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the default attendance type to **${attendance_type}**`) ] })
+                default:
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription("It seems like Ererej has forgotten to implement this setting")] })
             }
         }
 

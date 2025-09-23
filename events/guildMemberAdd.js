@@ -1,9 +1,10 @@
-const { Events } = require('discord.js');
+const { Events, EmbedBuilder } = require('discord.js');
 const db = require('../dbObjects.js');
 const noblox = require("noblox.js")
 const updateGroupMemberCount = require('../utils/updateGroupMemberCount.js')
 const updateGuildMemberCount = require('../utils/updateGuildMemberCount.js')
-
+const getLinkedChannel = require('../utils/getLinkedChannel.js')
+const checkMilestone = require('../utils/checkMilestone.js');
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -13,7 +14,7 @@ module.exports = {
      *  @param {import('discord.js').GuildMember} member
      */
     async execute(member, type, invite) {
-        updateGroupMemberCount({noblox, guild: member.guild, db})
+        updateGroupMemberCount({guild: member.guild, db})
         updateGuildMemberCount({guild: member.guild, db})
 
         
@@ -26,12 +27,12 @@ module.exports = {
         if (user.rank_id === null) {
             server = await db.Servers.findOne({ where: { guild_id: member.guild.id } })
             if (!server) {
-                return console.log("No server found for guild: " + member.guild.id)
+                return console.log("[guildMemberAdd] No server found for guild: " + member.guild.id)
             }
-            await user.updateRank(noblox, server.group_id, member)
+            await user.updateRank(server.group_id, member)
         }
-        
-        if (!user.invite_code) {    
+
+        if (!user.recruted_by) {
             if (type === 'normal') {
                 user.invite_code = invite.code
                 user.invite_code_owner = invite.inviter.id
@@ -42,33 +43,37 @@ module.exports = {
                     if (!server) {
                         server = await db.Servers.findOne({ where: { guild_id: member.guild.id } })
                     }
-                    const responce = await inviter.updateRank(noblox, server.group_id, member.guild.members.cache.get(inviter.user_id))
-                    const promopointsPerRecruit = ((await db.Settings.findOne({ where: { guild_id: member.guild.id, type: "promopoints_per_recruit" } })) ?? {config: 1}).config
+                    const inviterMember = await member.guild.members.fetch(invite.inviter.id);
+                    
+                    const responce = await inviter.updateRank(server.group_id, inviterMember)
+                    const promopointsPerRecruit = ((await db.Settings.findOne({ where: { guild_id: member.guild.id, type: "promopoints_per_recruit" } })) ?? {config: 0}).config
                     if (responce.error) {
                         inviter.send({ content: `Thanks for recruiting <@${member.user.id}> you would have gotten ${promopointsPerRecruit} promo points as a reward but I was unable to verify your rank sorry! \n ${responce.message}` })
                     }
-                    const addPromoPointsResponce = inviter.addPromoPoints(noblox, server.group_id, member.guild.members.cache.get(inviter.user_id), promopointsPerRecruit, responce.robloxUser)
+                    const addPromoPointsResponce = await inviter.addPromoPoints(server.group_id, inviterMember, undefined, promopointsPerRecruit, responce.robloxUser)
+                    const ranks = await db.Ranks.findAll({ where: { guild_id: member.guild.id } })
+                    const checkMemberMilestoneResponce = await checkMilestone({db, type: "member_recruits_recruited", member: inviterMember, dbUser: inviter, ranks: ranks, robloxUser: responce.robloxUser})
+                    const checkRecruitMilestoneResponce = await checkMilestone({db, type: "recruit_recruits_recruited", member: inviterMember, dbUser: inviter, ranks: ranks, robloxUser: user.robloxUser})
+                    console.log("checkMemberMilestoneResponce", checkMemberMilestoneResponce)
+                    console.log("checkRecruitMilestoneResponce", checkRecruitMilestoneResponce)
                     if (server) {
-                        // TODO make this use the utility function for fetching linked channels
-                        const recruitmentLogs = await db.Channels.findOne({ where: { guild_id: member.guild.id, type: "recruitmentlogs" } });
-                        let logs = recruitmentLogs
-                        if (!logs) {
-                            const promoLogs = await db.Channels.findOne({ where: { guild_id: member.guild.id, type: "promologs" } });
-                            if (promoLogs) {
-                                logs = promoLogs
-                            }
+                        const recruitmentLogs = await getLinkedChannel({db, query: { guild_id: member.guild.id, type: "recruitmentlogs" }, guild: member.guild})
+                        const promoLogs = await getLinkedChannel({db, query: { guild_id: member.guild.id, type: "promologs" }, guild: member.guild})
+
+                        if (recruitmentLogs.channel) {
+                            recruitmentLogs.channel.send({ embeds: [new EmbedBuilder().setDescription(`<@${invite.inviter.id}> has recruited <@${member.user.id}> using the invite code ${invite.code} and got ${promopointsPerRecruit} ${server.promo_points_name} for it! \n\n ${responce ?? ""} \n ${inviter} ${addPromoPointsResponce.message ?? ""}`).setColor([0,0,255])] })
                         }
-                        
-                        if (logs) {
-                            const channel = member.guild.channels.cache.get(promoLogs.channel_id)
-                            if (channel) {
-                                channel.send({ content: `<@${invite.inviter.id}> has recruited <@${member.user.id}> using the invite code ${invite.code} and got ${promopointsPerRecruit} promo points for it! \n ${responce ?? ""} \n ${addPromoPointsResponce.message ?? ""}` })
-                            } else {
-                                console.log(`Unable to find channel with id ${promoLogs.channel_id} in guild ${member.guild.name} id: ${member.guild.id}`)
-                            }
-                        } else {
+
+                        if (promoLogs.channel /*&& promoLogs.channel.id !== recruitmentLogs.channel.id*/) {
+                            promoLogs.channel.send({ embeds: [new EmbedBuilder().setDescription(`<@${invite.inviter.id}> has recruited <@${member.user.id}> \n ${"<@" + inviter.id + "> " + addPromoPointsResponce.message ?? ""}`).setColor([0,0,255])] })
+                        }
+
+                        if (!recruitmentLogs.channel && !promoLogs.channel) {
                             inviter.send({ content: `Thanks for recruiting <@${member.user.id}> as a reward you have been given ${promopointsPerRecruit} promo points! \n ${responce.message ?? ""} \n ${addPromoPointsResponce.message ?? ""}` })
                         }
+
+                        // TODO make this use the utility function for fetching linked channels DONE!
+                        
                     }
                 }
             } else if (type === "vanity") {
@@ -81,7 +86,7 @@ module.exports = {
                 console.log("emmmmmmmmmm what is this type: " + type)
             }
         } else {
-            console.log(`User ${member.user.username} already has an invite code in ${member.guild.name} id: ${member.guild.id}`)
+            console.log(`User ${member.user.username} already has already been recruited in ${member.guild.name} id: ${member.guild.id}`)
         }
         await user.save()    
         

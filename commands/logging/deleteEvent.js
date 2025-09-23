@@ -78,7 +78,7 @@ module.exports = {
             const groupId = server.group_id;
 
             for (const attendee of attendees) {
-                await attendee.removePromoPoints(noblox, groupId, await interaction.guild.members.fetch(attendee.user_id), ranks, 1);
+                await attendee.removePromoPoints(groupId, await interaction.guild.members.fetch(attendee.user_id), ranks, 1);
                 await attendee.update({ total_events_attended: attendee.total_events_attended - 1 });
             };
         }

@@ -128,7 +128,7 @@ module.exports = {
 
             const memberCount = interaction.guild.memberCount
 
-            const pricePerMounth = 0.99 + Math.floor(memberCount / 500) * 0.2
+            const pricePerMounth = 1.99 + Math.floor(memberCount / 250) * 0.1
             const daysToAdd = pricePerTicket/pricePerMounth * 30
 
             const currentTime = new Date()
@@ -167,7 +167,7 @@ module.exports = {
 
             if (premiumCode.type == "money") {
                 const memberCount = interaction.guild.memberCount
-                const pricePerMounth = 1 + Math.floor(memberCount / 500) * 0.2
+                const pricePerMounth = 1.99 + Math.floor(memberCount / 250) * 0.1
                 const daysToAdd = premiumCode.amount/pricePerMounth * 30
 
                 const currentTime = new Date()

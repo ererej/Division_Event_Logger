@@ -26,7 +26,7 @@ module.exports = {
         if (!user) {
             user = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
-        const responce = ( await user.updateRank(noblox, groupId, member) ).message
+        const responce = ( await user.updateRank(groupId, member) ).message
         
         if (!responce) {
             return await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`${member}: ` + "was already up to date").setColor(Colors.Green)] })

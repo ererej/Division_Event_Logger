@@ -4,6 +4,7 @@ const dbcredentoiols = process.argv.includes("--prod") || process.env.DATABASE =
 const getNameOfPromoPoints = require("./utils/getNameOfPromoPoints.js")
 const noblox = require("noblox.js")
 const getRobloxUser = require("./utils/getRobloxUser.js")
+const checkMilestone = require("./utils/checkMilestone.js")
 
 console.log("Connecting to database: " + dbcredentoiols.database)
 const sequelize = new Sequelize(dbcredentoiols.database, dbcredentoiols.username, dbcredentoiols.password, {
@@ -21,9 +22,10 @@ const Events = require('./models/Events.js')(sequelize, Sequelize.DataTypes);
 const Officers = require('./models/Officers.js')(sequelize, Sequelize.DataTypes);
 const PremiumCodes = require('./models/PremiumCodes.js')(sequelize, Sequelize.DataTypes);
 const SeaBans = require('./models/SeaBans.js')(sequelize, Sequelize.DataTypes);
+const Milestones = require('./models/Milestones.js')(sequelize, Sequelize.DataTypes);
 
 // Assign models to sequelize.models
-const models = { sequelize, Users, Officers, Servers, Ranks, Channels, Settings, Events, PremiumCodes, SeaBans };
+const models = { sequelize, Users, Officers, Servers, Ranks, Channels, Settings, Events, PremiumCodes, SeaBans, Milestones };
 
 // Manually call associate for each model (in case of circular dependencies)
 Object.values(models).forEach((model) => {
@@ -59,7 +61,7 @@ Reflect.defineProperty(Users.prototype, 'addItem', {
 Users.belongsTo(Ranks, { foreignKey: 'rank_id', as: 'rank' });
 Ranks.hasMany(Users, { foreignKey: 'rank_id', as: 'users' });
 
-Users.getUser = async function ({member, user_id, guild_id, noblox, groupId, robloxUser}) {
+Users.getUser = async function ({member, user_id, guild_id, groupId, robloxUser}) {
 	if (!member && !user_id) {
 		throw new Error("Missing member or user_id parameter in getUser")
 	}
@@ -77,7 +79,7 @@ Users.getUser = async function ({member, user_id, guild_id, noblox, groupId, rob
 	if (!member) {
 		return null
 	}
-	await user.updateRank(noblox, groupId, member, robloxUser)
+	await user.updateRank(groupId, member, robloxUser)
 	if (user.rank_id == null) {
 		user = null
 	}
@@ -247,9 +249,42 @@ Reflect.defineProperty(Users.prototype, 'getRank', {
 	}
 });
 
+Reflect.defineProperty(Users.prototype, 'promote', {
+	value: async function(groupId, MEMBER, ranks, promotions, robloxUser, milestoneData) {
+		const rank = await this.getRank();
+		if (!ranks) {
+			ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
+		}
+		ranks = ranks.sort((a, b) => a.rank_index - b.rank_index)
+		let membersRankIndexInRanks;
+		ranks.some(function(tempRank, i) {
+			if (tempRank.id == rank.id) {
+				membersRankIndexInRanks = i;
+				return true;
+			}
+		});
+
+		if (membersRankIndexInRanks + promotions >= ranks.length) {
+            return {message: "\nYou can't promote someone to a rank higher than the highest rank!", error: true};
+		}
+		const botHighestRole = interaction.guild.members.cache.get("1201941514520117280").roles.highest;
+		const targetRole = interaction.guild.roles.cache.get(ranks[membersRankIndexInRanks + promotions].id);
+
+		if (botHighestRole.comparePositionTo(targetRole) <= 0) {
+			return {message: "\nI can't promote someone to a role higher than or equal to my highest role!", error: true};
+		}
+
+		const setRankResult = await this.setRank(groupId, MEMBER, ranks[membersRankIndexInRanks + promotions], robloxUser, milestoneData).catch((err) => {
+			return {message: "\nAn error occured while trying to promote the user!", error: true};
+		})
+		return { message: setRankResult.message, robloxUser: robloxUser, milestoneResponces: setRankResult.milestoneResponces ?? []}
+	}
+});
+
 Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it return errors with retrun { error: "error message"}
 	//todo make the input be an object 
-	value: async function(noblox, groupId, MEMBER, ranks, promotions, robloxUser) {
+	value: async function(groupId, MEMBER, ranks, promotions, robloxUser, milestoneData = {}) {
+		milestoneData.ranks = ranks
 		const nameOfPromoPoints = await getNameOfPromoPoints(undefined, MEMBER.guild.id, Settings)
 		let rank = await this.getRank()
 		if (!rank) {
@@ -263,6 +298,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 		const promo_points_before = this.promo_points
 		let responce = "";
 		let showPromoPoints = true;
+		let milestoneResponces = []
 		
 		let rankIndexInRanks;
 		ranks.some(function(tempRank, i) {
@@ -287,12 +323,13 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 				}
 				if (this.promo_points >=  nextRank.promo_points) {
 					//todo could be better to only do this.setRank at the end when we know its the final rank to speed up the process
-					const setRankResult = await this.setRank(noblox, groupId, MEMBER, nextRank, robloxUser).catch((err) => {
+					const setRankResult = await this.setRank(groupId, MEMBER, nextRank, robloxUser, milestoneData).catch((err) => {
 						console.log(err)
-						return { message: `Error: An error occured while trying to promote the user! The user ended up with ${this.promo_points} ${nameOfPromoPoints} and the rank <@&${rank.id}>!`, error: true, robloxUser: robloxUser }
+						return { message: `An error occured while trying to promote the user! The user ended up with ${this.promo_points} ${nameOfPromoPoints} and the rank <@&${rank.id}>!`, error: true, robloxUser: robloxUser }
 					});
 					robloxUser = setRankResult.robloxUser
 					responce += setRankResult.message;
+					milestoneResponces.push(...setRankResult.milestoneResponces ?? [])
 					this.promo_points -= nextRank.promo_points
 					nextRank = ranks[rankIndexInRanks + 1]
 					responce += "\n"
@@ -313,12 +350,14 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
 			responce += `${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞"}* to ***${this.promo_points}**/${nextRank ? (!nextRank.is_officer ? nextRank.promo_points : "∞") : "∞"}*!`
 		}
-		return { message: responce, robloxUser: robloxUser }
+		return { message: responce, robloxUser: robloxUser, milestoneResponces: milestoneResponces }
 	}
 });
 
 Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
-	value: async function(noblox, groupId, MEMBER, ranks, demotions, robloxUser) {
+	value: async function(groupId, MEMBER, ranks, demotions, robloxUser, milestoneData = {}) {
+		milestoneData.ranks = ranks
+
 		const nameOfPromoPoints = await getNameOfPromoPoints(undefined, MEMBER.guild.id, Settings)
 		let rank = await this.getRank()
 		if (!rank) {
@@ -328,6 +367,7 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 
 		const promo_points_before = this.promo_points
 		let responce = "";
+		let milestoneResponces = []
 		let showPromoPoints = true;
 		let nextRank;
 		let rankIndexInRanks;
@@ -357,12 +397,13 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 					} else {
 						this.promo_points = 0
 					}
-					const setRankResult = await this.setRank(noblox, groupId, MEMBER, nextRank ).catch((err) => {
+					const setRankResult = await this.setRank(groupId, MEMBER, nextRank, robloxUser, milestoneData).catch((err) => {
 						console.log(err)
 						return { message: `Error: An error occured while trying to demote the user!	The user ended up with ${this.promo_points} ${nameOfPromoPoints} and the rank <@&${rank.id}>!`, error: true }
 					})
 					robloxUser = setRankResult.robloxUser
 					responce += setRankResult.message + (this.promo_points != 0 ? ` and (**${this.promo_points}**/${rank.promo_points}) ${nameOfPromoPoints}` : "")
+					milestoneResponces.push(...setRankResult.milestoneResponces ?? [])
 					showPromoPoints = false
 					rankIndexInRanks -= 1
 					responce += "\n"
@@ -385,13 +426,13 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 			const rankAboveBefore = ranks[RankIndexInRanksBefore + 1] ?? {promo_points: "∞"}
 			responce += (responce ? "\n" : "") + `${nameOfPromoPoints} went from ***${promo_points_before}**/${rankAboveBefore ? (rankAboveBefore.promo_points != "∞" ? (!rankAboveBefore.is_officer ? rankAboveBefore.promo_points : "∞") : "∞") : "∞"}* to ***${this.promo_points}**/${rankAbove ? (rankAbove.promo_points != "∞" ? (!rankAbove.is_officer ? rankAbove.promo_points: "∞") : "∞") : "∞"}*!`
 		}
-		return { message: responce, robloxUser: robloxUser }
+		return { message: responce, robloxUser: robloxUser, milestoneResponces: milestoneResponces}
 	}
 });
 
 
 Reflect.defineProperty(Users.prototype, 'setRank', { //! make the it return errors with retrun { error: "error message"}
-	value: async function(noblox, groupId, MEMBER, rank, robloxUser) {
+	value: async function(groupId, MEMBER, rank, robloxUser, milestoneData) {
 		if (!robloxUser) {
 			robloxUser = await getRobloxUser({MEMBER: MEMBER})
 			if (robloxUser.error) {
@@ -455,24 +496,27 @@ Reflect.defineProperty(Users.prototype, 'setRank', { //! make the it return erro
 		this.rank_id = rank.id
 		await this.updateOfficer(rank)
 		await this.save()
+	
+		const checkMemberRankReachedMilestoneResponce = await checkMilestone({db: models, type: "member_rank_reached", member: MEMBER, dbUser: this, milestones: milestoneData.milestones, guildsMilestones: milestoneData.guildsMilestones, ranks: milestoneData.ranks, robloxUser: robloxUser, milestoneLogs: milestoneData.milestoneLogs})
+		const checkRecruitRankReachedMilestoneResponce = await checkMilestone({db: models, type: "recruit_rank_reached", member: MEMBER, dbUser: this, milestones: milestoneData.milestones, guildsMilestones: milestoneData.guildsMilestones, ranks: milestoneData.ranks, robloxUser: robloxUser, milestoneLogs: milestoneData.milestoneLogs})
+		const milestoneResponces = [...checkMemberRankReachedMilestoneResponce.milestones, ...checkRecruitRankReachedMilestoneResponce.milestones].filter(r => r != null)
 		oldRank = await Ranks.findOne({ where: { id: oldRank } })
 		const updateLinkedRolesResponce = await this.updateLinkedRoles(MEMBER, rank, oldRank)
-		return { oldRank: oldRank, newRank: rank, smallError: smallErrors, addedLinkedRoles: updateLinkedRolesResponce.addedRoles, removedLinkedRoles: updateLinkedRolesResponce.removedRoles, robloxUser: robloxUser, message: `Promoted from <@&${oldRank.id}> to <@&${rank.id}> ` + (smallErrors ? smallErrors : "") + (updateLinkedRolesResponce.addedRoles.length ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.join("> <@&") + ">" : "") + (updateLinkedRolesResponce.removedRoles.length ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.join("> <@&") + ">" : "") + (updateTagResponce ? " Tag got updated to: **" + updateTagResponce + "**" : "") }
+		return { milestoneResponces: milestoneResponces, oldRank: oldRank, newRank: rank, smallError: smallErrors, addedLinkedRoles: updateLinkedRolesResponce.addedRoles, removedLinkedRoles: updateLinkedRolesResponce.removedRoles, robloxUser: robloxUser, message: `Promoted from <@&${oldRank.id}> to <@&${rank.id}> ` + (smallErrors ? smallErrors.join("\n") : "") + (updateLinkedRolesResponce.addedRoles.length ? `Added linked role(s): <@&` + updateLinkedRolesResponce.addedRoles.join("> <@&") + ">" : "") + (updateLinkedRolesResponce.removedRoles.length ? `Removed linked role(s): <@&` + updateLinkedRolesResponce.removedRoles.join("> <@&") + ">" : "") + (updateTagResponce ? " Tag got updated to: **" + updateTagResponce + "**" : "") }
 	}
 });
 
 Reflect.defineProperty(Users.prototype, 'updateRank', {
 	/**
 	 * 
-	 * @param {object} noblox 
 	 * @param {string} groupId 
 	 * @param {object} MEMBER 
 	 * @returns 
 	 */
-	value: async function(noblox, groupId, MEMBER /* guildmember */, robloxUser ) {
+	value: async function(groupId, MEMBER /* guildmember */, robloxUser, ranks ) {
 		//find the users roblox account
 		if (!robloxUser) {
-			robloxUser = await getRobloxUser({MEMBER: MEMBER})
+			robloxUser = await getRobloxUser({MEMBER: MEMBER, memberId: this.user_id})
 			if (robloxUser.error) {
 				return { message: robloxUser.error, error: true}
 			}
@@ -487,7 +531,9 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		robloxUser = await robloxUser.json()
 		// find rank from database
 		let dbRank = await Ranks.findOne({ where: { id: this.rank_id } })
-		const ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
+		if (!ranks) {
+			ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
+		}
 		const robloxGroup = (await noblox.getGroups(robloxUser.robloxId)).find(group => group.Id === groupId)
 		if (!robloxGroup) {
 			return { message:`Error: is not in the group!`, notInGroup: true,  error: true, robloxUser: robloxUser }

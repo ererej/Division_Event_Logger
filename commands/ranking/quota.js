@@ -356,21 +356,24 @@ module.exports = {
 
         let graphs = []
         if (showServerWideData) {
-            graphs.push(await generateGraph({ labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, 'doughnut', 300, 300))
-            graphs.push(await generateGraph({ title: "training maps", labels: [... Object.keys(trainingMaps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(trainingMaps)] }, 'doughnut', 300, 300))
-            graphs.push(await generateGraph({ title: "average attendees per day", labels: dataRangeIndexesPerDay.map(index => {
+            const curvedLinesSetting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "curved_lines_in_graphs" } })
+            const curvedLines = curvedLinesSetting ? curvedLinesSetting.config === "curved" : false
+
+            graphs.push(await generateGraph({ data: { labels: ['trainings', 'patrols', 'other'], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)"], values: [divsTrainings.length, divsPatrols.length, divsEvents.length - divsTrainings.length - divsPatrols.length] }, type: 'doughnut', height: 600, width: 600, fontSize: 26 }))
+            graphs.push(await generateGraph({ data: { title: "training maps", labels: [... Object.keys(trainingMaps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)"], values: [... Object.values(trainingMaps)] }, type: 'doughnut', height: 600, width: 600, fontSize: 26 }))
+            graphs.push(await generateGraph({ data: { title: "average attendees per day", labels: dataRangeIndexesPerDay.map(index => {
                 const date = new Date(endTime - (24*60*60*1000 * index));
                 return `${date.getDate()}/${date.getMonth() + 1}`;
-            }), values: averageAttendesHistoryPerDay}, 'line', 300, 500 ))
-            graphs.push(await generateGraph({ title: "amount of Events per day", labels: dataRangeIndexesPerDay.map(index => {
+            }), values: averageAttendesHistoryPerDay }, type: 'line', height: 600, width: 1000, fontSize: 26, lineWidth: 5, pointRadius: 7, curvedLines }))
+            graphs.push(await generateGraph({ data: { title: "amount of Events per day", labels: dataRangeIndexesPerDay.map(index => {
                 const date = new Date(endTime - (24*60*60*1000 * index));
                 return `${date.getDate()}/${date.getMonth() + 1}`;
-            }), values: amountOfEventsHistoryPerDay}, 'line', 300, 500 ))
-            graphs.push(await generateGraph({ title: "rally attendees per week", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountAtRallysHistoryPerWeek}, 'line', 300, 500 ))
-            
-            graphs.push(await generateGraph({ title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistoryPerWeek}, 'line', 300, 500 ))
-            graphs.push(await generateGraph({ title: "average attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: averageAttendesHistoryPerWeek}, 'line', 300, 500 ))
-            graphs.push(await generateGraph({ title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistoryPerWeek}, 'line', 300, 500 ))
+            }), values: amountOfEventsHistoryPerDay }, type: 'line', height: 600, width: 1000, fontSize: 26, lineWidth: 5, pointRadius: 7, curvedLines }))
+            graphs.push(await generateGraph({ data: { title: "rally attendees per week", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountAtRallysHistoryPerWeek }, type: 'line', height: 600, width: 1000, fontSize: 26, lineWidth: 5, pointRadius: 7, curvedLines }))
+
+            graphs.push(await generateGraph({ data: { title: "attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: totalAttendesHistoryPerWeek }, type: 'line', height: 600, width: 1000, fontSize: 26, lineWidth: 5, pointRadius: 7, curvedLines }))
+            graphs.push(await generateGraph({ data: { title: "average attendees over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: averageAttendesHistoryPerWeek }, type: 'line', height: 600, width: 1000, fontSize: 26, lineWidth: 5, pointRadius: 7, curvedLines }))
+            graphs.push(await generateGraph({ data: { title: "amount of events over time", labels: ['-6', '-5', '-4', 'before last', 'last', 'current'], values: amountOfEventsHistoryPerWeek }, type: 'line', height: 600, width: 1000, fontSize: 26, lineWidth: 5, pointRadius: 7, curvedLines }))
         }
 
         const divsTotalTrainingLength = divsTrainings.reduce((acc, event) => acc + (event.length ?? 0), 0)

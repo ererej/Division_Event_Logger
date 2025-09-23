@@ -1,4 +1,4 @@
-module.exports = async (interaction, db, query, guild) => {
+module.exports = async ({interaction, db, query, guild}) => {
     const channelLink = await db.Channels.findOne({ where: query })
     if (!channelLink) {
         return {channel: null}

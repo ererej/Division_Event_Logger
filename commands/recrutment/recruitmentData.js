@@ -126,7 +126,6 @@ module.exports = {
         let recruiterFeilds = []
         let totalRecruits = 0
 
-        console.log(recruiters.size)
 
         for (const recruiter of recruiters.values()) {
             if (!recruiter) continue

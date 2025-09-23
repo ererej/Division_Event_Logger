@@ -49,7 +49,7 @@ module.exports = {
         if (!user) {
             user = await db.Users.create({ user_id: interaction.member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
-        const updateRankResponce = await user.updateRank(noblox, (await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })).group_id, interaction.member)
+        const updateRankResponce = await user.updateRank((await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })).group_id, interaction.member)
         if (updateRankResponce && user.rank_id != null) {
             interaction.member.send({ content: "your rank was verifed and this was the responce: \n" + updateRankResponce })
         }

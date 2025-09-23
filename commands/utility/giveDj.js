@@ -26,7 +26,7 @@ module.exports = {
         const embeded_error = new EmbedBuilder().setColor(Colors.Red)
         
 
-        const officer = await db.Users.getUser({member: interaction.member, noblox: noblox})
+        const officer = await db.Users.getUser({member: interaction.member})
 
         if (!officer.officer) {
             return interaction.editReply({embeds: [embeded_error.setDescription("You are not an officer!!!!!!!!!!!!!!!")]})

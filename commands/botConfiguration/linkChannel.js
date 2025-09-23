@@ -38,7 +38,9 @@ module.exports = {
                     { name: 'sealogs', value: "sealogs" },
                     { name: 'raidlogs', value: "raidlogs"},
                     { name: 'promologs', value: "promologs" },
+                    { name: 'recruitmentlogs', value: "recruitmentlogs" },
                     { name: 'banlogs', value: "banlogs" },
+                    { name: 'milestonelogs', value: "milestonelogs" },
                     { name: 'none', value: "none"}
                 )
         ),
@@ -63,8 +65,8 @@ module.exports = {
 
         const channel = interaction.options.getChannel('channel')
         const vcChannels = ["training", "patrol", "raid", "gamenight", "tryout"]
-        const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs", "banlogs"]
-        const logChannels = ["sealogs", "promologs", "raidlogs", "banlogs"]
+        const textChannels = ["logs", "expdisplay", "sealogs", "promologs", "raidlogs", "banlogs", "recruitmentlogs", "milestonelogs"]
+        const logChannels = ["sealogs", "promologs", "raidlogs", "banlogs", "recruitmentlogs", "milestonelogs"]
         const VcDisplays = ["robloxGroupCount", "guildMemberCount", "vcexpdisplay", "vcleveldisplay", "vcsmallexpdisplay", "vcexpandleveldisplay"]
         
         if (channel.type === ChannelType.GuildVoice && !(vcChannels.includes(linkType) || VcDisplays.includes(linkType))) {
@@ -134,7 +136,7 @@ module.exports = {
 
 
         } else if (linkType == "robloxGroupCount") {
-            await updateGroupMemberCount({noblox: noblox, guild: interaction.guild, db: db, channel: channel}).then((success) => {
+            await updateGroupMemberCount({guild: interaction.guild, db: db, channel: channel}).then((success) => {
                 if (success === false) return interaction.editReply({ embeds: [embeded_error.setDescription("Failed to make the roblox group count display!")] })
             }).catch(err => {
                 console.error(err)

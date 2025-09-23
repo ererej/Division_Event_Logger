@@ -27,6 +27,8 @@ module.exports = {
             { type: "sealogs", displayName: "Sealog Channel" },
             { type: "raidlogs", displayName: "RaidLog Channel" },
             { type: "promologs", displayName: "PromoLog Channel" },
+            { type: "recruitmentlogs", displayName: "RecruitmentLog Channel" },
+            { type: "milestonelogs", displayName: "MilestoneLog Channel" },
             { type: "banlogs", displayName: "BanLog Channel" },
             { type: "expdisplay", displayName: "ExpDisplay Channel" },
             { type: "vcexpdisplay", displayName: "VcExpDisplay Channel" },

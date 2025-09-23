@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { AttachmentBuilder } = require('discord.js');
 
-module.exports = async (data, type = 'line', height = 600, width = 800) => {
+module.exports = async ({data /*{labels, values, title, colors}*/, type = 'line', height = 600, width = 800, fontSize = 26, lineWidth = 5, pointRadius = 7, curvedLines = false}) => {
     const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 
     const configuration = {
@@ -16,7 +16,7 @@ module.exports = async (data, type = 'line', height = 600, width = 800) => {
           data: data.values,
           backgroundColor: type === 'doughnut' ? data.colors : 'rgba(75, 192, 192, 0.2)',
           borderColor: type === 'doughnut' ? data.colors : 'rgba(75, 192, 192, 1)',
-          borderWidth: type === 'doughnut' ? 1 : 2,
+          borderWidth: type === 'doughnut' ? 1 : lineWidth,
         },
       ],
     },
@@ -26,10 +26,19 @@ module.exports = async (data, type = 'line', height = 600, width = 800) => {
           labels: {
             color: 'white',
             font: {
-              size: 13
+              size: fontSize
             }
           }
         }
+      },
+      elements: {
+        line: {
+          // tension: 0.4,
+        },
+        point: {
+          radius: pointRadius,
+          backgroundColor: 'rgba(75, 192, 192, 1)',
+        },
       },
       scales: {
         y: type === 'doughnut' ? {display: false} : { beginAtZero: true },

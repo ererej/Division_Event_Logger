@@ -204,13 +204,13 @@ module.exports = {
                                 dbAttendee = await db.Users.create({ user_id: member.id, guild_id: guild_id, promo_points: promopointsRewarded });
                             }
                             const guildMember = await interaction.guild.members.fetch(member.id);                                
-                            const updateRankResponse = await dbAttendee.updateRank(noblox, server.group_id, guildMember); 
+                            const updateRankResponse = await dbAttendee.updateRank(server.group_id, guildMember); 
                             promoLogs += "Updated rank:\n" + updateRankResponse.message;
                             if (updateRankResponse.error) {
                                 promoLogs += "\n";
                                 return;
                             }
-                            const addPromoPointsResponce = await dbAttendee.addPromoPoints(noblox, group_id, guildMember, ranks, promopointsRewarded);
+                            const addPromoPointsResponce = await dbAttendee.addPromoPoints(group_id, guildMember, ranks, promopointsRewarded);
                             
                             dbAttendee.total_events_attended += 1;
                             dbAttendee.events += `,${event_id}`;
@@ -237,13 +237,13 @@ module.exports = {
                                 dbAttendee = await db.Users.create({ user_id: member.id, guild_id: member.guild.id, promo_points: promopointsRewarded });
                             }
                             const guildMember = await interaction.guild.members.fetch(member.id);                                
-                            const updateRankResponse = await dbAttendee.updateRank(noblox, server.group_id, guildMember); 
+                            const updateRankResponse = await dbAttendee.updateRank(server.group_id, guildMember); 
                             promoLogs += "Updated rank:\n" + updateRankResponse.message;
                             if (updateRankResponse.error) {
                                 promoLogs += "\n";
                                 return;
                             }
-                            const removePromoPointsResponce = await dbAttendee.removePromoPoints(noblox, group_id, guildMember, ranks, promopointsRewarded);
+                            const removePromoPointsResponce = await dbAttendee.removePromoPoints(group_id, guildMember, ranks, promopointsRewarded);
                             
                             dbAttendee.total_events_attended -= 1;
                             dbAttendee.events = dbAttendee.events.replace(`,${event_id}`, "");

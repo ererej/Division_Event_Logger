@@ -9,6 +9,7 @@ const countFiles = require('./utils/countFiles');
 
 
 const InvitesTracker = require('@ssmidge/discord-invites-tracker');
+const { log } = require('node:console');
 
 async function setCookieWithTimeout(cookie, timeout = 10000) {
     return new Promise((resolve, reject) => {
@@ -82,7 +83,11 @@ const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'
 tracker.on('guildMemberAdd', async (member, type, invite) => {
     filePath = path.join(eventsPath, "guildMemberAdd.js")
     guildMemberAdd = require(filePath)
+    try {
     guildMemberAdd.execute(member, type, invite)
+    } catch (error) {
+        console.error('Error executing guildMemberAdd:', error)
+    }
 })    
 
 
@@ -103,7 +108,56 @@ for (const file of eventFiles) {
                     await logsChannel.send(timestamp + `${event.name} got triggered${event.name === "guildMemberAdd" ? `by ${event.member.id}` : ""}. Args:\n${args.join(", ")}`);
                 }
             }
-            event.execute(...args);
+            event.execute(...args).catch((error) => {
+                console.error(`Error executing ${event.name}:`, error);
+                if (testServer) {
+                    const logsChannel = testServer.channels.cache.get("1313126303775457320");
+                    if (logsChannel) {
+                        let errorLogs = "Error executing event: " + event.name + ": " 
+                        errorLogs += "\n**Error type:** " + error.name
+                        
+                        // More detailed error information
+                        if (error.message) {
+                            errorLogs += "\n**Error message:** " + error.message
+                        }
+                        
+                        // Add stack trace information (the most important part)
+                        if (error.stack) {
+                            // Limit the stack trace to a reasonable length to avoid Discord's message limits
+                            const stackTrace = error.stack.substring(0, 1500);
+                            errorLogs += "\n**Stack trace:**\n```\n" + stackTrace + "\n```"
+                        }
+                        
+                        if (error.cause) {
+                            errorLogs += "\n**Cause:** " + error.cause	
+                        }
+                        
+                        if (error.lineNumber) {
+                            errorLogs += "\n**Line number:** " + error.lineNumber
+                        }
+                        
+                        
+                        // Handle message length limits
+                        if (errorLogs.length > 1900) {
+                            // Split into multiple messages if too long
+                            const chunks = [];
+                            for (let i = 0; i < errorLogs.length; i += 1900) {
+                                chunks.push(errorLogs.substring(i, i + 1900));
+                            }
+                            
+                            chunks.forEach(chunk => {
+                                logsChannel.send(chunk).catch(err => {
+                                    console.error("Failed to send error log to channel:", err);
+                                });
+                            });
+                        } else {
+                            logsChannel.send(errorLogs).catch(err => {
+                                console.error("Failed to send error log to channel:", err);
+                            });
+                        }
+                    }
+                }
+            });
         });
 	}
 }

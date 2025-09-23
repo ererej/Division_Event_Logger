@@ -7,6 +7,8 @@
     const sealog = require('../../utils/sealog.js')
     const validateMessageLink = require('../../utils/validateMessageLink.js')
     const getNameOfPromoPoints = require("../../utils/getNameOfPromoPoints.js")
+    const checkMilestone = require('../../utils/checkMilestone.js');
+    const getLinkedChannel = require('../../utils/getLinkedChannel.js');
 
     module.exports = {
         data: new SlashCommandBuilder()
@@ -89,13 +91,13 @@
                 }
             }
 
-            const updateResponce = await dbHost.updateRank(noblox, server.group_id, host) ?? ""
+            const dbHostUpdateResponce = await dbHost.updateRank(server.group_id, host) ?? ""
             if (dbHost.rank_id === null) {
-                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank! Error: " + updateResponce.message)]})
+                return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank! Error: " + dbHostUpdateResponce.message)]})
             }
             
-            if (updateResponce.message) {
-                interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + updateResponce)]})
+            if (dbHostUpdateResponce.message) {
+                interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + dbHostUpdateResponce)]})
             }
             
             let cohost;
@@ -139,8 +141,11 @@
                 embeded_error.setDescription("Insuficent permissions!")
                 return await interaction.editReply({ embeds: [embeded_error]});
             }
-            let automaticAttendence = voice_channel.id === undefined && interaction.options.getBoolean('manual_attendence') !== true
-            if (voice_channel.id === undefined || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
+            const defaultAttendanceType = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "default_attendance_type"}})
+
+            let automaticAttendence;
+            if ((voice_channel.id === undefined || defaultAttendanceType.config === "manual") || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
+                automaticAttendence = false
                 const selectAttendees = new UserSelectMenuBuilder()
                 .setCustomId('select_attendees')
                 .setPlaceholder('Select the attendees')
@@ -326,7 +331,6 @@
             let total_attendes = 0, total_officers = 0
 
             let guild_ranks = await db.Ranks.findAll({ where: {guild_id: interaction.guild.id}})
-            guild_ranks = guild_ranks.sort((a, b) => {a.rank_index - b.rank_index})
             let mentions = `<@${host.id}> `
 
             let dbAttendees = []
@@ -339,6 +343,11 @@
                 promopointsRewarded = await db.Settings.findOne({ where: {guild_id: interaction.guild.id, type: "promopointsfor" + eventType}}) 
                 promopointsRewarded = promopointsRewarded ? promopointsRewarded.config : eventType === "gamenight" ? 0 : 1
             }
+
+            const milestones = await db.Milestones.findAll({ where: { guild_id: interaction.guild.id } })
+            let milestoneResponces = []
+            const milestoneLogs = await getLinkedChannel({db: db, query: { guild_id: interaction.guild.id, type: 'milestonelogs' }, guild: interaction.guild })
+
 
             for (const member of attendees) {
                 if (member.user.bot || host.id === member.user.id ) continue;
@@ -353,7 +362,7 @@
                 }
         
 
-                const updateRankResponse = await dbUser.updateRank(noblox, server.group_id, member);
+                const updateRankResponse = await dbUser.updateRank(server.group_id, member);
                 if (dbUser.rank_id === null) {
                     description += updateRankResponse.message
                     continue;
@@ -380,9 +389,21 @@
                 }
                 dbUser.total_events_attended += 1
                 const robloxUser = updateRankResponse.robloxUser
-                const addPromoPointResponce = (promopointsRewarded !== 0) ? await dbUser.addPromoPoints(noblox, server.group_id, member, guild_ranks, promopointsRewarded, robloxUser) : {message: `Thanks for attending! ${eventType}'s does not give ${nameOfPromoPoints} sorry!`}
+                const addPromoPointResponce = (promopointsRewarded !== 0) ? await dbUser.addPromoPoints(server.group_id, member, guild_ranks, promopointsRewarded, robloxUser, {milestoneLogs}) : {message: `Thanks for attending! ${eventType}'s does not give ${nameOfPromoPoints} sorry!`}
                 if (addPromoPointResponce && updateRankResponse.message) { description += "\n" }
                 description += addPromoPointResponce.message
+
+                milestoneResponces.push(...addPromoPointResponce.milestoneResponces ?? [])
+
+                const checkMemberEventsAttendedMilestoneResponce = await checkMilestone({db: db, type: 'member_events_attended', member: member, dbUser: dbUser, guildsMilestones: milestones, ranks: guild_ranks, robloxUser: robloxUser, milestoneLogs: milestoneLogs})
+                milestoneResponces.push(...checkMemberEventsAttendedMilestoneResponce.milestones ?? [])
+                
+                
+                const checkRecruitsEventsAttendedMilestoneResponce = await checkMilestone({db: db, type: 'recruit_events_attended', member: member, dbUser: dbUser, guildsMilestones: milestones, ranks: guild_ranks, robloxUser: robloxUser, milestoneLogs: milestoneLogs})
+                milestoneResponces.push(...checkRecruitsEventsAttendedMilestoneResponce.milestones ?? [])
+                
+
+
                 dbUser.save()
                 
             }
@@ -395,7 +416,7 @@
 
             const dbEvent = await db.Events.create({guild_id: interaction.guild.id, host: host.id, cohost: cohost ? cohost.id : null, type: eventType, attendees: attendeesIds, amount_of_attendees: total_attendes, officers: officers.toString(), amount_of_officers: total_officers, promopoints_rewarded: promopointsRewarded, announcment_message: announcmentMessage.url})
 
-            dbAttendees.forEach(async dbUser => {
+            dbAttendees.forEach(dbUser => {
                 dbUser.events = dbUser.events ? dbUser.events + "," + dbEvent.id : "" + dbEvent.id
                 dbUser.save()
             })
@@ -403,12 +424,33 @@
             const officer = await db.Officers.findOne({ where: {user_id: host.id, guild_id: interaction.guild.id, retired: null}})
             if (officer) {
                 officer.total_events_hosted += 1
+                const checkHostsMilestoneResponce = await checkMilestone({db: db, type: 'member_events_hosted', member: host, dbUser: dbHost, guildsMilestones: milestones, ranks: guild_ranks, robloxUser: dbHostUpdateResponce.robloxUser, officer})
+                milestoneResponces.push(...checkHostsMilestoneResponce.milestones ?? [])
                 officer.total_attendees += total_attendes
                 officer.save()
             }
+
+            if (dbCohost && cohost) {
+                const checkEventsCohostedMilestoneResponce = await checkMilestone({db: db, type: 'member_events_cohosted', member: cohost, dbUser: dbCohost, guildsMilestones: milestones, ranks: guild_ranks, robloxUser: dbHostUpdateResponce.robloxUser})
+                milestoneResponces.push(...checkEventsCohostedMilestoneResponce.milestones ?? [])
+
+            }
+
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Please wait just a little longer!!!").setColor([255, 0, 0])], components: []})
 
+            console.log(milestoneResponces)
 
+            milestoneResponces = milestoneResponces.filter((responce => responce !== undefined && responce.message !== undefined))
+
+            if (milestoneResponces.length > 0) {
+                description += `\n\n**Milestones achieved during this event:**`
+                milestoneResponces.forEach(responce => {
+                    console.log(responce)
+                    if (responce && responce.message) {
+                        description += `\n\n${responce.message}`
+                    }
+                })
+            }
 
             event_log_embed.setDescription(description)
             event_log_embed.setFooter({ text: `Total attendees: ${total_attendes} ID: ${dbEvent.id} Automatic Attendence: ${automaticAttendence}` })
@@ -443,5 +485,5 @@
 
             
 
-        },
+        }
     };

@@ -18,6 +18,7 @@ require('./models/Events.js')(sequelize, Sequelize.DataTypes);
 require('./models/Officers.js')(sequelize, Sequelize.DataTypes);
 require('./models/PremiumCodes.js')(sequelize, Sequelize.DataTypes);
 require('./models/SeaBans.js')(sequelize, Sequelize.DataTypes);
+require('./models/Milestones.js')(sequelize, Sequelize.DataTypes);
 
 const force = process.argv.includes('--force') || process.argv.includes('-f');
 

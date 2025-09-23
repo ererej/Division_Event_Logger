@@ -40,7 +40,7 @@ module.exports = {
         let promoterUpdateResponce = ""
         if (!promoter) {
             promoter = await db.Users.create({ user_id: interaction.member.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
-            promoterUpdateResponce = await promoter.updateRank(noblox, groupId, interaction.member)
+            promoterUpdateResponce = await promoter.updateRank(groupId, interaction.member)
             if (promoter.rank_id === null) {
                 return interaction.editReply({embeds: [embeded_error.setDescription("Couldn't verify your permissions due to not being able to verify your rank! Error given: " + promoterUpdateResponce.message)]})
             }
@@ -61,7 +61,7 @@ module.exports = {
         if (!user) {
             user = await db.Users.create({ user_id: member.user.id, guild_id: interaction.guild.id, promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
-        const updateResponce = await user.updateRank(noblox, groupId, member) ?? ""
+        const updateResponce = await user.updateRank(groupId, member) ?? ""
         if (user.rank_id === null) {
 
             return interaction.editReply({embeds: [embeded_error.setDescription(updateResponce.message)]} )
@@ -102,7 +102,7 @@ module.exports = {
             if (membersRankIndexInRanks > promotersRankIndexInRanks) {
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nYou can't demote someone that is a higher rank than yours!")]})
             }
-            const setRankResult = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks - demotions], updateResponce.robloxUser ).catch((err) => {
+            const setRankResult = await user.setRank(groupId, member, ranks[membersRankIndexInRanks - demotions], updateResponce.robloxUser ).catch((err) => {
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nAn error occured while trying to demote the user!")]})
             })
             reply += setRankResult.message
@@ -117,7 +117,7 @@ module.exports = {
             return interaction.editReply({embeds: [new EmbedBuilder().setDescription(reply)]})
         } else {
 
-            const removePromoPointsResponce = await user.removePromoPoints(noblox, groupId, member, ranks, demotions, updateResponce.robloxUser)
+            const removePromoPointsResponce = await user.removePromoPoints(groupId, member, ranks, demotions, updateResponce.robloxUser)
             reply += removePromoPointsResponce.message
             user.save()
 

@@ -1,4 +1,5 @@
-module.exports = async ({ noblox, guild, db, interaction, channel, dbChannel, group, groupId, rounding }) => {
+const noblox = require("noblox.js")
+module.exports = async ({guild, db, interaction, channel, dbChannel, group, groupId, rounding }) => {
     if (!guild) {
         if (!interaction) {
             console.error("No interaction or guild object provided in updateGroupMemberCount.js")
@@ -26,10 +27,6 @@ module.exports = async ({ noblox, guild, db, interaction, channel, dbChannel, gr
         }
     }
 
-    if (!noblox) {
-        console.error("No noblox object provided in updateGroupMemberCount.js")
-        return
-    }
     
 
     if (!rounding) {

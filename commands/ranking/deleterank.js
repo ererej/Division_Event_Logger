@@ -6,11 +6,11 @@ const config = require('../../config.json')
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName('deleterank')
-        .setDescription('edit an existing rank!')
+        .setDescription('Delete an existing rank!')
 		.setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         .addRoleOption(option => 
             option.setName('rank')
-                .setDescription('Please input the role liked to the rank you want to edit!')
+                .setDescription('Please input the role liked to the rank you want to delete!')
                 .setRequired(true)
         ),
 
