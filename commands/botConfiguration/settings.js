@@ -126,7 +126,6 @@ module.exports = {
                         { name: 'raid', value: 'raid' },
                         { name: 'rallybeforeraid', value: 'rallybeforeraid' },
                         { name: 'rallyafterraid', value: 'rallyafterraid' },
-                        { name: 'other', value: 'other' }
                     )
             )
             .addIntegerOption(option =>
@@ -135,7 +134,73 @@ module.exports = {
                     .setRequired(true)
                     .setMinValue(0)
             )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+            .setName('hostspromopointsperevent')
+            .setDescription('Determens how many promo points you get for hosting a specific event')
+            .addStringOption(option =>
+                option.setName('host_event_type')
+                    .setDescription("Enter the type of event you want to set the host's promo points for")
+                    .setRequired(true)
+                    .addChoices(
+                        { name: 'training', value: 'training' },
+                        { name: 'patrol', value: 'patrol' },
+                        { name: 'gamenight', value: 'gamenight' },
+                        { name: 'tryout', value: 'tryout' },
+                        { name: 'raid', value: 'raid' },
+                        { name: 'rallybeforeraid', value: 'rallybeforeraid' },
+                        { name: 'rallyafterraid', value: 'rallyafterraid' },
+                    )
+            )
+            .addIntegerOption(option =>
+                option.setName('host_promopoints')
+                    .setDescription('Enter how many promo points the host gets for hosting the event')
+                    .setRequired(true)
+                    .setMinValue(0)
+            )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+            .setName('cohostspromopointsperevent')
+            .setDescription('Determens how many promo points you get for co-hosting a specific event')
+            .addStringOption(option =>
+                option.setName('cohost_event_type')
+                    .setDescription("Enter the type of event you want to set the co-host's promo points for")
+                    .setRequired(true)
+                    .addChoices(
+                        { name: 'training', value: 'training' },
+                        { name: 'patrol', value: 'patrol' },
+                        { name: 'gamenight', value: 'gamenight' },
+                        { name: 'tryout', value: 'tryout' },
+                        { name: 'raid', value: 'raid' },
+                        { name: 'rallybeforeraid', value: 'rallybeforeraid' },
+                        { name: 'rallyafterraid', value: 'rallyafterraid' },
+                    )
+            )
+            .addIntegerOption(option =>
+                option.setName('cohost_promopoints')
+                    .setDescription('Enter how many promo points the co-host gets for co-hosting the event')
+                    .setRequired(true)
+                    .setMinValue(0)
+            )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('blackjackenabled')
+                .setDescription('Determens if the blackjack game is enabled or not')
+                .addStringOption(option =>
+                    option.setName('configuration')
+                        .setDescription('do you want the sealogs to be in a code block?')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'enabled', value: 'enabled'},
+                            { name: 'disabled', value: 'disabled'}
+                        )
+                )
+
         ),
+
         botPermissions: [PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ManageMessages, PermissionsBitField.Flags.ManageChannels],
         async execute(interaction) {
             await interaction.deferReply()
@@ -278,9 +343,38 @@ module.exports = {
                     if (setting) {
                         await setting.update({ config: promopoints })
                     } else {
-                        await db.Settings.create({ guild_id: interaction.guild.id, type: `${event_type}promopoints`, config: promopoints })
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: `promopointsfor${event_type}`, config: promopoints })
                     }
                     return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the promo points for ***${event_type}*** to **${promopoints}**`) ] })
+                case 'hostspromopointsperevent':
+                    const hostEventType = interaction.options.getString('host_event_type')
+                    const hostPromopoints = interaction.options.getInteger('host_promopoints')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `hostpromopointsfor${hostEventType}` } })
+                    if (setting) {
+                        await setting.update({ config: hostPromopoints })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: `hostpromopointsfor${hostEventType}`, config: hostPromopoints })
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set how many promopoints the host gets for hosting ***${hostEventType}*** to **${hostPromopoints} Promo Points**`) ] })
+                case 'cohostspromopointsperevent':
+                    const cohostEventType = interaction.options.getString('cohost_event_type')
+                    const cohostPromopoints = interaction.options.getInteger('cohost_promopoints')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `cohostpromopointsfor${cohostEventType}` } })
+                    if (setting) {
+                        await setting.update({ config: cohostPromopoints })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: `cohostpromopointsfor${cohostEventType}`, config: cohostPromopoints })
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set how many promopoints the co-host gets for hosting ***${cohostEventType}*** to **${cohostPromopoints} Promo Points**`) ] })
+                case 'blackjackenabled':
+                    const blackjackEnabled = interaction.options.getString('configuration')
+                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: 'blackjackenabled' } })
+                    if (setting) {
+                        await setting.update({ config: blackjackEnabled })
+                    } else {
+                        await db.Settings.create({ guild_id: interaction.guild.id, type: 'blackjackenabled', config: blackjackEnabled })
+                    }
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set blackjack enabled to **${blackjackEnabled}**`) ] })
             }
         }
 

@@ -11,14 +11,24 @@ module.exports = {
 	 * @returns {Promise<void>}
 	 */
 	async execute(interaction) {
+		if (interaction.isAutocomplete()) {
+			const command = interaction.client.commands.get(interaction.commandName);
+			if (!command.autocomplete) console.error(`No autocomplete matching ${interaction.commandName} was found.`);
+			try {
+				await command.autocomplete(interaction);
+			} catch (error) {
+				console.error(error);
+			}
+			return;
+		}
+
 		if (!interaction.isChatInputCommand()) return;
 		if (!interaction.guild) return interaction.reply({ content: "Commands in DMs are disabled thanks to RY782 sorry!", MessageFlags: MessageFlags.Ephemeral });
 		//check if the bot has critical permissions
 		if (!interaction.guild.members.cache.get("1201941514520117280").permissions.has(PermissionsBitField.Flags.SendMessages) || !interaction.guild.members.cache.get("1201941514520117280").permissions.has(PermissionsBitField.Flags.ViewChannel)) {
 			return interaction.user.send({ embeds: [new EmbedBuilder().setTitle("I'm missing permissions!").setDescription(`I'm need the following permissions to respond to commands: \`Send Messages\` and \`View Channel\``).setColor([255, 0, 0])] });
 		}
-		if (!interaction.guild) { return interaction.reply("Commands in DMs are disabled sorry!")}
-
+		
 		const command = interaction.client.commands.get(interaction.commandName);
 
 		if (!command) {
@@ -29,6 +39,8 @@ module.exports = {
 		if (command.disabled) {
 			return interaction.reply("sorry this command has been disabled and is pending removal!")
 		}
+
+		
 
 		try {
 			//logs 

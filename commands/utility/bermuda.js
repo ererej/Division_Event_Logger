@@ -45,8 +45,8 @@ module.exports = {
                 case 'test':
                     const servers = await db.Servers.findAll()
                     const premiumServers = servers.filter(server => server.premium_end_date > Date.now())
-                    
-                    return interaction.editReply({content: `There are ${servers.length} servers using the bot, and ${premiumServers.length} of them are premium!\n\n` + servers.map(server => `${server.name}`).join("\n")})
+
+                    return interaction.editReply({content: `All premium servers:\n` + premiumServers.map(server => `${server.name}`).join("\n")})
                 break;
                 case 'test2':
                     const guilds = await interaction.client.guilds.fetch()
@@ -110,16 +110,18 @@ module.exports = {
                     
                     return
                 case 'test6':
-                    const guilds6 = ["1277358998525313025", "1292064430200459264", "1185947768972378224"]
+                    const guilds6 = ["1325861854798418052", "1293740920503533669", "1278574405517054014", "1338508647659208714", "1345374617002311691", "1344176415716671489"]
                     let reply = ""
                     for (let i = 0; i < guilds6.length; i++) {
                         const guild6 = await interaction.client.guilds.fetch(guilds6[i]).catch(error => {   
                             console.error(`Failed to fetch guild ${guilds6[i]}:`, error);
                         })
-                        await guild6.leave().catch(error => {
-                            console.error(`Failed to leave guild ${guild6.name}:`, error);
-                        })
-                        reply += `left ${guild6.name}!\n`
+                        if (guild6 ) {
+                            await guild6.leave().catch(error => {
+                                console.error(`Failed to leave guild ${guild6.name}:`, error);
+                            })
+                            reply += `left ${guild6.name}! Owner **<@${guild6.ownerId}>**\n`
+                        }
                     }
                     return interaction.editReply({content: reply})
                     break;

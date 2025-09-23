@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors } = require('discord.js');
 const db = require("../../dbObjects.js")
-const sequelize = require("sequelize")
+const sequelize = require("sequelize");
+const { premiumLock } = require('../fun/blackJack.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,6 +12,8 @@ module.exports = {
             .setDescription('Want to only check activity of a all officers with a specific rank? select it here!')
             .setRequired(false)),
 
+    premiumLock: true,
+        
     async execute(interaction) {
         await interaction.deferReply()
 

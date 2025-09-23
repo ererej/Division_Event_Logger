@@ -58,6 +58,10 @@ module.exports = {
     )
     ,
     
+    /**
+    * @param {import('discord.js').CommandInteraction} interaction
+    */
+
     async execute(interaction) { //! it should let you edit the host, cohost, attendees, the game it happened on, the date, the time
         await interaction.deferReply();
         const event_id = interaction.options.getInteger('event_id');
@@ -128,7 +132,7 @@ module.exports = {
             const removeButton = new ButtonBuilder().setCustomId('remove_attendees').setLabel('Remove Attendees').setStyle('Danger');
             const bothButton = new ButtonBuilder().setCustomId('both').setLabel('Both').setStyle('Secondary');
             const row = new ActionRowBuilder().addComponents(addButton, removeButton, bothButton);
-            const responce = interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Would you like to *add*, *remove* or *both* add and remove attendees?`).setColor(Colors.Blue)], components: [row] });
+            const responce = await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`Would you like to *add*, *remove* or *both* add and remove attendees?`).setColor(Colors.Blue)], components: [row] });
             
             const collectorFilter = i => i.user.id === interaction.user.id && (i.customId === 'add_attendees' || i.customId === 'remove_attendees' || i.customId === 'both') ;
             try {
@@ -141,7 +145,14 @@ module.exports = {
                 if (editMethod === 'remove_attendees' && eventAttendees.length < 26) {
                     memberSelectMenu = new StringSelectMenuBuilder()
                     eventAttendees.forEach(attendee => {
-                        memberSelectMenu.addOption(option => option.setLabel(attendee.displayName).setValue(attendee.id))
+                        console.log("Adding attendee to select menu:");
+                        console.log(attendee.id);
+                        memberSelectMenu.addOptions([
+                            {
+                                label: attendee.displayName,
+                                value: attendee.id
+                            }
+                        ]);
                     });
                 }
 
@@ -208,7 +219,7 @@ module.exports = {
                             promoLogs += "Updated rank:\n" + updateRankResponse.message;
                             if (updateRankResponse.error) {
                                 promoLogs += "\n";
-                                return;
+                                return; 
                             }
                             const addPromoPointsResponce = await dbAttendee.addPromoPoints(noblox, group_id, guildMember, ranks, promopointsRewarded);
                             
@@ -296,7 +307,7 @@ module.exports = {
         event.save();
 
         //! make it edit the seaLog and send a new promoLog with the changes
-        const seaLog = await validateMessageLink(interaction, event.sealog_message_link);
+        const sealog = await validateMessageLink(interaction, event.sealog_message_link);
         // TODO rework utils/sealog.js to use utils/generateSeaLogFormat.js 
         //TODO check if its possible to edit the picture. some people say that you can if you clear the messages attachments and then add the picture
         interaction.editReply({ embeds: [new EmbedBuilder().setDescription(generateSeaLogFormat({
@@ -311,5 +322,22 @@ module.exports = {
             
             })
         )]});
+        if (sealog) {
+            try {
+                await sealog.message.edit({ embeds: [new EmbedBuilder().setDescription(generateSeaLogFormat({
+                    eventType: event.type,
+                    DivisionName: server.name ?? interaction.guild.name,
+                    announcmentLink: event.announcment_message,
+                    Date: date,
+                    lenth: event.length,
+                    attendeeCount: event.amount_of_attendees,
+                    mapName: event.game,
+                    codeblock: (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock"}})) ? "```" : "",
+                    
+                }))]});
+            } catch (error) {
+                console.error("Failed to edit the sealog message:", error);
+            }
+        }
     }
 }

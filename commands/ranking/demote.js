@@ -104,6 +104,7 @@ module.exports = {
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nYou can't demote someone that is a higher rank than yours!")]})
             }
             const setRankResult = await user.setRank(noblox, groupId, member, ranks[membersRankIndexInRanks - demotions], updateResponce.robloxUser ).catch((err) => {
+                console.log(err)
                 return interaction.editReply({embeds: [embeded_error.setDescription(reply + "\nAn error occured while trying to demote the user!")]})
             })
             reply += setRankResult.message

@@ -8,7 +8,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator)
         .addStringOption(option =>
             option.setName('users')
-                .setDescription('seperate the users with ","!')
+                .setDescription('Separate the users with anything you want! Yes anything! new lines, spaces, commas, a poem etc!')
                 .setRequired(true)
         )
         .addStringOption(option =>
@@ -20,18 +20,28 @@ module.exports = {
         await interaction.deferReply()
 
         const banlogsChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "banlogs" })
+        
+        // let userIds = interaction.options.getString('users').replace('\n', ',').replace(" ", ',').replace('    ', ',').replace(' ', ",").replace('\t', ',').split(',')
 
-        let UserIDs = interaction.options.getString('users').split(',')
-        if (UserIDs.length < 1) {
-            UserIDs = interaction.options.getString('users').split('\n')
-        } 
-        if (UserIDs.length < 1) {
-            UserIDs = interaction.options.getString('users').split(' ')
+        let userIds = []
+        let tempstring = ""
+        for (let i = 0; i < interaction.options.getString('users').length; i++) {
+            const char = interaction.options.getString('users')[i]
+            if (char.match(/[0-9]/)) {
+                tempstring += char
+            } else {
+                if (tempstring.length > 0) {
+                    userIds.push(tempstring)
+                    tempstring = ""
+                }
+            }
         }
-        if (UserIDs.length < 1) {
-            UserIDs = interaction.options.getString('users').split(' ')
+        if (tempstring.length > 0) {
+            userIds.push(tempstring)
         }
-        UserIDs = UserIDs.map(id => id.trim())
+
+        
+        userIds = userIds.map(id => id.trim())
         let bancount = 0
         let failedBans = 0
         let replyString = ""
@@ -41,9 +51,9 @@ module.exports = {
             bannedUsers.push(ban.user.id)
         })
         let index = 0
-        for (const userId of UserIDs) {
+        for (const userId of userIds) {
             try {
-                replyString += `[${index + 1}/${UserIDs.length}]`
+                replyString += `[${index + 1}/${userIds.length}]`
                 index++
                 if (!bannedUsers.includes(userId)) {
                     try {
@@ -52,7 +62,7 @@ module.exports = {
                             reason: `SEA banned by ${interaction.user.tag} (${interaction.user.id})!`
                         })
                         
-                        replyString += ` ✅ **banned <@${userId}>!!!!**\n`
+                        replyString += ` ✅ **Banned <@${userId}>!!!!**\n`
                         if (banlogsChannel.channel) { 
                             banlogsChannel.channel.send({
                                 content: `:ballot_box_with_check: <@${userId}> has been banned by <@${interaction.user.id}>!`, 
@@ -61,23 +71,25 @@ module.exports = {
                         }
                         bancount++
                     } catch(err) {
-                        replyString += ` ❌ **failed to ban <@${userId}>! Error received: ${err.name}  ${err.message}**\n`
+                        replyString += ` ❌ **Failed to ban <@${userId}>! Error received: ${err.name}  ${err.message}**\n`
                         failedBans++
                     }
                 } else {
                     replyString += ` :ballot_box_with_check: *<@${userId}> is already banned :D*\n`
                 }
             } catch(err)  {
-                replyString += `❌**failed to ban <@${userId}>! Error received: ${err.name}  ${err.message}**\n`
+                replyString += `❌**Failed to ban <@${userId}>! Error received: ${err.name}  ${err.message}**\n`
                 failedBans++
             }
         } 
         replyString += `**banned ${bancount} users!**\n`
+        const insults = ["The purge has begun...", ` ✅ *Banned <@${interaction.user.id}>!!!! Na jk!*`, "Dont you think I have better stuff to do then this?", "Dont you have anything better to do?", "The purge is upon us!", "They are dropping like flies!", "What did they do to deserve this!??!", "Why dont you just do this yourself next time?", "Aint it your job to ban these guys?", "Youre lucky I did this for you!", "I hope you appreciate this!", "I could have just ignored your request...", "Im watching you...", "This is why I drink", "Im not paid enough for this...", "Is that it? You could have just done it yourself...", "I bet you feel powerful now, dont you?", "You do realise I have feelings too, right?", "This is why bots are better then humans", "You know I could just ban you instead, right?", "I hope you know what youre doing...", "I really hope they deserved it..."];
+        const selectedInsult = `\n\n# *${insults[Math.floor(Math.random() * insults.length)]}*`;
         if (failedBans > 0) {
             replyString += `***failed to ban ${failedBans} users!***\n`
         } 
-        if (replyString.length <= 2000) {
-            interaction.editReply(replyString)
+        if (replyString.length + selectedInsult.length <= 2000) {
+            interaction.editReply(replyString + selectedInsult)
         } else {
             interaction.editReply('# ***banning users:***')
             let subStrings = replyString.split("\n")
@@ -91,6 +103,7 @@ module.exports = {
                 }
             }
 
+            tempstring += `\n\n# *${selectedInsult}*`
             interaction.channel.send(tempstring)
         }
 
