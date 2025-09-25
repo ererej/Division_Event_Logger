@@ -34,7 +34,7 @@ module.exports = async ({ noblox, guild, db, interaction, channel, dbChannel, gr
 
     if (!rounding) {
         if (!db) { console.error("No db or rounding object provided in updateGroupMemberCount.js"); return; }
-        rounding = await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ?? "1"
+        rounding = await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ?? {config: "1"}
     }
 
     if (!group) {
@@ -53,6 +53,6 @@ module.exports = async ({ noblox, guild, db, interaction, channel, dbChannel, gr
         })
     }
 
-    channel.setName(`Group Members: ${Math.floor(group.memberCount / parseInt(rounding)) * parseInt(rounding)}`)
+    channel.setName(`Group Members: ${Math.floor(group.memberCount / parseInt(rounding.config)) * parseInt(rounding.config)}`)
     return true
 }
