@@ -174,6 +174,8 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         .setStyle(1)
         .setCustomId('send_to_sea_logs')
 
+    const row = new ActionRowBuilder()
+        .addComponents(sendToSeaButton);
 
     const dbLogChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
     if (dbLogChannel) {
@@ -194,7 +196,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
             if (logChannelLink) {
                 logChannel.send(`VVV ${logChannelLink} VVV`)
             }
-            return {sealog: await logChannel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] }), length: eventLength, game: mapName}
+            return {sealog: await logChannel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}], components: [row] }), length: eventLength, game: mapName}
         }
     }
 
@@ -202,7 +204,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         mapName = "Navy Simulator"
     }
     
-    const log = await interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] })
+    const log = await interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}], components: [row] })
     interaction.channel.send({ content: "You can make the format be sent to a specific channel by running the /linkchannel command and setting the type to sealog!", flags: MessageFlags.Ephemeral })
     return {sealog: log, length: eventLength, game: mapName, date: eventStartTime}
     
