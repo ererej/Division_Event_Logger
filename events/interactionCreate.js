@@ -46,8 +46,7 @@ module.exports = {
                     logchannelId = lastMessage.content.replace("VVV <#", "").replace("> VVV", "")
                 }
 				
-				logchannelId = "1213718932238762004"; //! temporary override while testing
-				const logchannel = interaction.client.guilds.cache.get("1073682080380243998").channels.cache.get(logchannelId);
+				const logchannel = interaction.client.guilds.cache.get("586419206178996224").channels.cache.get(logchannelId);
 				if (!logchannel) {
 					return interaction.reply({ content: "Could not find the log channel sorry!", flags: MessageFlags.Ephemeral });
 				}
