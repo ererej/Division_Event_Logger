@@ -4,12 +4,66 @@ const config = require('./config.json')
 
 const test = async () => {
 
-    const groupID = 34016362
-     
+    const seamilitaryId = 2648601
 
-    const Ranks = await noblox.getRoles(groupID)
-    Ranks.forEach(rank => console.log(rank.name +" "+ rank.id + " " + rank.rank))
+    const bilGroupId = 34309406
+
+    const rankNames = ["[HR1]", "[HR2]", "[HR3]", "[HC1]", "[HC2]", "[HC3]", "[M]"]
+
+    const bilRanks = await noblox.getRoles(bilGroupId)
+
+    const bilMembers = await noblox.getPlayers(bilGroupId, bilRanks.map(rank => rank.id))
+
+    const bilMemberIds = bilMembers.map(member => member.userId)    
+    
+    for (const rankName of rankNames) {
+        let ranks = await noblox.getRoles(seamilitaryId)
+        ranks = ranks.filter(rank=> rank.name.includes(rankName))
+        console.log(`\nOfficers with rank ${rankName}:`)
+        const officers = await noblox.getPlayers(seamilitaryId, ranks.map(rank => rank.id))
+
+        for (const officer of officers) {
+            if (bilMemberIds.includes(officer.userId)) {
+                console.log(`${officer.username} (${officer.userId})`)
+            }
+        }
+    }
+
+    
      
 };
 
-test()
+// test()
+
+
+
+
+const test2 = async () => {
+
+    const officerAccademyId = 35403813
+
+    const bilGroupId = 34309406
+
+    const officerAccademyRanks = await noblox.getRoles(officerAccademyId)
+
+    const bilRanks = await noblox.getRoles(bilGroupId)
+
+    const bilMembers = await noblox.getPlayers(bilGroupId, bilRanks.map(rank => rank.id))
+
+    const bilMemberIds = bilMembers.map(member => member.userId)    
+    
+    for (const rankName of officerAccademyRanks.map(rank => rank.name)) {
+
+        ranks = officerAccademyRanks.filter(rank=> rank.name.includes(rankName))
+        console.log(`\n${rankName} that are in BIL:`)
+        const officers = await noblox.getPlayers(officerAccademyId, ranks.map(rank => rank.id))
+
+        for (const officer of officers) {
+            if (bilMemberIds.includes(officer.userId)) {
+                console.log(`${officer.username} (${officer.userId})`)
+            }
+        }
+    }
+     
+};
+test2()

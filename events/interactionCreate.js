@@ -38,15 +38,18 @@ module.exports = {
 
 				let logchannelId;
 
-				const channel_messages = await message.channel.messages.fetch({ around: message.id, limit: 2 });
+				const channel_messages = await message.channel.messages.fetch({ around: message.id, limit: 3 });
                 // find and delete any VVV <#channel_id> VVV messages
                 const lastMessage = channel_messages.last();
+				
                 const regex = /^VVV <#\d+> VVV$/
                 if (lastMessage && regex.test(lastMessage.content)) {
                     logchannelId = lastMessage.content.replace("VVV <#", "").replace("> VVV", "")
                 }
 				
-				const logchannel = interaction.client.guilds.cache.get("586419206178996224").channels.cache.get(logchannelId);
+				const seaMilitary = interaction.client.guilds.cache.get("586419206178996224")
+				
+				const logchannel = seaMilitary.channels.cache.get(logchannelId);
 				if (!logchannel) {
 					return interaction.reply({ content: "Could not find the log channel sorry!", flags: MessageFlags.Ephemeral });
 				}

@@ -170,7 +170,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     format += "Screenshot of Event: " + codeblock
 
     const sendToSeaButton = new ButtonBuilder()
-        .setLabel('Send to SEA Logs Channel')
+        .setLabel('Send to SEA')
         .setStyle(1)
         .setCustomId('send_to_sea_logs')
 
