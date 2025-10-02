@@ -1,7 +1,6 @@
-module.exports = ({eventType, DivisionName, announcmentLink, Date, lenth, attendeeCount, mapName, codeblock=""}) => {
+module.exports = ({eventType, DivisionName, announcmentLink, Date, lenth, attendeeCount, mapName}) => {
     //todo actully make the function!
     let format = `
-    ${codeblock ? "```" : ""}
     Divison: ${DivisionName}
     Link to Event: ${announcmentLink}
     Date: ${Date}\n`
@@ -11,7 +10,6 @@ module.exports = ({eventType, DivisionName, announcmentLink, Date, lenth, attend
     format += ["tryout", "training"].includes(eventType) ? `Map Name: ${mapName}\n` : ""
     format += ["tryout", "training"].includes(eventType) ? `base: No\n` : ""
     format += `Screenshot of Event:
-    ${codeblock ? "```" : ""}
     `
     return format
 }

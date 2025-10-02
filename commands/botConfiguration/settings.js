@@ -86,20 +86,6 @@ module.exports = {
         )
         .addSubcommand(subcommand =>
             subcommand
-                .setName('makesealogcodeblock')
-                .setDescription('puts the sea log in a code block to make it easier to copy')
-                .addStringOption(option =>
-                    option.setName('configuration')
-                        .setDescription('do you want the sealogs to be in a code block?')
-                        .setRequired(true)
-                        .addChoices(
-                            { name: 'codeblock', value: 'codeblock'},
-                            { name: 'normal', value: 'normal'}
-                        )
-                )
-        )
-        .addSubcommand(subcommand =>
-            subcommand
                 .setName('nameofpromopoints')
                 .setDescription('[Premium] determens the name of promo points so that you can name them stuff like "exp" or "points"')
                 .addStringOption(option =>
@@ -314,19 +300,6 @@ module.exports = {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: "orderoftheranksinranks", config: order })
                     }
                     return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the order of the ranks in /ranks to ${order ? "high to low" : "low to high"}`) ] })
-                case 'makesealogcodeblock':
-                    const configuration = interaction.options.getString('configuration')
-                    setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock" } })
-                    if (setting) {
-                        await setting.update({ config: configuration })
-                    } else {
-                        await db.Settings.create({ guild_id: interaction.guild.id, type: "makesealogcodeblock", config: configuration })
-                    }
-                    if (configuration === "codeblock") {
-                        return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the sea log to be in a code block`) ] })
-                    } else {
-                        return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set the sea log to be normal`) ] })
-                    }
                 case 'nameofpromopoints':
                     const name = interaction.options.getString('name')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "nameofpromopoints" } })

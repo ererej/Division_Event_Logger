@@ -2,13 +2,12 @@ const { EmbedBuilder, ButtonBuilder, ActionRowBuilder } = require('@discordjs/bu
 const cheerio = require('cheerio');
 const { MessageFlags } = require('discord.js');
 module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eventType, numberOfAttendees, homeBase=false) => {
-    const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock"}})) == "codeblock" ? "```" : ""
     
 
     const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
 
 
-    let format = codeblock + `Division: ${server ? server.name : interaction.guild.name} \n`
+    let format = `Division: ${server ? server.name : interaction.guild.name} \n`
     format += `Link to Event: https://discord.com/channels/${interaction.guild.id}/${announcemntMessage.channelId}/${announcemntMessage.id} \n`
     //time of event
     
@@ -167,7 +166,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     }
 
 
-    format += "Screenshot of Event: " + codeblock
+    format += "Screenshot of Event: "
 
     const sendToSeaButton = new ButtonBuilder()
         .setLabel('Send to SEA')
