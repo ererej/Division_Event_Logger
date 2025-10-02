@@ -20,10 +20,47 @@ module.exports = {
 				console.error(error);
 			}
 			return;
+		} 
+
+		if (interaction.isButton()) {
+			const buttonId = interaction.customId;
+			const message = interaction.message;
+			if (buttonId === 'send_to_sea_logs') {
+				if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator || PermissionsBitField.Flags.ManageGuild)) {
+					return interaction.reply({ content: "You need to be an administrator or have the manage guild permission to use this button sorry!", flags: MessageFlags.Ephemeral });
+				}
+
+				// const event = await db.Events.findOne({ where: { guild_id: interaction.guild.id, sealog_message_link: message.url }});
+				// if (event) {
+				// 	event.logged = true;
+				// 	await event.save();
+				// }
+
+				let logchannelId;
+
+				const channel_messages = await message.channel.messages.fetch({ around: message.id, limit: 3 });
+                // find and delete any VVV <#channel_id> VVV messages
+                const lastMessage = channel_messages.last();
+				
+                const regex = /^VVV <#\d+> VVV$/
+                if (lastMessage && regex.test(lastMessage.content)) {
+                    logchannelId = lastMessage.content.replace("VVV <#", "").replace("> VVV", "")
+                }
+				
+				const seaMilitary = interaction.client.guilds.cache.get("586419206178996224")
+				
+				const logchannel = seaMilitary.channels.cache.get(logchannelId);
+				if (!logchannel) {
+					return interaction.reply({ content: "Could not find the log channel sorry!", flags: MessageFlags.Ephemeral });
+				}
+				await logchannel.send({ content: message.content + "\nLogged by: <@" + interaction.user.id + ">", files: message.attachments.map(a => a.url) });
+				message.edit({ components: [], content: message.content + "\n\n*This message has been logged to the SEA logs by <@" + interaction.user.id + ">*" });
+				return interaction.reply({ content: "Successfully sent the message to the log channel!", flags: MessageFlags.Ephemeral });
+			}
 		}
 
 		if (!interaction.isChatInputCommand()) return;
-		if (!interaction.guild) return interaction.reply({ content: "Commands in DMs are disabled thanks to RY782 sorry!", MessageFlags: MessageFlags.Ephemeral });
+		if (!interaction.guild) return interaction.reply({ content: "Commands in DMs are disabled thanks to RY782 sorry!", flags: MessageFlags.Ephemeral });
 		//check if the bot has critical permissions
 		if (!interaction.guild.members.cache.get("1201941514520117280").permissions.has(PermissionsBitField.Flags.SendMessages) || !interaction.guild.members.cache.get("1201941514520117280").permissions.has(PermissionsBitField.Flags.ViewChannel)) {
 			return interaction.user.send({ embeds: [new EmbedBuilder().setTitle("I'm missing permissions!").setDescription(`I'm need the following permissions to respond to commands: \`Send Messages\` and \`View Channel\``).setColor([255, 0, 0])] });

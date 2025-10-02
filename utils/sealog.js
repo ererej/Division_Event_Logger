@@ -2,13 +2,12 @@ const { EmbedBuilder, ButtonBuilder, ActionRowBuilder } = require('@discordjs/bu
 const cheerio = require('cheerio');
 const { MessageFlags } = require('discord.js');
 module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eventType, numberOfAttendees, homeBase=false) => {
-    const codeblock = (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock"}})) == "codeblock" ? "```" : ""
     
 
     const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } })
 
 
-    let format = codeblock + `Division: ${server ? server.name : interaction.guild.name} \n`
+    let format = `Division: ${server ? server.name : interaction.guild.name} \n`
     format += `Link to Event: https://discord.com/channels/${interaction.guild.id}/${announcemntMessage.channelId}/${announcemntMessage.id} \n`
     //time of event
     
@@ -167,34 +166,37 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     }
 
 
-    format += "Screenshot of Event: " + codeblock
+    format += "Screenshot of Event: "
 
     const sendToSeaButton = new ButtonBuilder()
-        .setLabel('Send to SEA Logs Channel')
+        .setLabel('Send to SEA')
         .setStyle(1)
         .setCustomId('send_to_sea_logs')
 
+    const row = new ActionRowBuilder()
+        .addComponents(sendToSeaButton);
+
+    let logChannelLink;
+    switch (eventType) {
+        case "training":
+            logChannelLink = "<#1085337363359731782>"
+            break;
+        case "patrol":
+            logChannelLink = "<#1085337383618236457>"
+            break;
+        case "tryout":
+            logChannelLink = "<#1085337402329022574>"
+            break;
+    }
 
     const dbLogChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
     if (dbLogChannel) {
         const logChannel = interaction.guild.channels.cache.get(dbLogChannel.channel_id)
         if (logChannel) {
-            let logChannelLink;
-            switch (eventType) {
-                case "training":
-                    logChannelLink = "<#1085337363359731782>"
-                    break;
-                case "patrol":
-                    logChannelLink = "<#1085337383618236457>"
-                    break;
-                case "tryout":
-                    logChannelLink = "<#1085337402329022574>"
-                    break;
-            }
             if (logChannelLink) {
                 logChannel.send(`VVV ${logChannelLink} VVV`)
             }
-            return {sealog: await logChannel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] }), length: eventLength, game: mapName}
+            return {sealog: await logChannel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}], components: [row] }), length: eventLength, game: mapName}
         }
     }
 
@@ -202,7 +204,11 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         mapName = "Navy Simulator"
     }
     
-    const log = await interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}] })
+    if (logChannelLink) {
+        interaction.channel.send(`VVV ${logChannelLink} VVV`)
+    }
+
+    const log = await interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}], components: [row] })
     interaction.channel.send({ content: "You can make the format be sent to a specific channel by running the /linkchannel command and setting the type to sealog!", flags: MessageFlags.Ephemeral })
     return {sealog: log, length: eventLength, game: mapName, date: eventStartTime}
     

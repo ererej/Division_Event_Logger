@@ -105,7 +105,7 @@ for (const file of eventFiles) {
                     let time = new Date();
                     const timestamp = "[" + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "] "; 
 
-                    await logsChannel.send(timestamp + `${event.name} got triggered${event.name === "guildMemberAdd" ? `by ${event.member.id}` : ""}. Args:\n${args.join(", ")}`);
+                    await logsChannel.send(timestamp + `${event.name} got triggered. Args:\n${args.join(", ")}`);
                 }
             }
             event.execute(...args).catch((error) => {
