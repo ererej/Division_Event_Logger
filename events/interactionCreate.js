@@ -30,7 +30,7 @@ module.exports = {
 					return interaction.reply({ content: "You need to be an administrator or have the manage guild permission to use this button sorry!", flags: MessageFlags.Ephemeral });
 				}
 
-				const event = await db.Events.findOne({ where: { guild_id: interaction.guild.id, sealog_message_link: message.url }});
+				// const event = await db.Events.findOne({ where: { guild_id: interaction.guild.id, sealog_message_link: message.url }});
 				// if (event) {
 				// 	event.logged = true;
 				// 	await event.save();

@@ -405,7 +405,6 @@ Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
 					break
 				}
 			} else {
-				console.log(this.promo_points)
 				this.promo_points -= demotions
 				showPromoPoints = true
 				demotions = 0
