@@ -33,11 +33,12 @@ module.exports = {
                     
                 )
         ),
-
+    premiumLock: true,
 
     /**
      * @param {import('discord.js').CommandInteraction} interaction
     */
+    
     async execute(interaction) {
         await interaction.reply("fetching data")
         const embeded_error = new EmbedBuilder().setColor(Colors.Red)
@@ -51,6 +52,11 @@ module.exports = {
 
         if (recruiterRole && selectedRecruiter) {
             return interaction.editReply({ embeds: [embeded_error.setDescription("You can only select either a user or a role not both at the same time!")] });
+        }
+
+        if (!recruiterRole && !selectedRecruiter) {
+            //default to the command user
+            recruiters = [interaction.member]
         }
 
 

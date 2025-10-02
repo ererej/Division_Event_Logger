@@ -22,7 +22,7 @@ module.exports = {
 
         milestones.forEach(milestone => {
             embed.addFields(
-                { name: milestone.custom_name, value: `Type: ${milestone.milestone_type}\nCondition type: ${milestone.condition_type}\nCondition amount/rank: ${milestone.condition_type === "integer" ? milestone.condition_config : "<@&" + milestone.condition_config + ">" } \nReward type: ${milestone.reward_type} \nReward: ${milestone.reward} \n max rank: ${milestone.max_rank} \n min rank: ${milestone.min_rank} \n Applies to officers: ${milestone.applies_to_officers ? "Yes" : "No"}`, inline: false }
+                { name: milestone.custom_name, value: `Type: ${milestone.milestone_type.replace("member_", "").replaceAll("_", " ")}\nCondition type: ${milestone.condition_type}\nCondition amount/rank: ${milestone.condition_type === "integer" ? milestone.condition_config : "<@&" + milestone.condition_config + ">" } \nReward type: ${milestone.reward_type} \nReward: ${milestone.reward_type === 'role' ? '<@&' + milestone.reward + '>' : milestone.reward} \n max rank: ${milestone.max_rank} \n min rank: ${milestone.min_rank} \n Applies to officers: ${milestone.applies_to_officers ? "Yes" : "No"}`, inline: true }
             );
         });
 

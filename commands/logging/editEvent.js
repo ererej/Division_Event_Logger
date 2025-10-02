@@ -4,6 +4,7 @@ const db = require("../../dbObjects");
 const { Op, and } = require("sequelize");
 const generateSeaLogFormat = require("../../utils/generateSealogFormat");
 const noblox = require("noblox.js");
+const getLinkedChannel = require("../../utils/getLinkedChannel");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -113,18 +114,18 @@ module.exports = {
 
         
 
-        let promoLogs = "";
+        let promoLogs = "# changes made to event id " + event.id + ":\n";
         if (interaction.options.getBoolean('edit_attendees')) {
-            let attendees = []
+            let attendees = [];
             let eventAttendees = event.attendees.split(",");
             eventAttendees = await db.Users.findAll({ where: { id: { [Op.in]: eventAttendees }, guild_id: interaction.guild.id } });
             for (let i = 0; i < eventAttendees.length; i++) {
                 const member = await interaction.guild.members.fetch(eventAttendees[i]);
-                attendees.push(member);
+                eventAttendees[i].member = member;
             }
-            eventAttendees = attendees
+           
 
-
+           
             const ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id } });
 
 
@@ -141,19 +142,23 @@ module.exports = {
                 const editMethod = selection.customId;
                 
                 let memberSelectMenu = new UserSelectMenuBuilder()
+                memberSelectMenu.setMinValues(1);
+                memberSelectMenu.setMaxValues(25);
                     
                 if (editMethod === 'remove_attendees' && eventAttendees.length < 26) {
                     memberSelectMenu = new StringSelectMenuBuilder()
-                    eventAttendees.forEach(attendee => {
-                        console.log("Adding attendee to select menu:");
-                        console.log(attendee.id);
+                    memberSelectMenu.setMinValues(1);
+                    memberSelectMenu.setMaxValues(eventAttendees.length);
+                    
+                    for (let attendee of eventAttendees) {
+                        attendee = await interaction.guild.members.fetch(attendee.user_id);
                         memberSelectMenu.addOptions([
                             {
                                 label: attendee.displayName,
                                 value: attendee.id
                             }
                         ]);
-                    });
+                    };
                 }
 
                 memberSelectMenu.setCustomId('member_select')
@@ -171,24 +176,36 @@ module.exports = {
                 const confirmButton = new ButtonBuilder().setCustomId('confirm').setLabel('Confirm').setStyle('Success');
                 const cancelButton = new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle('Danger');
                 const confirmRow = new ActionRowBuilder().addComponents(confirmButton, cancelButton);  
-                const memberSelectRow = new ActionRowBuilder().addComponent(memberSelectMenu);  
+                const memberSelectRow = new ActionRowBuilder().addComponents(memberSelectMenu);  
 
                 const memberSelectResponce = await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(editMethod == "add_attendees" ? `Please select the members you want to **add** to the event` : editMethod == "remove_attendees" ? "Please select the members you want to **remove** from the event!" : "Please select **all** the events attendees!").setColor(Colors.Blue)], components: [memberSelectRow, confirmRow] });
                 
-                const selectedMembers = [];
+                let selectedMembers = [];
                 const memberSelectCollectorFilter = i => i.user.id === interaction.user.id && (i.customId === 'member_select' || i.customId === 'confirm' || i.customId === 'cancel');
                 try {
                     while (true) {
-                        const memberSelect = await memberSelectResponce.message.awaitMessageComponent({ filter: memberSelectCollectorFilter, time: 300_000 });
-                        memberSelect.deferUpdate();
+                        const responce = await memberSelectResponce.awaitMessageComponent({ filter: memberSelectCollectorFilter, time: 300_000 });
+                        responce.deferUpdate();
 
-                        if (memberSelect.customId === 'cancel') {
-                            return interaction.editReply({embeds: [embeded_error.setDescription("Cancelling!")], components: []});
+                        if (responce.customId === 'member_select') {
+                            selectedMembers = []
+                            responce.values.forEach(memberId => {
+                                if (!selectedMembers.includes(memberId)) {
+                                    selectedMembers.push(memberId);
+                                }
+                            });
                         }
 
-                        if (memberSelect.customId === 'confirm') {
-                            memberSelect.values.forEach(member => selectedMembers.push(member));
+                        if (responce.customId === 'confirm') {
+                            if (selectedMembers.length < 1) {
+                                continue;
+                            }
+                            interaction.editReply({embeds: [new EmbedBuilder().setDescription(`Processing!`).setColor(Colors.Blue)], components: []});
                             break;
+                        }
+
+                        if (responce.customId === 'cancel') {
+                            return interaction.editReply({embeds: [embeded_error.setDescription("Cancelling!")], components: []});
                         }
                     }
                 } catch (error) {
@@ -202,66 +219,78 @@ module.exports = {
                 const promopointsRewarded = event.promopoints_rewarded ?? 1
 
 
-                const addAttendee = async (member) => {
-                    if (eventAttendees.includes(member.id)) {
-                        promoLogs += `\n${member} was already attending the event`
+                const addAttendee = async (attendeeId) => {
+                    if (eventAttendees.map(a => a.user_id).includes(attendeeId)) {
+                        promoLogs += `\n<@${attendeeId}> was already attending the event`
                     } else {
-                        promoLogs += `\n${member} was added to the event! `
-                        event.attendees += `,${member.id}`;
+                        promoLogs += `\n<@${attendeeId}> was added to the event! `
+                        let dbAttendee = await db.Users.findOne({ where: { user_id: attendeeId, guild_id: interaction.guild.id } });
+                        if (!dbAttendee) {
+                            dbAttendee = await db.Users.create({ user_id: attendeeId, guild_id: interaction.guild.id, promo_points: promopointsRewarded });
+                        }
+                        event.attendees = event.attendees.split(",").push(dbAttendee.id).join(","); // uses attendee.id for some stupid reason
                         event.amount_of_attendees += 1;
                         if (promopointsRewarded > 0) {
-                            let dbAttendee = await db.Users.findOne({ where: { user_id: member.id, guild_id: guild_id } });
-                            if (!dbAttendee) {
-                                dbAttendee = await db.Users.create({ user_id: member.id, guild_id: guild_id, promo_points: promopointsRewarded });
+                            
+                            const guildMember = await interaction.guild.members.fetch(attendeeId);
+                            const updateRankResponse = await dbAttendee.updateRank(server.group_id, guildMember, undefined, ranks);
+                            if (updateRankResponse.message) {
+                                promoLogs += "Updated rank:\n" + updateRankResponse.message + "\n";
                             }
-                            const guildMember = await interaction.guild.members.fetch(member.id);                                
-                            const updateRankResponse = await dbAttendee.updateRank(server.group_id, guildMember); 
-                            promoLogs += "Updated rank:\n" + updateRankResponse.message;
+                                
                             if (updateRankResponse.error) {
                                 promoLogs += "\n";
                                 return; 
                             }
-                            const addPromoPointsResponce = await dbAttendee.addPromoPoints(group_id, guildMember, ranks, promopointsRewarded);
+                            const addPromoPointsResponce = await dbAttendee.addPromoPoints(server.group_id, guildMember, ranks, promopointsRewarded);
                             
                             dbAttendee.total_events_attended += 1;
                             dbAttendee.events += `,${event_id}`;
                             await dbAttendee.save();
                             if ((await dbAttendee.getRank()).is_officer) {
                                 event.amount_of_officers += 1;
-                                event.officers += `,${member.id}`;
+                                event.officers += event.officers.split(",").push(dbAttendee.user_id).join(","); // add the officer to the list
                             }
                             promoLogs += "Added promo points: \n" + addPromoPointsResponce.message + "\n";
                         }
                     }
                 }
 
-                const removeAttendee = async (member) => {
-                    if (!eventAttendees.includes(member.id)) {
-                        promoLogs += `\n${member} was already not logged as attending the event!`
+                const removeAttendee = async (attendeeId) => {
+                    if (!eventAttendees.map(a => a.user_id).includes(attendeeId)) {
+                        promoLogs += `\n<@${attendeeId}> was already not logged as attending the event!`
                     } else {
-                        promoLogs += `\n${member} was removed from the event! `
+                        promoLogs += `\n<@${attendeeId}> was removed from the event! `
+                        let dbAttendee = await db.Users.findOne({ where: { user_id: attendeeId, guild_id: interaction.guild.id } });
+                        if (!dbAttendee) {
+                            dbAttendee = await db.Users.create({ user_id: attendeeId, guild_id: interaction.guild.id, promo_points: promopointsRewarded });
+                        }
                         event.amount_of_attendees -= 1;
-                        event.attendees = event.attendees.replace(`,${member.id}`, "");
+                        event.attendees = event.attendees.split(",").filter(id => id !== dbAttendee.id).join(","); // remove the attendee from the list
                         if (promopointsRewarded > 0) {
-                            let dbAttendee = await db.Users.findOne({ where: { user_id: member.id, guild_id: member.guild.id } });
-                            if (!dbAttendee) {
-                                dbAttendee = await db.Users.create({ user_id: member.id, guild_id: member.guild.id, promo_points: promopointsRewarded });
+                            
+                            const guildMember = await interaction.guild.members.fetch(attendeeId);
+                            if (!guildMember) {
+                                promoLogs += `\nI was unable to fetch the guild member for <@${attendeeId}>, they might have left the server? Aborting removing promo points and rank update!`;
+                                return;
                             }
-                            const guildMember = await interaction.guild.members.fetch(member.id);                                
-                            const updateRankResponse = await dbAttendee.updateRank(server.group_id, guildMember); 
-                            promoLogs += "Updated rank:\n" + updateRankResponse.message;
+                            const updateRankResponse = await dbAttendee.updateRank(server.group_id, guildMember, undefined, ranks);
+                            if (updateRankResponse.message) {
+                                promoLogs += "Updated rank:\n" + updateRankResponse.message + "\n";
+                            }
                             if (updateRankResponse.error) {
                                 promoLogs += "\n";
                                 return;
                             }
-                            const removePromoPointsResponce = await dbAttendee.removePromoPoints(group_id, guildMember, ranks, promopointsRewarded);
+                            const removePromoPointsResponce = await dbAttendee.removePromoPoints(server.group_id, guildMember, ranks, promopointsRewarded);
                             
                             dbAttendee.total_events_attended -= 1;
                             dbAttendee.events = dbAttendee.events.replace(`,${event_id}`, "");
                             dbAttendee.save();
-                            if (event.officers.split(",").includes(member.id)) {
+                            if (event.officers.split(",").includes(dbAttendee.user_id)) {
                                 event.amount_of_officers -= 1;
-                                event.officers = event.officers.replace(`,${member.id}`, "");
+
+                                event.officers = event.officers.split(",").filter(officerId => officerId !== dbAttendee.user_id).join(","); // remove the officer from the list
                             }
                             promoLogs += "removed promo points: \n" + removePromoPointsResponce.message + "\n";
                         }
@@ -269,26 +298,24 @@ module.exports = {
                 }      
 
                 if (editMethod === 'add_attendees') {
-                    for (const member of selectedMembers) {
-                        await addAttendee(member);
+                    for (const attendee of selectedMembers) {
+                        await addAttendee(attendee);
                     }
 
                 }
                 if (editMethod === 'remove_attendees') {
-                    for (let member of selectedMembers) {
-                        member = await interaction.guild.members.fetch(member);
-                        await removeAttendee(member);
+                    for (const attendee of selectedMembers) {
+                        await removeAttendee(attendee);
                     }
                 }
                 if (editMethod === 'both') {
-                    for (const member of eventAttendees) {
-                        if (!selectedMembers.filter(selectedMember => selectedMember.id === member.id)) {
-                            member = await interaction.guild.members.fetch(member.id);
-                            await removeAttendee(member);
+                    for (const attendee of eventAttendees) {
+                        if (!selectedMembers.filter(selectedMember => selectedMember.id === attendee.user_id).length > 0) {
+                            await removeAttendee(attendee);
                         }
                     }
-                    for (const member of selectedMembers) {
-                        await addAttendee(member);
+                    for (const attendee of selectedMembers) {
+                        await addAttendee(attendee);
                     }
                 }
             
@@ -306,11 +333,21 @@ module.exports = {
         event.game = interaction.options.getString('game_name') ?? event.game;
         event.save();
 
-        //! make it edit the seaLog and send a new promoLog with the changes
+        const promologsChannel = await getLinkedChannel({interaction, db, query: {type: "promologs", guild_id: interaction.guild.id } });
+        if (promologsChannel.channel) {
+            promologsChannel.channel.send({ embeds: [new EmbedBuilder().setDescription(promoLogs).setColor(Colors.Blue)] });
+        } else {
+            interaction.followUp({ embeds: [new EmbedBuilder().setDescription(promoLogs).setColor(Colors.Blue)] });
+        }
+
+
+        //! make it edit the seaLog and send a new promoLog with the changes | done!
+        
         const sealog = await validateMessageLink(interaction, event.sealog_message_link);
+        
         // TODO rework utils/sealog.js to use utils/generateSeaLogFormat.js 
         //TODO check if its possible to edit the picture. some people say that you can if you clear the messages attachments and then add the picture
-        interaction.editReply({ embeds: [new EmbedBuilder().setDescription(generateSeaLogFormat({
+        interaction.editReply({ components: [], embeds: [new EmbedBuilder().setDescription(generateSeaLogFormat({
             eventType: event.type,
             DivisionName: server.name ?? interaction.guild.name,
             announcmentLink: event.announcment_message,

@@ -18,14 +18,18 @@ module.exports = {
         updateGuildMemberCount({guild: member.guild, db})
 
         
+        const server = await db.Servers.findOne({ where: { guild_id: member.guild.id } })
+        if (!server || server.premium_end_date < new Date()) {
+            return
+        }
+
         let user = await db.Users.findOne({ where: { user_id: member.user.id, guild_id: member.guild.id } });
         if (!user) {
             user = await db.Users.create({ user_id: member.user.id, guild_id: member.guild.id, join_date: new Date(), promo_points: 0, rank_id: null, total_events_attended: 0, recruted_by: null })
         }
         user.join_date = new Date()
-        let server;
+
         if (user.rank_id === null) {
-            server = await db.Servers.findOne({ where: { guild_id: member.guild.id } })
             if (!server) {
                 return console.log("[guildMemberAdd] No server found for guild: " + member.guild.id)
             }

@@ -14,6 +14,7 @@ module.exports = {
                 .setDescription('Select your new recruit!')
                 .setRequired(true)),
 
+    premiumLock: true,
     /**
      * @param {import('discord.js').CommandInteraction} interaction
     */

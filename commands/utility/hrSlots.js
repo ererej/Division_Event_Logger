@@ -18,8 +18,9 @@
                 option.setName('division_name')
                 .setDescription('The division you want to check the hr slots of!')
                 .setRequired(false)
-                .setAutocomplete(true))
-                ,
+                .setAutocomplete(true)
+            ),
+                
 
             async autocomplete(interaction) {
                 const focusedValue = interaction.options.getFocused();

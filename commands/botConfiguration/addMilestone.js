@@ -402,7 +402,7 @@ module.exports = {
     condition_type: string //? done 
     condition_config: string //? done
     repeating: boolean //? almost done
-    reward_type: string (promopoints | promotions | custom) //? done //! Add support for custom rewards
+    reward_type: string (promopoints | promotions | role | custom) //? done //! Add support for custom rewards
     reward: string //? done
     ping: string (optional) //!add support for pinging users to give custom rewards!
     max_rank: string
