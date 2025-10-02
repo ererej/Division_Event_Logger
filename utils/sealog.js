@@ -177,22 +177,23 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     const row = new ActionRowBuilder()
         .addComponents(sendToSeaButton);
 
+    let logChannelLink;
+    switch (eventType) {
+        case "training":
+            logChannelLink = "<#1085337363359731782>"
+            break;
+        case "patrol":
+            logChannelLink = "<#1085337383618236457>"
+            break;
+        case "tryout":
+            logChannelLink = "<#1085337402329022574>"
+            break;
+    }
+
     const dbLogChannel = await db.Channels.findOne({ where: { guild_id: interaction.guild.id, type: "sealogs" } })
     if (dbLogChannel) {
         const logChannel = interaction.guild.channels.cache.get(dbLogChannel.channel_id)
         if (logChannel) {
-            let logChannelLink;
-            switch (eventType) {
-                case "training":
-                    logChannelLink = "<#1085337363359731782>"
-                    break;
-                case "patrol":
-                    logChannelLink = "<#1085337383618236457>"
-                    break;
-                case "tryout":
-                    logChannelLink = "<#1085337402329022574>"
-                    break;
-            }
             if (logChannelLink) {
                 logChannel.send(`VVV ${logChannelLink} VVV`)
             }
@@ -204,6 +205,10 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
         mapName = "Navy Simulator"
     }
     
+    if (logChannelLink) {
+        interaction.channel.send(`VVV ${logChannelLink} VVV`)
+    }
+
     const log = await interaction.channel.send({ content: format, files: [{ attachment: wedge_picture.url, name: 'wedge.png'}], components: [row] })
     interaction.channel.send({ content: "You can make the format be sent to a specific channel by running the /linkchannel command and setting the type to sealog!", flags: MessageFlags.Ephemeral })
     return {sealog: log, length: eventLength, game: mapName, date: eventStartTime}
