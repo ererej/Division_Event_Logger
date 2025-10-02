@@ -72,9 +72,9 @@ module.exports = async ({db, type, member, dbUser, milestones, guildsMilestones,
             const addPromopointsResponce = await dbUser.addPromoPoints(server.group_id, member, ranks, parseInt(milestone.reward), robloxUser);
             responce.milestones.push(...addPromopointsResponce.milestoneResponces ?? [])
             if (milestoneLogs.channel) {
-                milestoneLogs.channel.send({ content: `${member}`, embeds: [new EmbedBuilder().setDescription(`🎉 ${member} has reached the ${milestone.custom_name} milestone! \nAnd have been given ${milestone.reward} promo points! \n${addPromopointsResponce.message}`) ] });
+                milestoneLogs.channel.send({ content: `${member}`, embeds: [new EmbedBuilder().setDescription(`🎉 ${member} has reached the **${milestone.custom_name}** milestone! \nAnd have been given ${milestone.reward} promo points! \n${addPromopointsResponce.message}`) ] });
             }
-            responce.milestones.push({user_id: member.id, message: `🎉 <@${member.id}> have reached the ${milestone.custom_name} milestone and have been given ${milestone.reward} promo points! \n${addPromopointsResponce.message}`});
+            responce.milestones.push({user_id: member.id, message: `🎉 <@${member.id}> have reached the **${milestone.custom_name}** milestone and have been given ${milestone.reward} promo points! \n${addPromopointsResponce.message}`});
         } else if (milestone.reward_type === "promotions") {
             const server = await db.Servers.findOne({ where: { guild_id: dbUser.guild_id } });
             if (!server) {
@@ -83,9 +83,9 @@ module.exports = async ({db, type, member, dbUser, milestones, guildsMilestones,
             const promoteResponce = await dbUser.promote(server.guild_id, member, ranks, parseInt(milestone.reward), robloxUser);
             responce.milestones.push(...promoteResponce.milestoneResponces ?? [])
             if (milestoneLogs.channel) {
-                milestoneLogs.channel.send({ content: `${member}`, embeds: [new EmbedBuilder().setDescription(`🎉 ${member} has reached the ${milestone.custom_name} milestone! \nAnd have been promoted ${milestone.reward} times! \n${promoteResponce.message}`) ] });
+                milestoneLogs.channel.send({ content: `${member}`, embeds: [new EmbedBuilder().setDescription(`🎉 ${member} has reached the **${milestone.custom_name}** milestone! \nAnd have been promoted ${milestone.reward} times! \n${promoteResponce.message}`) ] });
             }
-            responce.milestones.push({user_id: member.id, message: `🎉 <@${member.id}> have reached the ${milestone.custom_name} milestone and have been promoted ${milestone.reward} times! \n${promoteResponce.message}`});
+            responce.milestones.push({user_id: member.id, message: `🎉 <@${member.id}> have reached the **${milestone.custom_name}** milestone and have been promoted ${milestone.reward} times! \n${promoteResponce.message}`});
         } else if (milestone.reward_type === "role") {
             let error;
             if (member.roles.cache.has(milestone.reward)) {
@@ -95,9 +95,9 @@ module.exports = async ({db, type, member, dbUser, milestones, guildsMilestones,
                 error = "failed to add role, do I have the permission to manage roles and is my role higher than the role I am trying to give?"
             });
             if (milestoneLogs.channel) {
-                milestoneLogs.channel.send({ content: `${member}`, embeds: [new EmbedBuilder().setDescription(`🎉 ${member} has reached the ${milestone.custom_name} milestone! \nAnd have been given the role <@&${milestone.reward}>!` + (error ? "\n⚠️ Error:" + error : "") ) ] });
+                milestoneLogs.channel.send({ content: `${member}`, embeds: [new EmbedBuilder().setDescription(`🎉 ${member} has reached the **${milestone.custom_name}** milestone! \nAnd have been given the role <@&${milestone.reward}>!` + (error ? "\n⚠️ Error:" + error : "") ) ] });
             }
-            responce.milestones.push({user_id: member.id, message: `🎉 <@${member.id}> have reached the ${milestone.custom_name} milestone and have been given the role <@&${milestone.reward}>!` + (error ? "\n⚠️ Error:" + error : "") });
+            responce.milestones.push({user_id: member.id, message: `🎉 <@${member.id}> have reached the **${milestone.custom_name}** milestone and have been given the role <@&${milestone.reward}>!` + (error ? "\n⚠️ Error:" + error : "") });
         } else {
             console.error("[checkMilestone] Unknown reward type: " + milestone.reward_type);
         }
