@@ -2,6 +2,9 @@ const noblox = require('noblox.js')
 const config = require('./config.json')
 
 
+const testtest = new Date()
+console.log(testtest - 7*24*60*60*1000)
+
 const test = async () => {
 
     const seamilitaryId = 2648601

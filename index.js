@@ -9,7 +9,6 @@ const countFiles = require('./utils/countFiles');
 
 
 const InvitesTracker = require('@ssmidge/discord-invites-tracker');
-const { log } = require('node:console');
 
 async function setCookieWithTimeout(cookie, timeout = 10000) {
     return new Promise((resolve, reject) => {

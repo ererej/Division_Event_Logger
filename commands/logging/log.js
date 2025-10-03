@@ -145,7 +145,7 @@
             const defaultAttendanceType = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "default_attendance_type"}})
 
             let automaticAttendence;
-            if ((voice_channel.id === undefined || defaultAttendanceType.config === "manual") || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
+            if ((voice_channel.id === undefined || (defaultAttendanceType && defaultAttendanceType.config === "manual")) || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
                 automaticAttendence = false
                 const selectAttendees = new UserSelectMenuBuilder()
                 .setCustomId('select_attendees')
@@ -437,6 +437,8 @@
                 if (dbCohost) {
                     const addCohostPromoPoints = await dbCohost.addPromoPoints(noblox, server.group_id, cohost, guild_ranks, promopointsForCohost ? promopointsForCohost.config : promopointsRewarded, null)
                     description += `\n\n\n**${nameOfPromoPoints} to the co-host:** ${addCohostPromoPoints.message}`
+                    const checkEventsCohostedMilestoneResponce = await checkMilestone({db: db, type: 'member_events_cohosted', member: cohost, dbUser: dbCohost, guildsMilestones: milestones, ranks: guild_ranks, robloxUser: dbHostUpdateResponce.robloxUser})
+                    milestoneResponces.push(...checkEventsCohostedMilestoneResponce.milestones ?? [])
                 }
             
             }
@@ -450,11 +452,6 @@
                 officer.save()
             }
 
-            if (dbCohost && cohost) {
-                const checkEventsCohostedMilestoneResponce = await checkMilestone({db: db, type: 'member_events_cohosted', member: cohost, dbUser: dbCohost, guildsMilestones: milestones, ranks: guild_ranks, robloxUser: dbHostUpdateResponce.robloxUser})
-                milestoneResponces.push(...checkEventsCohostedMilestoneResponce.milestones ?? [])
-
-            }
 
             interaction.editReply({ embeds: [new EmbedBuilder().setDescription("Please wait just a little longer!!!").setColor([255, 0, 0])], components: []})
 

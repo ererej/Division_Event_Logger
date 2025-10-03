@@ -1,6 +1,6 @@
 module.exports = (sequelize, Datatypes ) => {
 
-    const Milestones = sequelize.define('Milestones', {
+    const Milestones = sequelize.define('milestones', {
         guild_id: {
             type: Datatypes.STRING,
             allowNull: false

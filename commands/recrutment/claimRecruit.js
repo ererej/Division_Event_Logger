@@ -27,7 +27,7 @@ module.exports = {
 
         const server = await db.Servers.findOne({ where: { guild_id: interaction.guild.id } });
         if (!server) {
-            return await interaction.reply({ embeds: [ embeded_error.setDescription("Server is not setup! Please have an admin run /setup!")] });
+            return await interaction.editReply({ embeds: [ embeded_error.setDescription("Server is not setup! Please have an admin run /setup!")] });
         }
 
         let updateRankResponce;
@@ -42,7 +42,7 @@ module.exports = {
             });
             const responce = await dbRecruit.updateRank(server.group_id, recruit)
             if (responce.error) {
-                return await interaction.reply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + responce.message)] });
+                return await interaction.editReply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + responce.message)] });
             } else if (responce.message) {
                 updateRankResponce = responce;
             }
@@ -53,15 +53,15 @@ module.exports = {
 
         
         if (dbRecruit.recruted_by) {
-            return await interaction.reply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + "This user has already been claimed by <@" + dbRecruit.recruted_by + ">!")] });
+            return await interaction.editReply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + "This user has already been claimed by <@" + dbRecruit.recruted_by + ">!")] });
         }
         const now = new Date()
-        if (recruit.guild.joinedTimestamp > now - 7*24*60*60*1000 ) {
-            return await interaction.reply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + "This member has been in the server for too long to be claimed!")] });
+        if (recruit.guild.joinedTimestamp * 1000 > now - 7 * 24 * 60 * 60 * 1000) {
+            return await interaction.editReply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + "This member has been in the server for too long to be claimed!")] });
         }
 
         if (notInGroup) {
-            return await interaction.reply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + "This user is not in the group have them join the group to be able to claim them!")] });
+            return await interaction.editReply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + "This user is not in the group have them join the group to be able to claim them!")] });
         }
 
         dbRecruit.recruted_by = recruiter.id;
@@ -78,7 +78,7 @@ module.exports = {
             });
             const responce = await dbRecruiter.updateRank(server.group_id, recruiter)
             if (responce.message.startsWith("Error")) {
-                return await interaction.reply({ embeds: [ embeded_error.setDescription(`${recruiter}: ` + responce.message)] });
+                return await interaction.editReply({ embeds: [ embeded_error.setDescription(`${recruiter}: ` + responce.message)] });
             } else if (responce.message) {
                 recruiterUpdateRankResponce = responce;
             }
@@ -92,7 +92,7 @@ module.exports = {
         const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id)
 
         if (addPromoPointsResponce.error) {
-            return await interaction.reply({ embeds: [ embeded_error.setDescription(`Recruit claimed but an error ocurred when giving you ${promopointsPerRecruit} ${nameOfPromoPoints} as a reward. \n${recruiter}: ` + addPromoPointsResponce.message)] });
+            return await interaction.editReply({ embeds: [ embeded_error.setDescription(`Recruit claimed but an error ocurred when giving you ${promopointsPerRecruit} ${nameOfPromoPoints} as a reward. \n${recruiter}: ` + addPromoPointsResponce.message)] });
         }
 
         const milestoneResponces = []

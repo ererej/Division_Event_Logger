@@ -19,7 +19,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply()
 
-        const banlogsChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "banlogs" })
+        const banlogsChannel = await getLinkedChannel({interaction, db, query:{ guild_id: interaction.guild.id, type: "banlogs" }, guild: interaction.guild})
         
         // let userIds = interaction.options.getString('users').replace('\n', ',').replace(" ", ',').replace('    ', ',').replace(' ', ",").replace('\t', ',').split(',')
 

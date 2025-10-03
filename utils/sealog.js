@@ -51,7 +51,7 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
     if (typeof eventStartTime === "string") {
         format += "Date: Failed to parse time! \n"
     } else {
-        format += "Date: DD/MM/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
+        format += "Date: MM/DD/YYYY \n".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
     }
     if (eventType === "training" || eventType === "tryout") {
         let gamelink = announcemntMessage.content.split(/( |\n)/).find(substring => substring.startsWith("https://www.roblox.com/share?code=") || substring.startsWith("https://www.roblox.com/games/"))

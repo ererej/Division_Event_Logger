@@ -560,7 +560,10 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		}
 		robloxUser = await robloxUser.json()
 		// find rank from database
-		let dbRank = await Ranks.findOne({ where: { id: this.rank_id } })
+		let dbRank;
+		if (this.rank_id) {
+			dbRank = await Ranks.findOne({ where: { id: this.rank_id } })
+		}
 		if (!ranks) {
 			ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
 		}

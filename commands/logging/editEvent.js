@@ -108,7 +108,7 @@ module.exports = {
         } else {
             if (announcement.message) {
                 const eventStartTime = new Date(announcement.message.createdTimestamp);
-                date = "DD/MM/YYYY".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
+                date = "MM/DD/YYYY".replace("DD", eventStartTime.getDate()).replace("MM", eventStartTime.getMonth()+1).replace("YYYY", eventStartTime.getFullYear())
             }
         }
 

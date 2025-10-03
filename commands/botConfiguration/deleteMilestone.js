@@ -14,12 +14,11 @@ module.exports = {
         ),
 
     async autocomplete(interaction) {
-        const focusedValue = interaction.options.getFocused();
-        const choices = await db.Milestones.find({ where: { guildId: interaction.guild.id } });
-        const filtered = choices.filter(choice => choice.name.toLowerCase().includes(focusedValue.toLowerCase()));
-        await interaction.respond(
-            filtered.map(choice => ({ name: choice.name, value: choice.id })).slice(0, 25)
-        );
+        const focusedValue = interaction.options.getFocused(true);
+        const choices = await db.Milestones.findAll({ where: { guild_id: interaction.guild.id } });
+        const filtered = choices.filter(choice => choice.custom_name.toLowerCase().includes(focusedValue.value.toLowerCase()));
+        await interaction.respond(filtered.slice(0, 25).map(choice => choice = { name: choice.custom_name, value: choice.id + "" }).slice(0, 25));
+
     },    
 
     async execute(interaction) {
@@ -28,7 +27,7 @@ module.exports = {
 		const embeded_error = new EmbedBuilder().setColor(Colors.Red)
         const dbMilestone = await db.Milestones.findOne({ where: { id: interaction.options.getString('milestone') } })
         if (!dbMilestone) {
-            embeded_error.setTitle('Error').setDescription('The milestone you are trying to delete does not exist! to see all milestones run /milestones')
+            embeded_error.setTitle('Error').setDescription('The milestone you are trying to delete does not exist! to see all milestones run /listMilestones\n\n-# id?? ' + interaction.options.getString('milestone'))
             return interaction.editReply({embeds: [embeded_error]})
         }
 

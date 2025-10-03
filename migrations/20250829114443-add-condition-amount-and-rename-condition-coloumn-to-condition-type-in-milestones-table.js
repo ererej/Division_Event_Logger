@@ -3,16 +3,16 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    queryInterface.addColumn('Milestones', 'condition_config', {
+    queryInterface.addColumn('milestones', 'condition_config', {
       type: Sequelize.STRING,
       allowNull: false,
       defaultValue: ""
     });
-    queryInterface.renameColumn('Milestones', 'condition', 'condition_type');
+    queryInterface.renameColumn('milestones', 'condition', 'condition_type');
   },
 
   async down (queryInterface, Sequelize) {
-    queryInterface.removeColumn('Milestones', 'condition_config');
-    queryInterface.renameColumn('Milestones', 'condition_type', 'condition');
+    queryInterface.removeColumn('milestones', 'condition_config');
+    queryInterface.renameColumn('milestones', 'condition_type', 'condition');
   }
 };

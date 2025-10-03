@@ -47,7 +47,7 @@ module.exports = {
         const focusedValue = interaction.options.getFocused(true);
         const choices = await db.Milestones.findAll({ where: { guild_id: interaction.guild.id } });
         const filtered = choices.filter(choice => choice.custom_name.toLowerCase().includes(focusedValue.value.toLowerCase()));
-        await interaction.respond(filtered.slice(0, 25).map(choice => choice = { name: choice.custom_name, value: choice.id + "" }));
+        await interaction.respond(filtered.slice(0, 25).map(choice => choice = { name: choice.custom_name, value: choice.id + "" }).slice(0, 25));
 
     },
 

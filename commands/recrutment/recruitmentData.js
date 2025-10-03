@@ -54,10 +54,6 @@ module.exports = {
             return interaction.editReply({ embeds: [embeded_error.setDescription("You can only select either a user or a role not both at the same time!")] });
         }
 
-        if (!recruiterRole && !selectedRecruiter) {
-            //default to the command user
-            recruiters = [interaction.member]
-        }
 
 
 

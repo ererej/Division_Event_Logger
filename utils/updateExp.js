@@ -19,35 +19,35 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
     }
     
     const errorMessage = ""
-    let vcExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "vcexpdisplay" }, guild)
+    let vcExpDisplayChannel = await getLinkedChannel({interaction, db, query:{ guild_id: guild.id, type: "vcexpdisplay" }, guild})
     if (vcExpDisplayChannel.error) {
         errorMessage += vcExpDisplayChannel.message + "\n"
     } else { 
         vcExpDisplayChannel = vcExpDisplayChannel.channel
     }
 
-    let expDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "expdisplay" }, guild)
+    let expDisplayChannel = await getLinkedChannel({interaction, db, query:{ guild_id: guild.id, type: "expdisplay" }, guild})
     if (expDisplayChannel.error) {
         errorMessage += expDisplayChannel.message + "\n"
     } else {
         expDisplayChannel = expDisplayChannel.channel
     }
 
-    let levelDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "vcleveldisplay" }, guild)
+    let levelDisplayChannel = await getLinkedChannel({interaction, db, query:{ guild_id: guild.id, type: "vcleveldisplay" }, guild})
     if (levelDisplayChannel && levelDisplayChannel.error) {
         errorMessage += levelDisplayChannel.message + "\n"
     } else {
         levelDisplayChannel = levelDisplayChannel.channel
     }
 
-    let vcSmallExpDisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "vcsmallexpdisplay" }, guild)
+    let vcSmallExpDisplayChannel = await getLinkedChannel({interaction, db, query:{ guild_id: guild.id, type: "vcsmallexpdisplay" }, guild})
     if (vcSmallExpDisplayChannel && vcSmallExpDisplayChannel.error) {
         errorMessage += vcSmallExpDisplayChannel.message + "\n"
     } else {
         vcSmallExpDisplayChannel = vcSmallExpDisplayChannel.channel
     }
 
-    let vcexpandleveldisplayChannel = await getLinkedChannel(interaction, db, { guild_id: guild.id, type: "vcexpandleveldisplay" }, guild)
+    let vcexpandleveldisplayChannel = await getLinkedChannel({interaction, db, query:{ guild_id: guild.id, type: "vcexpandleveldisplay" }, guild})
     if (vcexpandleveldisplayChannel && vcexpandleveldisplayChannel.error) {
         errorMessage += vcexpandleveldisplayChannel.message + "\n"
     } else {
