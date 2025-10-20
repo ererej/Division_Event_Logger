@@ -25,6 +25,8 @@ module.exports = {
 		if (interaction.isButton()) {
 			const buttonId = interaction.customId;
 			const message = interaction.message;
+
+			message.edit({components: []})
 			if (buttonId === 'send_to_sea_logs') {
 				if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator || PermissionsBitField.Flags.ManageGuild)) {
 					return interaction.reply({ content: "You need to be an administrator or have the manage guild permission to use this button sorry!", flags: MessageFlags.Ephemeral });
@@ -53,9 +55,13 @@ module.exports = {
 				if (!logchannel) {
 					return interaction.reply({ content: "Could not find the log channel sorry!", flags: MessageFlags.Ephemeral });
 				}
+								
 				await logchannel.send({ content: "Logged by: <@" + interaction.user.id + ">\n\n" + message.content, files: message.attachments.map(a => a.url) });
 				message.edit({ components: [], content: message.content + "\n\n*This message has been logged to the SEA logs by <@" + interaction.user.id + ">*" });
 				return interaction.reply({ content: "Successfully sent the message to the log channel!", flags: MessageFlags.Ephemeral });
+				
+				
+				
 			}
 		}
 

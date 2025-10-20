@@ -27,7 +27,7 @@ module.exports = {
 
         const banReason = interaction.options.getString('reason') || "SEA banned by " + interaction.user.tag + " (" + interaction.user.id + ")!"
 
-        const banlogsChannel = await getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "banlogs" })
+        const banlogsChannel = await getLinkedChannel({interaction, db, query: { guild_id: interaction.guild.id, type: "banlogs" }, guild: interaction.guild})
 
         let UserIDs = interaction.options.getString('users').split(',')
         if (UserIDs.length < 1) {
@@ -102,7 +102,7 @@ module.exports = {
 
             let everyOther = 0
 
-            const serversBanlogsChannel = await getLinkedChannel(interaction, db, { guild_id: server.guild_id, type: "banlogs" }, guild)
+            const serversBanlogsChannel = await getLinkedChannel({interaction, db, query: { guild_id: server.guild_id, type: "banlogs" }, guild})
             banData[server.name] = {}
             let i = 0;
             for (const userId of UserIDs) {

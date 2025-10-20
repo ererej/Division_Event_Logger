@@ -19,21 +19,21 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
     }
     
     const errorMessage = ""
-    let vcExpDisplayChannel = await getLinkedChannel({interaction, db, query:{ guild_id: guild.id, type: "vcexpdisplay" }, guild})
+    let vcExpDisplayChannel = await getLinkedChannel({interaction, db, query: { guild_id: guild.id, type: "vcexpdisplay" }, guild})
     if (vcExpDisplayChannel.error) {
         errorMessage += vcExpDisplayChannel.message + "\n"
     } else { 
         vcExpDisplayChannel = vcExpDisplayChannel.channel
     }
 
-    let expDisplayChannel = await getLinkedChannel({interaction, db, query:{ guild_id: guild.id, type: "expdisplay" }, guild})
+    let expDisplayChannel = await getLinkedChannel({interaction, db, query: { guild_id: guild.id, type: "expdisplay" }, guild})
     if (expDisplayChannel.error) {
         errorMessage += expDisplayChannel.message + "\n"
     } else {
         expDisplayChannel = expDisplayChannel.channel
     }
 
-    let levelDisplayChannel = await getLinkedChannel({interaction, db, query:{ guild_id: guild.id, type: "vcleveldisplay" }, guild})
+    let levelDisplayChannel = await getLinkedChannel({interaction, db, query: { guild_id: guild.id, type: "vcleveldisplay" }, guild})
     if (levelDisplayChannel && levelDisplayChannel.error) {
         errorMessage += levelDisplayChannel.message + "\n"
     } else {

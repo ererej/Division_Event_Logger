@@ -295,7 +295,7 @@ Reflect.defineProperty(Users.prototype, 'promote', {
 
 Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it return errors with retrun { error: "error message"}
 	//todo make the input be an object 
-	value: async function(groupId, MEMBER, ranks, promotions, robloxUser, milestoneData = {}) {
+	value: async function(groupId, MEMBER, ranks, promotions, robloxUser, milestoneData = {ranks: []}) {
 		milestoneData.ranks = ranks
 		const nameOfPromoPoints = await getNameOfPromoPoints(undefined, MEMBER.guild.id, Settings)
 		let rank = await this.getRank()
@@ -378,7 +378,7 @@ Reflect.defineProperty(Users.prototype, 'addPromoPoints', { //! make the it retu
 });
 
 Reflect.defineProperty(Users.prototype, 'removePromoPoints', {
-	value: async function(groupId, MEMBER, ranks, demotions, robloxUser, milestoneData = {}) {
+	value: async function(groupId, MEMBER, ranks, demotions, robloxUser, milestoneData = {ranks: []}) {
 		milestoneData.ranks = ranks
 
 		const nameOfPromoPoints = await getNameOfPromoPoints(undefined, MEMBER.guild.id, Settings)

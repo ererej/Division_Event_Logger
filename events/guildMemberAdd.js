@@ -61,8 +61,8 @@ module.exports = {
                     console.log("checkMemberMilestoneResponce", checkMemberMilestoneResponce)
                     console.log("checkRecruitMilestoneResponce", checkRecruitMilestoneResponce)
                     if (server) {
-                        const recruitmentLogs = await getLinkedChannel({db, query: { guild_id: member.guild.id, type: "recruitmentlogs" }, guild: member.guild})
-                        const promoLogs = await getLinkedChannel({db, query: { guild_id: member.guild.id, type: "promologs" }, guild: member.guild})
+                        const recruitmentLogs = await getLinkedChannel({interaction: undefined, db, query: { guild_id: member.guild.id, type: "recruitmentlogs" }, guild: member.guild})
+                        const promoLogs = await getLinkedChannel({interaction: undefined, db, query: { guild_id: member.guild.id, type: "promologs" }, guild: member.guild})
 
                         if (recruitmentLogs.channel) {
                             recruitmentLogs.channel.send({ embeds: [new EmbedBuilder().setDescription(`<@${invite.inviter.id}> has recruited <@${member.user.id}> using the invite code ${invite.code} and got ${promopointsPerRecruit} ${server.promo_points_name} for it! \n\n ${responce ?? ""} \n ${inviter} ${addPromoPointsResponce.message ?? ""}`).setColor([0,0,255])] })

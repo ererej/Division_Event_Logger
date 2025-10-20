@@ -1,7 +1,28 @@
+const backupDb = require('../dbObjects.js')
 module.exports = async ({interaction, db, query, guild}) => {
+    if (!db) {
+        const stack = new Error().stack;
+        const lines = stack.split('\n');
+        
+        console.error('=== FULL CALL STACK ===');
+        lines.forEach((line, index) => {
+            if (index === 0) return; // Skip "Error"
+            console.error(`${index}: ${line.trim()}`);
+        });
+        console.error('=====================');
+        
+        // Get just the immediate caller
+        const callerLine = lines[2];
+        const fileMatch = callerLine.match(/\((.+):(\d+):(\d+)\)/);
+        const callerFile = fileMatch ? fileMatch[1] : 'unknown file';
+        const lineNumber = fileMatch ? fileMatch[2] : 'unknown line';
+        
+        throw new Error(`db parameter is required in getLinkedChannel. Called from: ${callerFile}:${lineNumber}`);
+    }
+
     const channelLink = await db.Channels.findOne({ where: query })
     if (!channelLink) {
-        return {channel: null}
+        return {channel: null}  
     }
 
     guild = guild || interaction.guild

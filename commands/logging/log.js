@@ -347,7 +347,7 @@
 
             const milestones = await db.Milestones.findAll({ where: { guild_id: interaction.guild.id } })
             let milestoneResponces = []
-            const milestoneLogs = await getLinkedChannel({db: db, query: { guild_id: interaction.guild.id, type: 'milestonelogs' }, guild: interaction.guild })
+            const milestoneLogs = await getLinkedChannel({interaction: interaction,db: db, query: { guild_id: interaction.guild.id, type: 'milestonelogs' }, guild: interaction.guild })
 
 
             for (const member of attendees) {
@@ -390,7 +390,7 @@
                 }
                 dbUser.total_events_attended += 1
                 const robloxUser = updateRankResponse.robloxUser
-                const addPromoPointResponce = (promopointsRewarded !== 0) ? await dbUser.addPromoPoints(server.group_id, member, guild_ranks, promopointsRewarded, robloxUser, {milestoneLogs}) : {message: `Thanks for attending! ${eventType}'s does not give ${nameOfPromoPoints} sorry!`}
+                const addPromoPointResponce = (promopointsRewarded !== 0) ? await dbUser.addPromoPoints(server.group_id, member, guild_ranks, promopointsRewarded, robloxUser, {milestoneLogs, ranks: guild_ranks}) : {message: `Thanks for attending! ${eventType}'s does not give ${nameOfPromoPoints} sorry!`}
                 if (addPromoPointResponce && updateRankResponse.message) { description += "\n" }
                 description += addPromoPointResponce.message
 
@@ -426,8 +426,9 @@
             const hostPromopoints = promopointsForEventToHost ? promopointsForEventToHost.config : 0
 
             if (hostPromopoints > 0) {
-                const addHostPromoPoints = await dbHost.addPromoPoints(noblox, server.group_id, host, guild_ranks, hostPromopoints, null)
+                const addHostPromoPoints = await dbHost.addPromoPoints(server.group_id, host, guild_ranks, hostPromopoints)
                 description += `\n\n\n**${nameOfPromoPoints} to the host:** ${addHostPromoPoints.message}`
+                milestoneResponces.push(...addHostPromoPoints.milestoneResponces ?? [])
             }
 
             if (cohost && cohost.id !== host.id) {
@@ -435,8 +436,9 @@
                 const dbCohost = await db.Users.findOne({ where: { id: cohost.id } })
 
                 if (dbCohost) {
-                    const addCohostPromoPoints = await dbCohost.addPromoPoints(noblox, server.group_id, cohost, guild_ranks, promopointsForCohost ? promopointsForCohost.config : promopointsRewarded, null)
+                    const addCohostPromoPoints = await dbCohost.addPromoPoints(server.group_id, cohost, guild_ranks, promopointsForCohost ? promopointsForCohost.config : promopointsRewarded)
                     description += `\n\n\n**${nameOfPromoPoints} to the co-host:** ${addCohostPromoPoints.message}`
+                    milestoneResponces.push(...addCohostPromoPoints.milestoneResponces ?? [])
                     const checkEventsCohostedMilestoneResponce = await checkMilestone({db: db, type: 'member_events_cohosted', member: cohost, dbUser: dbCohost, guildsMilestones: milestones, ranks: guild_ranks, robloxUser: dbHostUpdateResponce.robloxUser})
                     milestoneResponces.push(...checkEventsCohostedMilestoneResponce.milestones ?? [])
                 }

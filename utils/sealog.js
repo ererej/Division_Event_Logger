@@ -88,10 +88,12 @@ module.exports = async ( interaction, db, wedge_picture, announcemntMessage, eve
                 mapName = metadata.description.split('Check out ')[1];
                 if (mapName) {
                     mapName = mapName.split('.')[0] 
+                } else if (metadata.title && metadata.title.toLowerCase().includes("- roblox")) {
+                    mapName = metadata.title.split("- Roblox")[0].trim()
                 } else {
                     mapName = null
                 }
-            } 
+            }
         }
 
         if (!mapName || mapName.trim() === "Battle Universe") {

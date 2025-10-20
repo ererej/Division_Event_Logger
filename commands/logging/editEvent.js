@@ -370,8 +370,8 @@ module.exports = {
                     attendeeCount: event.amount_of_attendees,
                     mapName: event.game,
                     codeblock: (await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "makesealogcodeblock"}})) ? "```" : "",
-                    
-                }))]});
+
+                }))], components: [...(sealog.message.components ?? [])] });
             } catch (error) {
                 console.error("Failed to edit the sealog message:", error);
             }

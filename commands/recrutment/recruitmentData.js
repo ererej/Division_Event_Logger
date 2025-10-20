@@ -161,8 +161,10 @@ module.exports = {
                     
         let length = embed.data.title.length + embed.data.description.length
 
+        let amountOfFields = 0
         for (let field of recruiterFeilds) {
-            if (length + field.name.length + field.value.length > 6000) {
+            amountOfFields += 1
+            if (length + field.name.length + field.value.length > 6000 || amountOfFields === 25) { 
                 await interaction.followUp({ embeds: [embed], files: graphs.map(g => g.attachment) })
                 for (let graph of graphs) {
                     fs.unlinkSync(graph.filePath)
@@ -171,6 +173,7 @@ module.exports = {
                 embed = new EmbedBuilder()
                 .setColor([0, 255, 0])
                 length = 0
+                amountOfFields = 0
             }
             length += field.name.length + field.value.length
             embed.addFields(field)

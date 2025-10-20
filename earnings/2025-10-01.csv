@@ -1,0 +1,2 @@
+month,name_default,sku_id,sku_type,sales_count,sales_amount,refund_count,refund_amount,sales_currencies,cancellation_count
+2025-10-01,1$ Premium ticket,1298023132027944980,3,1,105,0,0,"[{""presentment_currency"":""usd"",""sales_amount"":105}]",0

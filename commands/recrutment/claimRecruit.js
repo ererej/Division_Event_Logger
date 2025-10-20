@@ -55,8 +55,12 @@ module.exports = {
         if (dbRecruit.recruted_by) {
             return await interaction.editReply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + "This user has already been claimed by <@" + dbRecruit.recruted_by + ">!")] });
         }
-        const now = new Date()
-        if (recruit.guild.joinedTimestamp * 1000 > now - 7 * 24 * 60 * 60 * 1000) {
+        const now = Date.now(); // Returns milliseconds directly
+        // Check if the recruit has been in the server for over a week (7 days)
+        // Discord timestamps are in milliseconds since Unix epoch
+        const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+        const joinedAt = recruit.joinedTimestamp; // already in ms
+        if (now - joinedAt > oneWeekMs) {
             return await interaction.editReply({ embeds: [ embeded_error.setDescription(`${recruit}: ` + "This member has been in the server for too long to be claimed!")] });
         }
 

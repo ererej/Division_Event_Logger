@@ -23,7 +23,7 @@ module.exports = {
 
             
         const reply = await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(`**Updated the exp to: ${server.exp}!**`).setColor([0,255,0])] })
-        const expdisplayChannel = getLinkedChannel(interaction, db, { guild_id: interaction.guild.id, type: "expdisplay" })
+        const expdisplayChannel = getLinkedChannel({interaction, db, query: { guild_id: interaction.guild.id, type: "expdisplay" }, guild: interaction.guild})
         if (interaction.channel.id === expdisplayChannel.channel_id) {
             setTimeout(() => {
                 reply.delete()
