@@ -559,6 +559,9 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 			return { message: `Error: An error occured with the rover api! error code: ${robloxUser.status} ${robloxUser.statusText}`, error: true}
 		}
 		robloxUser = await robloxUser.json()
+		if (!robloxUser.robloxId) {
+			return { message: `Error: could not find roblox user linked to <@${this.user_id}>!`, error: true}
+		}
 		// find rank from database
 		let dbRank;
 		if (this.rank_id) {
