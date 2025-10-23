@@ -83,11 +83,15 @@ module.exports = {
             } else if (type === "vanity") {
                 user.invite_code = invite.code
             } else if (type === "permissions") {
-                console.log(`missing permissins to figure out how ${member} joined in ${member.guild.name} id: ${member.guild.id}`)
+                console.log(`Missing permissions to figure out how ${member.user.username} joined ${member.guild.name} (ID: ${member.guild.id}). Bot may need MANAGE_GUILD permission.`)
+                // Set a default invite code to indicate permission issues
+                user.invite_code = "PERMISSION_ERROR"
             } else if (type === "unknown") {
-                console.log(`unable to figure out how ${member} joined in ${member.guild.name} id: ${member.guild.id}`)
+                console.log(`Unable to figure out how ${member.user.username} joined ${member.guild.name} (ID: ${member.guild.id})`)
+                user.invite_code = "UNKNOWN_SOURCE"
             } else {
-                console.log("emmmmmmmmmm what is this type: " + type)
+                console.log(`Unknown join type "${type}" for ${member.user.username} in ${member.guild.name} (ID: ${member.guild.id})`)
+                user.invite_code = `UNKNOWN_TYPE_${type}`
             }
         } else {
             console.log(`User ${member.user.username} already has already been recruited in ${member.guild.name} id: ${member.guild.id}`)

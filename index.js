@@ -46,10 +46,13 @@ initializeNoblox().then(() => {
 
     
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
+
+// Initialize tracker with more conservative settings to avoid permission issues
 const tracker = InvitesTracker.init(client, {
     fetchGuilds: true,
     fetchVanity: false,
-    fetchAuditLogs: true
+    fetchAuditLogs: false, // Changed to false to avoid permission issues
+    skipGuildIds: [] // You can add guild IDs here if you want to skip specific guilds
 });
 
 const dirPath = path.join(__dirname);
@@ -83,10 +86,20 @@ tracker.on('guildMemberAdd', async (member, type, invite) => {
     filePath = path.join(eventsPath, "guildMemberAdd.js")
     guildMemberAdd = require(filePath)
     try {
-    guildMemberAdd.execute(member, type, invite)
+        await guildMemberAdd.execute(member, type, invite)
     } catch (error) {
         console.error('Error executing guildMemberAdd:', error)
     }
+})
+
+// Add error handling for the tracker itself
+tracker.on('error', (error) => {
+    // Check if it's the specific vanity URL permission error
+    if (error.code === 50013 && error.message.includes('Missing Permissions')) {
+        console.log('Warning: Bot lacks MANAGE_GUILD permission to fetch vanity URL data in a guild. This is normal if the bot doesn\'t have admin permissions.');
+        return;
+    }
+    console.error('InvitesTracker error:', error);
 })    
 
 
