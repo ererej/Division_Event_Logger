@@ -48,7 +48,7 @@ initializeNoblox().then(() => {
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages ] });
 const tracker = InvitesTracker.init(client, {
     fetchGuilds: true,
-    fetchVanity: true,
+    fetchVanity: false,
     fetchAuditLogs: true
 });
 
