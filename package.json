@@ -20,7 +20,7 @@
     "dotenv": "^16.4.5",
     "googleapis": "^144.0.0",
     "mysql2": "^3.12.0",
-    "noblox.js": "^6.0.2",
+    "noblox.js": "github:Regalijan/noblox.js#fix-get-groups",
     "node-fetch": "^3.3.2",
     "sequelize": "^6.37.3"
   },
