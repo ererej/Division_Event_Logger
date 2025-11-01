@@ -570,7 +570,7 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		if (!ranks) {
 			ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
 		}
-		const robloxGroup = (await noblox.getGroups(robloxUser.robloxId)).find(group => group.Id === groupId)
+		const robloxGroup = (await noblox.getUserGroups(robloxUser.robloxId)).find(group => group.Id === groupId)
 		if (!robloxGroup) {
 			return { message:`Error: is not in the group!`, notInGroup: true,  error: true, robloxUser: robloxUser }
 		}

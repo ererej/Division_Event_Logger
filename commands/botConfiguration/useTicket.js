@@ -37,7 +37,7 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error]});
         }
 
-        const botGroups = await noblox.getGroups(5860759846)
+        const botGroups = await noblox.getUserGroups(5860759846)
         const testingServer = interaction.client.guilds.cache.get("831851819457052692")
 
 		if (botGroups.filter(group => group.Id == server.group_id).length == 0) {// checks that the bot account is in the group.
