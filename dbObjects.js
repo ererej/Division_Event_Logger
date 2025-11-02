@@ -570,13 +570,14 @@ Reflect.defineProperty(Users.prototype, 'updateRank', {
 		if (!ranks) {
 			ranks = await Ranks.findAll({ where: { guild_id: MEMBER.guild.id }})
 		}
-		const robloxGroup = (await noblox.getUserGroups(robloxUser.robloxId)).find(group => group.Id === groupId)
+		const usersGroups = await noblox.getUserGroups(robloxUser.robloxId)
+		const robloxGroup = usersGroups.find(group => group.group.id === groupId)
 		if (!robloxGroup) {
 			return { message:`Error: is not in the group!`, notInGroup: true,  error: true, robloxUser: robloxUser }
 		}
-		const rankFromRoblox = ranks.find(rank => rank.roblox_id == robloxGroup.RoleId)
+		const rankFromRoblox = ranks.find(rank => rank.roblox_id == robloxGroup.role.id)
 		if (!rankFromRoblox) {
-			return { message: `Error: The roblox rank ${robloxGroup.Role} is not linked! please get a admin to link it using /addrank!`, error: true, robloxUser: robloxUser }
+			return { message: `Error: The roblox rank ${robloxGroup.role.name} is not linked! please get a admin to link it using /addrank!`, error: true, robloxUser: robloxUser }
 		}
 
 		if (!dbRank) {

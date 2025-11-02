@@ -40,7 +40,7 @@ module.exports = {
         const botGroups = await noblox.getUserGroups(5860759846)
         const testingServer = interaction.client.guilds.cache.get("831851819457052692")
 
-		if (botGroups.filter(group => group.Id == server.group_id).length == 0) {// checks that the bot account is in the group.
+		if (botGroups.filter(group => group.group.id == server.group_id).length == 0) {// checks that the bot account is in the group.
             embeded_error.setDescription("Before you can activate premium you need to get a bot account in the roblox group and give it a high rank with the permissions to change peoples roles. Ererej has been notified and will add the bot account to the group soon(within 3 days) he will then contact you telling you that you can run the command again!")
             
             const groupJoinRequestChannel = testingServer.channels.cache.get("1327782299936489523")
