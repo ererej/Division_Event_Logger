@@ -49,7 +49,7 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error]});
 		} 
 
-        const ticketPrices = {"1298023132027944980": 0.99, "1384130405560615002": 2.99, "1383014678002667571": 4.99}
+        const ticketPrices = {"1298023132027944980": 0.99, "1384130405560615002": 2.99, "1383014678002667571": 4.99, "1438118709364527165": 9.99}
         
         let pricePerTicket = 0.99 
         const premiumRedeemLogsChannel = testingServer.channels.cache.get("1328990301565616250")
@@ -67,7 +67,10 @@ module.exports = {
                 const premiumButton5 = new ButtonBuilder() // Button linking to the store page for premium tickets
                     .setStyle(6)
                     .setSKUId('1383014678002667571')
-                const row = new ActionRowBuilder().addComponents([premiumButton1, premiumButton3, premiumButton5])
+                const premiumButton10 = new ButtonBuilder() // Button linking to the store page for premium tickets
+                    .setStyle(6)
+                    .setSKUId('1438118709364527165')
+                const row = new ActionRowBuilder().addComponents([premiumButton1, premiumButton3, premiumButton5, premiumButton10])
 
                 return await interaction.editReply({ embeds: [embeded_error.setDescription("You dont have any premium tickets. You can buy one here")], components: [row]}) 
             }
@@ -99,6 +102,13 @@ module.exports = {
                     .setLabel(`${ticketPrices["1383014678002667571"]}$`)
                     ticketRow.addComponents(ticketButton5)
                 }
+                if (entitelments.find(e => e.skuId === "1438118709364527165")) {
+                    const ticketButton10 = new ButtonBuilder()
+                    .setStyle(1)
+                    .setCustomId('ticketButton10')
+                    .setLabel(`${ticketPrices["1438118709364527165"]}$`)
+                    ticketRow.addComponents([ticketButton10])
+                }
                 const responce = await interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.DarkVividPink).setDescription(`You have ${entitelments.size} Tickets which one do you want to use?`)], components: [ticketRow]})
                 const collectorFilter = i => i.customId.startsWith("ticketButton") && i.user.id === interaction.user.id
                 try {
@@ -115,6 +125,10 @@ module.exports = {
                     } else if (confirmation.customId === 'ticketButton5') {
                         pricePerTicket = ticketPrices["1383014678002667571"]
                         ticket = entitelments.find(e => e.skuId === "1383014678002667571")
+                        
+                    } else if (confirmation.customId === 'ticketButton10') {
+                        pricePerTicket = ticketPrices["1438118709364527165"]
+                        ticket = entitelments.find(e => e.skuId === "1438118709364527165")
                     }
                     
                 } catch (error) {

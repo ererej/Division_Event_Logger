@@ -110,7 +110,7 @@ module.exports = {
                     
                     return
                 case 'test6':
-                    const guilds6 = [ "1341513615185936455", "1309180777485041685", "1315695066177867847", "1412230466534379580", "1404621163413377035" ]
+                    const guilds6 = [ "1249526624802574367", "1289957425494884352", "1363043026523525200", "1311057203221893171", "1375517546207383642" ]
                     let reply = ""
                     for (let i = 0; i < guilds6.length; i++) {
                         const guild6 = await interaction.client.guilds.fetch(guilds6[i]).catch(error => {   
@@ -135,6 +135,9 @@ module.exports = {
                             
                         }
                     }
+                    
+                case 'test8':
+                    interaction.emit('interactionCreate', interaction)
                     
                 default:
                     return interaction.editReply({content: "test!"})

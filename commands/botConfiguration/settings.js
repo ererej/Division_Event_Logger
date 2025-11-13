@@ -384,7 +384,7 @@ module.exports = {
                         await db.Settings.create({ guild_id: interaction.guild.id, type: 'blackjackenabled', config: blackjackEnabled })
                     }
                     return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Green).setDescription(`Successfully set blackjack enabled to **${blackjackEnabled}**`) ] })
-                case 'promopointsperecruit':
+                case 'promopoints_per_recruit':
                     const recruit_promopoints = interaction.options.getInteger('promopoints')
                     setting = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: `promopoints_per_recruit` } })
                     if (setting) {

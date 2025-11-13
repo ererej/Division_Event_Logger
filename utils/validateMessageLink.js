@@ -5,14 +5,21 @@ const { EmbedBuilder } = require("@discordjs/builders");
  * @param {string} messageLink
  * @returns {Promise<{message: import('discord.js').Message, channel: import('discord.js').TextChannel} | {error: string}>}
  */
-module.exports = async (interaction, messageLink) => {
+module.exports = async (interaction, messageLink, anotherGuild = false) => {
     const regex = /^https:\/\/(discord|discordapp|ptb\.discord|canary\.discord)\.com\/channels\/\d+\/\d+\/\d+$/;
     if (!regex.test(messageLink)) {
         return { error: "The link you provided is not a valid discord message link!" };
     }
+
+    let guild = interaction.guild
+
+    if (anotherGuild) {
+        guild = interaction.guilds.cache.find(g => g.id === messageLink.split("/"[4]))
+    }
+
     let messages_channel;
     try {
-        messages_channel = interaction.guild.channels.cache.find(i => i.id === messageLink.split("/")[5])
+        messages_channel = guild.channels.cache.find(i => i.id === messageLink.split("/")[5])
     } catch (error) {
         return { error: "The link you provided looks to refer to a message in anouther discord server and will there for not work." };
     }
