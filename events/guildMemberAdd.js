@@ -5,6 +5,7 @@ const updateGroupMemberCount = require('../utils/updateGroupMemberCount.js')
 const updateGuildMemberCount = require('../utils/updateGuildMemberCount.js')
 const getLinkedChannel = require('../utils/getLinkedChannel.js')
 const checkMilestone = require('../utils/checkMilestone.js');
+const nameOfPromoPoints = require('../utils/nameOfPromoPoints.js');
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -44,15 +45,14 @@ module.exports = {
 
                 const inviter = await db.Users.findOne({ where: { user_id: invite.inviter.id, guild_id: member.guild.id } });
                 if (inviter) {
-                    if (!server) {
-                        server = await db.Servers.findOne({ where: { guild_id: member.guild.id } })
-                    }
+                    const nameOfPromoPoints = await nameOfPromoPoints({db, guildId: member.guild.id})
+
                     const inviterMember = await member.guild.members.fetch(invite.inviter.id);
                     
                     const responce = await inviter.updateRank(server.group_id, inviterMember)
                     const promopointsPerRecruit = ((await db.Settings.findOne({ where: { guild_id: member.guild.id, type: "promopoints_per_recruit" } })) ?? {config: 0}).config
                     if (responce.error) {
-                        inviter.send({ content: `Thanks for recruiting <@${member.user.id}> you would have gotten ${promopointsPerRecruit} promo points as a reward but I was unable to verify your rank sorry! \n ${responce.message}` })
+                        inviter.send({ content: `Thanks for recruiting <@${member.user.id}> you would have gotten ${promopointsPerRecruit} ${nameOfPromoPoints} as a reward but I was unable to verify your rank sorry! \n ${responce.message}` })
                     }
                     const addPromoPointsResponce = await inviter.addPromoPoints(server.group_id, inviterMember, undefined, promopointsPerRecruit, responce.robloxUser)
                     const ranks = await db.Ranks.findAll({ where: { guild_id: member.guild.id } })
@@ -65,18 +65,18 @@ module.exports = {
                         const promoLogs = await getLinkedChannel({interaction: undefined, db, query: { guild_id: member.guild.id, type: "promologs" }, guild: member.guild})
 
                         if (recruitmentLogs.channel) {
-                            recruitmentLogs.channel.send({ embeds: [new EmbedBuilder().setDescription(`<@${invite.inviter.id}> has recruited <@${member.user.id}> using the invite code ${invite.code} and got ${promopointsPerRecruit} ${server.promo_points_name} for it! \n\n ${responce ?? ""} \n ${inviter} ${addPromoPointsResponce.message ?? ""}`).setColor([0,0,255])] })
+                            recruitmentLogs.channel.send({ embeds: [new EmbedBuilder().setDescription(`<@${invite.inviter.id}> has recruited <@${member.user.id}> using the invite code ${invite.code} and got ${promopointsPerRecruit} ${nameOfPromoPoints} for it! \n\n ${responce.message ?? ""} \n <@${inviter.user_id}> ${addPromoPointsResponce.message ?? ""}`).setColor([0,0,255])] })
                         }
 
                         if (promoLogs.channel /*&& promoLogs.channel.id !== recruitmentLogs.channel.id*/) {
-                            promoLogs.channel.send({ embeds: [new EmbedBuilder().setDescription(`<@${invite.inviter.id}> has recruited <@${member.user.id}> \n ${"<@" + inviter.id + "> " + addPromoPointsResponce.message ?? ""}`).setColor([0,0,255])] })
+                            promoLogs.channel.send({ embeds: [new EmbedBuilder().setDescription(`<@${invite.inviter.id}> has recruited <@${member.user.id}> \n ${"<@" + inviter.user_id + "> " + addPromoPointsResponce.message ?? ""}`).setColor([0,0,255])] })
                         }
 
                         if (!recruitmentLogs.channel && !promoLogs.channel) {
-                            inviter.send({ content: `Thanks for recruiting <@${member.user.id}> as a reward you have been given ${promopointsPerRecruit} promo points! \n ${responce.message ?? ""} \n ${addPromoPointsResponce.message ?? ""}` })
+                            inviter.inviter.send({ content: `Thanks for recruiting <@${member.user.id}> as a reward you have been given ${promopointsPerRecruit} ${nameOfPromoPoints}! \n ${responce.message ?? ""} \n ${addPromoPointsResponce.message ?? ""}` })
                         }
 
-                        // TODO make this use the utility function for fetching linked channels DONE!
+                        // TODO make this use the utility function for fetching linked channels. DONE!
                         
                     }
                 }
