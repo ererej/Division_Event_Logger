@@ -5,7 +5,7 @@ const updateGroupMemberCount = require('../utils/updateGroupMemberCount.js')
 const updateGuildMemberCount = require('../utils/updateGuildMemberCount.js')
 const getLinkedChannel = require('../utils/getLinkedChannel.js')
 const checkMilestone = require('../utils/checkMilestone.js');
-const nameOfPromoPoints = require('../utils/nameOfPromoPoints.js');
+const nameOfPromoPoints = require('../utils/getNameOfPromoPoints.js');
 
 module.exports = {
     name: Events.GuildMemberAdd,
