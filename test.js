@@ -69,4 +69,16 @@ const test2 = async () => {
     }
      
 };
-test2()
+// test2()
+
+
+const test3 = async () => {
+    const memberCount = 561
+    const pricePerTicket = 9.99
+    const pricePerMounth = 1.99 + Math.floor(memberCount / 250) * 0.1
+    const daysToAdd = pricePerTicket/pricePerMounth * 30
+    console.log(`Days to add: ${daysToAdd}`)
+    console.log(`New date: ${new Date(Date.now() + daysToAdd*24*60*60*1000)}`)
+}
+
+test3()

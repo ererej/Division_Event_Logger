@@ -45,7 +45,10 @@ module.exports = {
 
         const recruiterRole = interaction.options.getRole('recruiter_role')
         const selectedRecruiter = interaction.options.getUser('recruiter')
-
+        if (!selectedRecruiter && !recruiterRole) {
+            return interaction.editReply({ embeds: [embeded_error.setDescription("You must select either a user or a role to get recruitment data for!")] });
+        }
+        
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator || PermissionsBitField.Flags.ManageRoles) && (recruiterRole || selectedRecruiter.id !== interaction.user.id)) {
             return interaction.editReply({ embeds: [embeded_error.setDescription("You do not have permission to use this command on other people then youself!")] });
         }

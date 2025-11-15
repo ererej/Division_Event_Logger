@@ -33,7 +33,7 @@ module.exports = async ({data /*{labels, values, title, colors}*/, type = 'line'
       },
       elements: {
         line: {
-          // tension: 0.4,
+          tension: 0.4 * curvedLines
         },
         point: {
           radius: pointRadius,
