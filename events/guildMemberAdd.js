@@ -38,6 +38,7 @@ module.exports = {
         }
 
         if (!user.recruted_by) {
+            const nameOfPromoPoints = await nameOfPromoPoints({db, guildId: member.guild.id})
             if (type === 'normal') {
                 user.invite_code = invite.code
                 user.invite_code_owner = invite.inviter.id
@@ -45,7 +46,7 @@ module.exports = {
 
                 const inviter = await db.Users.findOne({ where: { user_id: invite.inviter.id, guild_id: member.guild.id } });
                 if (inviter) {
-                    const nameOfPromoPoints = await nameOfPromoPoints({db, guildId: member.guild.id})
+                    
 
                     const inviterMember = await member.guild.members.fetch(invite.inviter.id);
                     
