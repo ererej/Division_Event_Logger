@@ -145,7 +145,7 @@
             const defaultAttendanceType = await db.Settings.findOne({ where: { guild_id: interaction.guild.id, type: "default_attendance_type"}})
 
             let automaticAttendence;
-            if ((voice_channel.id === undefined || (defaultAttendanceType && defaultAttendanceType.config === "manual")) || interaction.options.getBoolean('manual_attendence')) { //check if the host is in a voice channel
+            if ((voice_channel.id === undefined || (defaultAttendanceType && defaultAttendanceType.config === "manual" && interaction.options.getBoolean('manual_attendence') !== false)) || interaction.options.getBoolean('manual_attendence') ) { //check if the host is in a voice channel
                 automaticAttendence = false
                 const selectAttendees = new UserSelectMenuBuilder()
                 .setCustomId('select_attendees')

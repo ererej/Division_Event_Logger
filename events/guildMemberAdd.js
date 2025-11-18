@@ -5,7 +5,7 @@ const updateGroupMemberCount = require('../utils/updateGroupMemberCount.js')
 const updateGuildMemberCount = require('../utils/updateGuildMemberCount.js')
 const getLinkedChannel = require('../utils/getLinkedChannel.js')
 const checkMilestone = require('../utils/checkMilestone.js');
-const nameOfPromoPoints = require('../utils/getNameOfPromoPoints.js');
+const getNameOfPromoPoints = require('../utils/getNameOfPromoPoints.js');
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -38,11 +38,12 @@ module.exports = {
         }
 
         if (!user.recruted_by) {
-            const nameOfPromoPoints = await nameOfPromoPoints({db, guildId: member.guild.id})
             if (type === 'normal') {
                 user.invite_code = invite.code
                 user.invite_code_owner = invite.inviter.id
                 user.recruted_by = invite.inviter.id
+
+                const nameOfPromoPoints = await getNameOfPromoPoints({db, guildId: member.guild.id})
 
                 const inviter = await db.Users.findOne({ where: { user_id: invite.inviter.id, guild_id: member.guild.id } });
                 if (inviter) {
