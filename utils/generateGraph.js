@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { AttachmentBuilder } = require('discord.js');
 
-module.exports = async ({data /*{labels, values, title, colors}*/, type = 'line', height = 600, width = 800, fontSize = 26, lineWidth = 5, pointRadius = 7, curvedLines = false}) => {
+module.exports = async ({data /*{labels, values, title, colors}*/, type = 'line', height = 600, width = 800, fontSize = 26, lineWidth = 5, pointRadius = 7, curvedLines = true}) => {
     const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 
     const configuration = {
