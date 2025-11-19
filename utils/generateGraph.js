@@ -1,10 +1,10 @@
-const { ChartJSNodeCanvas, AnimatedChartJSNodeCanvas } = require('chartjs-node-canvas');
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 const fs = require('fs');
 const path = require('path');
 const { AttachmentBuilder } = require('discord.js');
 
 module.exports = async ({data /*{labels, values, title, colors}*/, type = 'line', height = 600, width = 800, fontSize = 26, lineWidth = 5, pointRadius = 7, curvedLines = true}) => {
-    const chartJSNodeCanvas = new AnimatedChartJSNodeCanvas({ type: 'gif', width, height });
+    const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 
     const configuration = {
     type: type, // or 'bar', 'pie', etc.
@@ -50,7 +50,7 @@ module.exports = async ({data /*{labels, values, title, colors}*/, type = 'line'
   const image = await chartJSNodeCanvas.renderToBuffer(configuration);
   
   // Generate a unique file path
-  const filePath = path.join(__dirname, `./chart_${Date.now()}.gif`);
+  const filePath = path.join(__dirname, `./chart_${Date.now()}.png`);
   fs.writeFileSync(filePath, image);
 
   // Return an attachment that can be used in the Discord message
