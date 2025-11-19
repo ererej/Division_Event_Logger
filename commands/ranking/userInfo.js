@@ -91,9 +91,9 @@ module.exports = {
                 // graphs.push(await generateGraph({ title: "Events attended", labels: eventsData.map(event => {
                 //     const date = new Date(event.date)
                 //     return `${date.getDate()}/${date.getMonth() + 1}`
-                // }), colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)", "rgb(255, 146, 21)"], values: eventsData.map(event => event.event_type) }, 'line', 300, 300))
-                graphs.push(await generateGraph({data: { labels: [... Object.keys(eventTypes)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)", "rgb(255, 146, 21)"], values: [... Object.values(eventTypes)] }, type: 'doughnut', height: 600, width: 600}))
-                graphs.push(await generateGraph({data: { labels: [... Object.keys(maps)], colors: ["rgb(255,0,0)", "rgb(0,0,255)", "rgb(0,255,0)", "rgb(234, 1, 255)", "rgb(255, 251, 0)", "rgb(1, 255, 242)", "rgb(255, 146, 21)"], values: [... Object.values(maps)] }, type: 'doughnut', height: 600, width: 600}))
+                // }), values: eventsData.map(event => event.event_type) }, 'line', 300, 300))
+                graphs.push(await generateGraph({data: { labels: [... Object.keys(eventTypes)], values: [... Object.values(eventTypes)] }, type: 'doughnut', height: 600, width: 600}))
+                graphs.push(await generateGraph({data: { labels: [... Object.keys(maps)], values: [... Object.values(maps)] }, type: 'doughnut', height: 600, width: 600}))
             }
 
             embeded.setDescription(description)
