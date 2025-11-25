@@ -21,7 +21,7 @@ module.exports = {
             return await interaction.editReply({ embeds: [embeded_error], content: "https://tenor.com/view/bomb-pipe-bomb-gif-11987700991386067050" });
         }
 
-        const message = await validateMessageLink(interaction, interaction.options.getString('message_Link'), true)
+        const message = await validateMessageLink(interaction, interaction.options.getString('message_link'), true)
         if (message.error) {
             embeded_error.setDescription(message.error)
             return await interaction.editReply({ embeds: [embeded_error]});

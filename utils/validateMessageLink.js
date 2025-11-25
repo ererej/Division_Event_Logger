@@ -14,7 +14,8 @@ module.exports = async (interaction, messageLink, anotherGuild = false) => {
     let guild = interaction.guild
 
     if (anotherGuild) {
-        guild = interaction.guilds.cache.find(g => g.id === messageLink.split("/"[4]))
+        guild = interaction.client.guilds.cache.find(g => g.id === messageLink.split("/")[4])
+        console.log(guild)
     }
 
     let messages_channel;
