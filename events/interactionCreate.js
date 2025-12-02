@@ -124,11 +124,20 @@ module.exports = {
 			if (command.premiumLock) {
 				const server = await db.Servers.findOne({where: {guild_id: interaction.guild.id}})
 				if (!server || !server.premium_end_date || server.premium_end_date < new Date()) {
-					const premiumButton = new ButtonBuilder()
-								.setStyle(6)
-								.setSKUId('1298023132027944980')
-					
-					const row = new ActionRowBuilder().addComponents(premiumButton)
+					const premiumButton1 = new ButtonBuilder()
+						.setStyle(6)
+						.setSKUId('1298023132027944980')
+					const premiumButton3 = new ButtonBuilder()
+						.setStyle(6)
+						.setSKUId('1384130405560615002')
+					const premiumButton5 = new ButtonBuilder()
+						.setStyle(6)
+						.setSKUId('1383014678002667571')
+					const premiumButton10 = new ButtonBuilder()
+						.setStyle(6)
+						.setSKUId('1438118709364527165')
+
+					const row = new ActionRowBuilder().addComponents(premiumButton1, premiumButton3, premiumButton5, premiumButton10);
 					return interaction.reply({ components: [row], embeds: [new EmbedBuilder().setTitle("This command is locked to **premium servers only!** You can get premium by pressing the button below and then running </useticket:1329067836886351953>! Most of the profits goes twords fuling Ererejs candy and pastery addiction :D").setColor([255, 0, 0])] });
 				}
 			}
