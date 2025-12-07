@@ -91,7 +91,7 @@ module.exports = {
         if (replyString.length + selectedInsult.length <= 2000) {
             interaction.editReply(replyString + selectedInsult)
         } else {
-            interaction.editReply('# ***banning users:***')
+            interaction.editReply('# banning users:')
             let subStrings = replyString.split("\n")
             let tempstring = ""
             for (i=0; i < subStrings.length; i++){
