@@ -65,6 +65,8 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
     }
 
 
+    const now = new Date()
+    const christmas = now.getMonth() === 11
     
     
     let divisions = await db.Servers.findAll();
@@ -85,7 +87,7 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
 
     if (expDisplayChannel) {
         const procentage = Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*100)
-        let new_message = `# __Level ${level}__\n`
+        let new_message = `# __${christmas ? "🎁 " : ""}Level ${level} ${christmas ? "🎁" : ""}__\n`
         new_message += `**Position compared to other divs:** #${guildsPosission + 1}\n`
         const showOrHideOtherDivs = await db.Settings.findOne({ where: { guild_id: guild.id, type: "expdisplayshowotherdivs" } }) ? (await db.Settings.findOne({ where: { guild_id: guild.id, type: "expdisplayshowotherdivs" }})).config : "show"
         
@@ -93,16 +95,19 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
             new_message += `${divisions[guildsPosission - 1] ? `Division at #${guildsPosission}: ${divisions[guildsPosission - 1].name} with ${divisions[guildsPosission - 1].exp}EXP. ${divisions[guildsPosission -1].exp - server.exp}EXP needed to pass\n` : "" }${divisions[guildsPosission + 1] ?  `Division at #${guildsPosission + 2}: ${divisions[guildsPosission + 1].name} with ${divisions[guildsPosission + 1].exp}EXP\n` : "" }`
         }
         new_message += `**Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
-        new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
+        // new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
+        new_message += "```ansi\nLevel [2;31m" + level + "[0m [[2;31m"
+        
         for (let i=0;i<procentage/5;i++) {
             new_message += "▮"
         }
-        new_message += "[0m[2;31m"
+        // new_message += "[0m[2;31m"
+        new_message += "[0m[2;32m"
         for (let i=0;i<20-(procentage/5);i++) {
             new_message += "▯"
         }
         new_message += "[0m[2;30m[0m"
-        new_message += `] level [2;31m${level + 1}[0m (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*1000)/10}%)`
+        new_message += `] level [2;32m${level + 1}[0m (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*1000)/10}%)`
         new_message += "\n```"
 
         // new_message += `\nLevel progress: [${"⭕".repeat(procentage/5-1 ? procentage/5-1 : 0)}${procentage/5-1 ? ":polar_bear:" : ""}${"❌".repeat(20-(procentage/5))}] (${Math.floor(((server.exp-past_level_exp)/(exp_needed-past_level_exp))*1000)/10}%)\n`
@@ -130,7 +135,7 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
         if (vcExpDisplayChannel.error) {
             interaction.followUp({ content: vcExpDisplayChannel.message, })
         } else {
-            vcExpDisplayChannel.setName(`Exp: ${server.exp}/${exp_needed}`)
+            vcExpDisplayChannel.setName(`${christmas ? "🎁 " : ""}Exp: ${server.exp}/${exp_needed}`)
         }
     }
 
@@ -138,7 +143,7 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
         if (levelDisplayChannel.error) {
             interaction.followUp({ content: levelDisplayChannel.message, })
         } else {
-            levelDisplayChannel.setName(`Level: ${level}`)
+            levelDisplayChannel.setName(`${christmas ? "🎄 " : ""}Level: ${level}`)
         }
     }
 
@@ -146,7 +151,7 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
         if (vcSmallExpDisplayChannel.error) {
             interaction.followUp({ content: vcSmallExpDisplayChannel.message, })
         } else {
-            vcSmallExpDisplayChannel.setName(`Current Exp: ${server.exp}`)
+            vcSmallExpDisplayChannel.setName(`${christmas ? "🦌 " : ""}Current Exp: ${server.exp}`)
         }
     }
 
@@ -154,7 +159,7 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
         if (vcexpandleveldisplayChannel.error) { 
             interaction.followUp({ content: vcexpandleveldisplayChannel.message, })
         } else {
-            vcexpandleveldisplayChannel.setName(`Exp: ${server.exp} (lvl ${level})`)
+            vcexpandleveldisplayChannel.setName(`${christmas ? "🌟 " : ""}Exp: ${server.exp} (lvl ${level})`)
         }
     }
 }

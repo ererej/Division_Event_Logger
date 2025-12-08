@@ -110,7 +110,7 @@ module.exports = {
                     
                     return
                 case 'test6':
-                    const guilds6 = [ "1249526624802574367", "1289957425494884352", "1363043026523525200", "1311057203221893171", "1375517546207383642" ]
+                    const guilds6 = [ "1411070399147409540", "1132293357457121290", "1399017590361297007", "1413523597678350398", "1074091538386276382", "1422025298379276461" ]
                     let reply = ""
                     for (let i = 0; i < guilds6.length; i++) {
                         const guild6 = await interaction.client.guilds.fetch(guilds6[i]).catch(error => {   

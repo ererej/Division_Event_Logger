@@ -49,7 +49,9 @@ module.exports = async ({guild, db, interaction, channel, dbChannel, group, grou
             return false
         })
     }
+    const now = new Date()
+    const christmas = now.getMonth() === 11
 
-    channel.setName(`Group Members: ${Math.floor(group.memberCount / parseInt(rounding.config)) * parseInt(rounding.config)}`)
+    channel.setName(`${christmas ? "🤶" : ""} Group Members: ${Math.floor(group.memberCount / parseInt(rounding.config)) * parseInt(rounding.config)}`)
     return true
 }

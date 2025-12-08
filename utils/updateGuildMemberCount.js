@@ -28,6 +28,8 @@ module.exports = async ({ guild, db, interaction, channel, dbChannel, rounding }
         if (!db) console.error("No db or rounding object provided in updateGuildMemberCount.js") 
         rounding = await db.Settings.findOne({ where: { guild_id: guild.id, type: "membercountrounding" } }) ?? {config: "1"}
     }
-    channel.setName(`Member Count: ${Math.floor(guild.memberCount / parseInt(rounding.config)) * parseInt(rounding.config)}`)
+    const now = new Date()
+    const christmas = now.getMonth() === 11
+    channel.setName(`${christmas ? "🎅" : ""} Member Count: ${Math.floor(guild.memberCount / parseInt(rounding.config)) * parseInt(rounding.config)}`)
     return
 }
