@@ -6,12 +6,17 @@ module.exports = {
 	data: new SlashCommandBuilder()
         .setName('reset-server')
         .setDescription('DELETES ALL THE DATA FOR THE SERVER!!!!!!!')
-        .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator),
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator),
 
 
     async execute(interaction) {
         await interaction.deferReply()
         embeded_error = new EmbedBuilder().setColor(Colors.Red)
+
+        if (interaction.member.id !== interaction.guild.ownerId) {
+            return interaction.editReply({embeds: [embeded_error.setDescription("Only the server owner can use this command!")]})
+        }
+
 
         const deleteButton = new ButtonBuilder()
             .setCustomId('reset_server')
