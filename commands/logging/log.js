@@ -98,7 +98,7 @@
             }
             
             if (dbHostUpdateResponce.message) {
-                interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + dbHostUpdateResponce)]})
+                interaction.followUp({embeds: [new EmbedBuilder().setColor(Colors.Blue).setDescription("Your rank was updated: " + dbHostUpdateResponce.message)]})
             }
             
             let cohost;
