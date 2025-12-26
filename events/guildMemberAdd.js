@@ -52,7 +52,7 @@ module.exports = {
                     const inviterMember = await member.guild.members.fetch(invite.inviter.id);
                     
                     const responce = await inviter.updateRank(server.group_id, inviterMember)
-                    const promopointsPerRecruit = ((await db. .findOne({ where: { guild_id: member.guild.id, type: "promopoints_per_recruit" } })) ?? {config: 0}).config
+                    const promopointsPerRecruit = ((await db.Settings.findOne({ where: { guild_id: member.guild.id, type: "promopoints_per_recruit" } })) ?? {config: 0}).config
                     if (responce.error) {
                         inviter.send({ content: `Thanks for recruiting <@${member.user.id}> you would have gotten ${promopointsPerRecruit} ${nameOfPromoPoints} as a reward but I was unable to verify your rank sorry! \n ${responce.message}` })
                     }
