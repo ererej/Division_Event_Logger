@@ -143,7 +143,7 @@ module.exports = {
             const memberCount = interaction.guild.memberCount
 
             const pricePerMounth = 1.99 + Math.floor(memberCount / 250) * 0.1
-            const daysToAdd = pricePerTicket/pricePerMounth * 30
+            const daysToAdd = pricePerTicket/pricePerMounth * 30 * (ticketPrices[ticket.skuId] === 9.99 ? 1.24 : (ticketPrices[ticket.skuId] === 4.99 ? 1.12 : 1))
 
             const currentTime = new Date()
 
