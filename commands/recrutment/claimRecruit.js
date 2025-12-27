@@ -12,8 +12,14 @@ module.exports = {
         .addUserOption(option =>
             option.setName('recruit')
                 .setDescription('Select your new recruit!')
-                .setRequired(true)),
+                .setRequired(true))
+        .addUserOption(option =>
+            option.setName('recruiter')
+                .setDescription('Select the recruiter (defaults to you)!')
+                .setRequired(false))
+    ,
 
+        
     premiumLock: true,
     /**
      * @param {import('discord.js').CommandInteraction} interaction
@@ -21,7 +27,7 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply();
         const recruit = interaction.guild.members.cache.get(interaction.options.getUser('recruit').id)
-        const recruiter = interaction.member;
+        const recruiter = interaction.options.getUser('recruiter') ? interaction.guild.members.cache.get(interaction.options.getUser('recruiter').id) : interaction.member;
 
         const embeded_error = new EmbedBuilder().setColor(Colors.Red)
 
