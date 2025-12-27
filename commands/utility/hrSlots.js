@@ -122,7 +122,7 @@
                 }          
                 
                 if (!departmentSlot && !divisionSlotProvider) {
-                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(`No HR slot found for this user!`)] });
+                    return interaction.editReply({ embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(`No HR slot found for ${robloxUser.cachedUsername}!`)] });
                 }
 
                 const responceEmbed = new EmbedBuilder()
