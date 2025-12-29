@@ -103,15 +103,14 @@ module.exports = {
 							channel.send(logMessage.substring(0, 1950));
 							logMessage = logMessage.substring(1950)
 							channel.send(logMessage);
-							
+						} else {
+							channel.send(logMessage);
 						}
-						
 						logMessage = ""
 					}
 					logMessage += "**" + option.name + "** = " + option.value + " \n" 
 					if (logMessage.length > 1950) {
-						channel.send(logMessage.substring(0, 1950));
-						logMessage += "..."
+						logMessage = logMessage.substring(0, 1950) + "..."	
 					}
 					channel.send(logMessage);
 				})
