@@ -272,7 +272,7 @@ module.exports = {
                         
                         gameOver = true;
                         const ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }});
-                        const result = await user.removePromoPoints(noblox, server.group_id, interaction.member, ranks, Math.floor(bet));
+                        const result = await user.removePromoPoints(server.group_id, interaction.member, ranks, Math.floor(bet));
                         if (result && result.message) {
                             message += "\n\n" + result.message;
                         }
@@ -291,7 +291,7 @@ module.exports = {
                                 color = Colors.LuminousVividPink;
                                 message = "🎉 **BLACKJACK!** You win 1.5x your bet!";
                                 const ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }});
-                                const result = await user.addPromoPoints(noblox, server.group_id, interaction.member, ranks, Math.floor(bet * 1.5));
+                                const result = await user.addPromoPoints(server.group_id, interaction.member, ranks, Math.floor(bet * 1.5));
                                 //if (result.message === ) //make it give promo points even if they cant rank up with them
                                 if (result && result.message) {
                                     message += "\n\n" + result.message;
@@ -302,7 +302,7 @@ module.exports = {
                             color = Colors.Green;
                             message = "🎉 **21!** You got 21 and win!";
                             const ranks = await db.Ranks.findAll({ where: { guild_id: interaction.guild.id }});
-                            const result = await user.addPromoPoints(noblox, server.group_id, interaction.member, ranks, Math.floor(bet));
+                            const result = await user.addPromoPoints(server.group_id, interaction.member, ranks, Math.floor(bet));
                             if (result && result.message) {
                                 message += "\n\n" + result.message;
                             }
@@ -329,7 +329,7 @@ module.exports = {
                     if (houseValue > 21) {
                         color = Colors.Green;
                         message = "🎉 **House busted!** You win!";
-                        const result = await user.addPromoPoints(noblox, server.group_id, interaction.member, ranks, Math.floor(bet));
+                        const result = await user.addPromoPoints(server.group_id, interaction.member, ranks, Math.floor(bet));
                         if (result && result.message) {
                             message += "\n\n" + result.message;
                         }
@@ -342,14 +342,14 @@ module.exports = {
                             message += "\nhttps://cdn.discordapp.com/attachments/1213718932238762004/1398059893189251273/IMG_2472.webp?ex=6883fc3d&is=6882aabd&hm=dba9e35462a18a390690ac81bbabfa7aabca420c52539f69e900810def2a06a1&";
                         }
                         
-                        const result = await user.removePromoPoints(noblox, server.group_id, interaction.member, ranks, Math.floor(bet));
+                        const result = await user.removePromoPoints(server.group_id, interaction.member, ranks, Math.floor(bet));
                         if (result && result.message) {
                             message += "\n\n" + result.message;
                         }
                     } else if (playerValue > houseValue) {
                         color = Colors.Green;
                         message = "🎉 **You win!** Congratulations!";
-                        const result = await user.addPromoPoints(noblox, server.group_id, interaction.member, ranks, Math.floor(bet));
+                        const result = await user.addPromoPoints(server.group_id, interaction.member, ranks, Math.floor(bet));
                         if (result && result.message) {
                             message += "\n\n" + result.message;
                         }
