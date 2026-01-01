@@ -52,7 +52,7 @@ const tracker = InvitesTracker.init(client, {
     fetchGuilds: true,
     fetchVanity: false,
     fetchAuditLogs: false, // Changed to false to avoid permission issues
-    skipGuildIds: [] // You can add guild IDs here if you want to skip specific guilds
+    skipGuildIds: ["586419206178996224"] // You can add guild IDs here if you want to skip specific guilds
 });
 
 const dirPath = path.join(__dirname);
