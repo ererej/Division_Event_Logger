@@ -28,7 +28,6 @@ module.exports = {
                     { name: 'previous whole week', value: JSON.stringify(["previous whole week", 7 * 24 * 60 * 60 * 1000]) },
                     { name: 'previous whole month', value: JSON.stringify(["previous whole month", 30 * 24 * 60 * 60 * 1000]) },
                     { name: 'last whole year', value: JSON.stringify(["last whole year", 365 * 24 * 60 * 60 * 1000]) },
-                    { name: 'all time', value: JSON.stringify([0, Date.now()]) }
                 )
         )
         .addBooleanOption(option =>
@@ -105,10 +104,6 @@ module.exports = {
             if (start === "last whole year") {
                 startTime = new Date(today.getFullYear() - 1, 0, 1)
                 endTime = new Date(today.getFullYear() - 1, 11, 31)
-            }
-            if (start === "all time") {
-                startTime = new Date(0)
-                endTime = new Date()
             }
         }
         
