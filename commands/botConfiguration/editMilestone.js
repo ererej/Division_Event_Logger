@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField, ButtonBuilder, ActionRowBuilder, UserSelectMenuBuilder, RoleSelectMenuBuilder, StringSelectMenuBuilder, ButtonStyle } = require('discord.js');
 const db = require("../../dbObjects.js")
 const getNameOfPromoPoints = require('../../utils/getNameOfPromoPoints.js');
+const { premiumLock } = require('./addMilestone.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -50,6 +51,8 @@ module.exports = {
         await interaction.respond(filtered.slice(0, 25).map(choice => choice = { name: choice.custom_name, value: choice.id + "" }).slice(0, 25));
 
     },
+
+    premiumLock: true,
 
     /**
      * @param {import('discord.js').CommandInteraction} interaction

@@ -1,5 +1,6 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, EmbedBuilder, PermissionsBitField, Colors } = require('discord.js');
-const db = require('../../dbObjects.js')
+const db = require('../../dbObjects.js');
+const { premiumLock } = require('./addMilestone.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -20,6 +21,8 @@ module.exports = {
         await interaction.respond(filtered.slice(0, 25).map(choice => choice = { name: choice.custom_name, value: choice.id + "" }).slice(0, 25));
 
     },    
+
+    premiumLock: true,
 
     async execute(interaction) {
 		await interaction.deferReply()

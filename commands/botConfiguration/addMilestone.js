@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, Colors, PermissionsBitField, ButtonBuilder, ActionRowBuilder, RoleSelectMenuBuilder, StringSelectMenuBuilder } = require('discord.js');
 const db = require("../../dbObjects.js")
 const getNameOfPromoPoints = require('../../utils/getNameOfPromoPoints.js');
+const { premiumLock } = require('../fun/blackJack.js');
 
 
 
@@ -11,6 +12,9 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionsBitField.Flags.ManageRoles || PermissionsBitField.Flags.Administrator)
         
     ,
+
+    premiumLock: true,
+
     async execute(interaction) {
         await interaction.deferReply();
         const nameOfPromoPoints = await getNameOfPromoPoints(db, interaction.guild.id);
