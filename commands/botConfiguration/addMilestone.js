@@ -28,7 +28,7 @@ module.exports = {
         const row = new ActionRowBuilder()
             .addComponents(memberMilestone, recruiterMilestone);
 
-        let responce = await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('# Welcome to the Milestone builder! \nThe milestone builder allows you to automatically reward your members for reaching certain milestones. \n\nLets dive in! \nWe first need to choice the milestone category there are two catagorys \nthe *Member* catagory is for when the user has done something and the \n*Recruiter* catagory is for when a recruiter has recruited someone and then the recruits does something \n\n')] , components: [row] });
+        let responce = await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('# Welcome to the Milestone builder! \nThe milestone builder allows you to automatically reward your members for reaching certain milestones. \n\nLet\'s dive in! \nWe first need to choose the milestone category. There are two categories: \nthe *Member* category is for when the user has done something, and the \n*Recruiter* category is for when a recruiter has recruited someone and then the recruit does something. \n\n')] , components: [row] });
 
         let catagory_name;
         const filter = i => i.user.id === interaction.user.id;

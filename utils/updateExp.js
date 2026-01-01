@@ -95,14 +95,21 @@ module.exports = async (db, server, interaction, guild, automatic, client ) => {
             new_message += `${divisions[guildsPosission - 1] ? `Division at #${guildsPosission}: ${divisions[guildsPosission - 1].name} with ${divisions[guildsPosission - 1].exp}EXP. ${divisions[guildsPosission -1].exp - server.exp}EXP needed to pass\n` : "" }${divisions[guildsPosission + 1] ?  `Division at #${guildsPosission + 2}: ${divisions[guildsPosission + 1].name} with ${divisions[guildsPosission + 1].exp}EXP\n` : "" }`
         }
         new_message += `**Total exp:** ${server.exp} / ${exp_needed} (${Math.floor((server.exp/exp_needed)*1000)/10}%)\n**Exp needed to level up:** ${exp_needed-server.exp}\n`
-        // new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
-        new_message += "```ansi\nLevel [2;31m" + level + "[0m [[2;31m"
+        if (christmas) {
+            new_message += "```ansi\nLevel [2;31m" + level + "[0m [[2;31m"
+        } else {
+            new_message += "```ansi\nLevel [2;36m" + level + "[0m [[2;36m"
+        }
         
         for (let i=0;i<procentage/5;i++) {
             new_message += "▮"
         }
-        // new_message += "[0m[2;31m"
-        new_message += "[0m[2;32m"
+        if (christmas) {
+            new_message += "[0m[2;31m"
+        } else {
+            new_message += "[0m[2;32m"
+        }    
+        
         for (let i=0;i<20-(procentage/5);i++) {
             new_message += "▯"
         }

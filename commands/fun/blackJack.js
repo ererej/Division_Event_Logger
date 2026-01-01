@@ -335,7 +335,7 @@ module.exports = {
                         }
                     } else if (houseValue > playerValue) {
                         color = Colors.Red;
-                        message = "😔 **House wins!** Better luck next time!";
+                        message = "😍 **House wins!** Better luck next time!";
                         
                         // 1 in 10 chance to send the gif
                         if (Math.random() < 0.1) {
