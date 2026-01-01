@@ -6,7 +6,7 @@ const { Op } = require("sequelize");
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName('globalban')
-        .setDescription('Ban user(s) from all offical SEA divs that has this bot!')
+        .setDescription('Ban user(s) from all offical SEA divs that have this bot!')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.BanMembers || PermissionsBitField.Flags.Administrator)
         .addStringOption(option =>
             option.setName('users')
